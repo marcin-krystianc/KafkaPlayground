@@ -1,1 +1,1 @@
-docker build -t arrow-dev .
+docker build -t mykafka .
