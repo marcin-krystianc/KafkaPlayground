@@ -2,4 +2,4 @@
 FROM apache/kafka
 USER root
 RUN apk update \
- && apk add htop
+ && apk add htop kcat

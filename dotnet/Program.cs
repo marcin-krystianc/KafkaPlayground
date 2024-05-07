@@ -12,6 +12,7 @@ namespace KafkaTool
             app.Configure(c =>
             {
                 c.AddCommand<Producer1>("producer1");
+                c.AddCommand<Consumer1>("consumer1");
             });
 
             await app.RunAsync(args);
