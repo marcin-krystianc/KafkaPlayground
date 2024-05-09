@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace KafkaTool;
 
-public sealed class Producer1 : AsyncCommand<Producer1Settings>
+public sealed class Producer2 : AsyncCommand<Producer1Settings>
 {
     public const int DefaultReplicationFactor = 3;
     public const int DefaultPartitions = 1000;
@@ -43,56 +43,89 @@ public sealed class Producer1 : AsyncCommand<Producer1Settings>
                     await Task.Delay(TimeSpan.FromSeconds(5));
                 }
 
-                using (var producer = new ProducerBuilder<long, long>(
-                               configuration.AsEnumerable())
-                           .SetLogHandler((a, b) => Log.LogInformation($"kafka-log  Facility:{b.Facility}, Message{b.Message}"))
-                           .Build())
+                var producer = new ProducerBuilder<long, long>(
+                        configuration.AsEnumerable())
+                    .SetLogHandler(
+                        (a, b) => Log.LogInformation($"kafka-log  Facility:{b.Facility}, Message{b.Message}"))
+                    .Build();
+
+                Exception e = null;
+                var numProduced = 0;
+                const int numMessages = 1 << 28;
+                var queue = new Queue<(long k, long v)>();
+
+                for (int i = 0; i < numMessages; ++i)
                 {
-                    Exception e = null;
-                    var numProduced = 0;
-                    const int numMessages = 1 << 28;
-                    for (int i = 0; i < numMessages; ++i)
+                    queue.Enqueue((k: i % 1000, v: i));
+
+                    await Task.Delay(TimeSpan.FromMilliseconds(1));
+
+                    if (e != null)
                     {
-                        await Task.Delay(TimeSpan.FromMilliseconds(1));
+                        throw e;
+                    }
 
-                        if (e != null)
+                    while (queue.Count != 0)
+                    {
+                        var (k, v) = queue.Dequeue();
+
+                        try
                         {
-                            throw e;
-                        }
-
-                        producer.Produce(topic, new Message<long, long> { Key = i % 1000, Value = i },
-                            (deliveryReport) =>
-                            {
-                                if (deliveryReport.Error.Code != ErrorCode.NoError)
+                            producer.Produce(topic, new Message<long, long> { Key = k, Value = v },
+                                (deliveryReport) =>
                                 {
-                                    if (e == null)
-                                        e = new Exception(
+                                    if (deliveryReport.Error.Code != ErrorCode.NoError)
+                                    {
+                                        queue.Enqueue((deliveryReport.Message.Key, deliveryReport.Message.Value));
+
+                                        Log.Log(LogLevel.Information,
                                             $"DeliveryReport.Error, Code = {deliveryReport.Error.Code}, Reason = {deliveryReport.Error.Reason}" +
                                             $", IsFatal = {deliveryReport.Error.IsFatal}, IsError = {deliveryReport.Error.IsError}" +
                                             $", IsLocalError = {deliveryReport.Error.IsLocalError}, IsBrokerError = {deliveryReport.Error.IsBrokerError}");
-                                }
-                                else
-                                {
-                                    numProduced += 1;
-                                    if (numProduced % 100 == 0)
-                                    {
-                                        Log.Log(LogLevel.Information,
-                                            $"{numProduced} messages were produced to topic: {topic}");
+
+                                        producer = new ProducerBuilder<long, long>(
+                                                configuration.AsEnumerable())
+                                            .SetLogHandler((a, b) =>
+                                                Log.LogInformation(
+                                                    $"kafka-log  Facility:{b.Facility}, Message{b.Message}"))
+                                            .Build();
+
+                                        /*
+                                        if (e == null)
+                                            e = new Exception(
+                                                $"DeliveryReport.Error, Code = {deliveryReport.Error.Code}, Reason = {deliveryReport.Error.Reason}" +
+                                                $", IsFatal = {deliveryReport.Error.IsFatal}, IsError = {deliveryReport.Error.IsError}" +
+                                                $", IsLocalError = {deliveryReport.Error.IsLocalError}, IsBrokerError = {deliveryReport.Error.IsBrokerError}");
+                                                */
                                     }
-                                }
-                                
-                            });
+                                    else
+                                    {
+                                        numProduced += 1;
+                                        if (numProduced % 100 == 0)
+                                        {
+                                            Log.Log(LogLevel.Information,
+                                                $"{numProduced} messages were produced to topic: {topic}");
+                                        }
+                                    }
+                                });
+                        }
+                        catch (Exception exception)
+                        {
+                            Log.Log(LogLevel.Information, $"Producer exception:{exception}, topic:{topic}");
+                            queue.Enqueue((k, v));
+                        }
 
                         if (i % 100 == 0)
                         {
                             var result = producer.Flush(TimeSpan.FromSeconds(10));
-                            Log.Log(LogLevel.Information, $"Topic: {topic}, remaining {result} messages in the queue");
+                            Log.Log(LogLevel.Information,
+                                $"Topic: {topic}, remaining {result} messages in the queue");
                         }
                     }
-
-                    producer.Flush(TimeSpan.FromSeconds(10));
-                    Log.Log(LogLevel.Information, $"{numProduced} messages were produced to topic: {topic}");
                 }
+
+                producer.Flush(TimeSpan.FromSeconds(10));
+                Log.Log(LogLevel.Information, $"{numProduced} messages were produced to topic: {topic}");
             }));
 
         var task = await Task.WhenAny(tasks);

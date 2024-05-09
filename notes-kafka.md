@@ -1,10 +1,18 @@
 - Do you perform rebalancing (consumer group rebalancing which is automatic I guess and broker/partitions rebalancing)
 - do you yuse KRAFT
 - what Rolling restart  really means?
+- namespaces, thousands of topics, millions of partitions, ACLs
+
 
 william Roberts:
 - message size in kafka is too small (increase from 1mb to 128mb)
 - consumer groups and rebalancing is unstable
+
+
+Jos Hickson (on Slack, #help-kafka)
+As a follow-up: even after these changes 
+I was still seeing odd things happening such as not receiving any messages or receiving messages on one topic but no another. 
+I upgraded to Confluent.Kafka 1.6.3 (from 1.5.3) and after a bit of docker/C3 shenanigans all is now well.
 
 # https://github.com/confluentinc/librdkafka/issues/4401
 
@@ -15,7 +23,7 @@ docker exec -it kafka-1 /bin/bash
 watch kcat -L -b kafka-1
 kcat -C -b kafka-2 -t topic1 -o -2000
 docker exec -it kafka-1 watch kcat -L -b kafka-1
-
+docker exec -it kafka-1 htop
 
 
 
