@@ -49,6 +49,11 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
                 const int numMessages = 1 << 28;
                 for (int m = 0; m < numMessages; ++m)
                 {
+                    while (queue.Count > 1000)
+                    {
+                        await Task.Delay(TimeSpan.FromMilliseconds(1));
+                    }
+
                     queue.Enqueue((topic: topic, k: m % 1000, v: m));
                     await Task.Delay(TimeSpan.FromMilliseconds(1));
                 }
@@ -58,8 +63,13 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
         {
             long numProduced = 0;
             Exception e = null;
+            var producerConfig = new ProducerConfig 
+            {
+                Acks = Acks.None,
+            };
+
             var producer = new ProducerBuilder<long, long>(
-                    configuration.AsEnumerable())
+                    producerConfig.AsEnumerable().Concat(configuration.AsEnumerable()))
                 .SetLogHandler(
                     (a, b) => Log.LogInformation($"kafka-log Facility:{b.Facility}, Message{b.Message}"))
                 .Build();
