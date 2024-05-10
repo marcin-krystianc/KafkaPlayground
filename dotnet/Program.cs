@@ -13,6 +13,7 @@ namespace KafkaTool
             {
                 c.AddCommand<Producer1>("producer1");
                 c.AddCommand<Producer2>("producer2");
+                c.AddCommand<Producer3>("producer3");
                 c.AddCommand<Consumer1>("consumer1");
                 c.AddCommand<AdminClient>("admin");
             });

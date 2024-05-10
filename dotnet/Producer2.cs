@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace KafkaTool;
 
-public sealed class Producer2 : AsyncCommand<Producer1Settings>
+public sealed class Producer2 : AsyncCommand<Producer2Settings>
 {
     public const int DefaultReplicationFactor = 3;
     public const int DefaultPartitions = 1000;
@@ -21,7 +21,7 @@ public sealed class Producer2 : AsyncCommand<Producer1Settings>
         .Create(builder => builder.AddSimpleConsole(configure => configure.SingleLine = true))
         .CreateLogger("Producer1");
 
-    public override async Task<int> ExecuteAsync(CommandContext context, Producer1Settings settings)
+    public override async Task<int> ExecuteAsync(CommandContext context, Producer2Settings settings)
     {
         await Task.Yield();
 
@@ -89,14 +89,6 @@ public sealed class Producer2 : AsyncCommand<Producer1Settings>
                                                 Log.LogInformation(
                                                     $"kafka-log  Facility:{b.Facility}, Message{b.Message}"))
                                             .Build();
-
-                                        /*
-                                        if (e == null)
-                                            e = new Exception(
-                                                $"DeliveryReport.Error, Code = {deliveryReport.Error.Code}, Reason = {deliveryReport.Error.Reason}" +
-                                                $", IsFatal = {deliveryReport.Error.IsFatal}, IsError = {deliveryReport.Error.IsError}" +
-                                                $", IsLocalError = {deliveryReport.Error.IsLocalError}, IsBrokerError = {deliveryReport.Error.IsBrokerError}");
-                                                */
                                     }
                                     else
                                     {
