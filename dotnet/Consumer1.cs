@@ -37,7 +37,9 @@ public sealed class Consumer1 : AsyncCommand<Producer1Settings>
             .AddIniFile(settings.IniFile)
             .Build();
 
-        var topics = new[] { "topic1" };
+        var topics = Enumerable.Range(0, 10)
+            .Select(x => $"topic{x}")
+            .ToArray();
 
         using (var consumer = new ConsumerBuilder<long, long>(
                        configuration.AsEnumerable()).SetErrorHandler((_, e) => Console.WriteLine($"Error: {e.Reason}"))

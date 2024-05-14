@@ -24,6 +24,21 @@ watch kcat -L -b kafka-1
 kcat -C -b kafka-2 -t topic1 -o -2000
 docker exec -it kafka-1 watch kcat -L -b kafka-1
 docker exec -it kafka-1 htop
+watch "ls -al /tmp/kraft-combined-logs | wc"
+
+kafka-1:/opt/kafka/bin# ./kafka-metadata-quorum.sh --bootstrap-server kafka-1:19092 describe --status
+ClusterId:              Some(4L6g3nShT-eMCtK--X86sw)
+LeaderId:               1
+LeaderEpoch:            1
+HighWatermark:          32951
+MaxFollowerLag:         0
+MaxFollowerLagTimeMs:   0
+CurrentVoters:          [1]
+CurrentObservers:       []
+
+kafka-1:/opt/kafka/bin# ./kafka-reassign-partitions.sh --bootstrap-server kafka-1:19092 --generate --topics-to-move-json-file ~/topics.json  --broker-list "1"
+
+
 
 
 
@@ -75,3 +90,7 @@ but it is not recommended for production use. There are signifi‐
 cant performance impacts caused by the automatic balancing mod‐
 ule, and it can cause a lengthy pause in client traffic for larger
 clusters."
+
+####
+ info: Producer1[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic topic26 partition count changed from 1000 to 0
+ Error: DeliveryReport.Error, Code = Local_UnknownPartition, Reason = Local: Unknown partition, IsFatal = False, IsError = True, IsLocalError = True, IsBrokerError = False

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Confluent.Kafka.Admin;
@@ -13,8 +15,8 @@ namespace KafkaTool;
 
 public sealed class Producer3 : AsyncCommand<Producer3Settings>
 {
-    public const int DefaultReplicationFactor = 3;
-    public const int DefaultPartitions = 500;
+    public const int DefaultReplicationFactor = 1;
+    public const int DefaultPartitions = 1000;
 
     private IAdminClient _adminClient;
 
@@ -34,18 +36,27 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
             .Build();
         
         var queue = new ConcurrentQueue<(string topic, long k, long v)>();
-
+        var semaphore = new SemaphoreSlim(1);
+        
         var tasks = Enumerable.Range(0, 30)
             .Select(i => Task.Run(async () =>
             {
                 string topic = $"topic{i}";
 
-                if (!TopicExists(topic))
+                try
                 {
-                    CreateTopic(topic, numPartitions: DefaultPartitions);
-                    await Task.Delay(TimeSpan.FromSeconds(5));
+                    await semaphore.WaitAsync();
+                    if (!TopicExists(topic))
+                    {
+                        await CreateTopicAsync(topic, numPartitions: DefaultPartitions);
+                        await Task.Delay(TimeSpan.FromMilliseconds(1));
+                    }
                 }
-
+                finally
+                {
+                    semaphore.Release();
+                }
+                
                 const int numMessages = 1 << 28;
                 for (int m = 0; m < numMessages; ++m)
                 {
@@ -58,14 +69,14 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
                     await Task.Delay(TimeSpan.FromMilliseconds(1));
                 }
             }));
-
+        
         var producerTask = Task.Run(async () =>
         {
             long numProduced = 0;
             Exception e = null;
             var producerConfig = new ProducerConfig 
             {
-                Acks = Acks.None,
+                Acks = Acks.Leader,
             };
 
             var producer = new ProducerBuilder<long, long>(
@@ -75,15 +86,20 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
                 .Build();
 
             var m = 0;
+            var sw = Stopwatch.StartNew();
             for (;;)
             {
+                
                 await Task.Delay(TimeSpan.FromMilliseconds(1));
                 while (queue.TryDequeue(out var kvp))
                 {
                     m++;
                     if (e != null)
                     {
-                        throw e;
+                        // throw e;
+                        Log.Log(LogLevel.Information,
+                            $"Exception: {e.Message}");
+                        e = null;
                     }
 
                     if (m % 1000 == 0)
@@ -96,11 +112,21 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
                         {
                             if (deliveryReport.Error.Code != ErrorCode.NoError)
                             {
+                                var topicMetadata = _adminClient.GetMetadata(deliveryReport.Topic, TimeSpan.FromSeconds(30));
+                                var partitionsCount = topicMetadata.Topics.Single().Partitions.Count;
+                                
+                                producer = new ProducerBuilder<long, long>(
+                                        producerConfig.AsEnumerable().Concat(configuration.AsEnumerable()))
+                                    .SetLogHandler(
+                                        (a, b) => Log.LogInformation($"kafka-log Facility:{b.Facility}, Message{b.Message}"))
+                                    .Build();
+                                
                                 if (e == null)
                                     e = new Exception(
                                         $"DeliveryReport.Error, Code = {deliveryReport.Error.Code}, Reason = {deliveryReport.Error.Reason}" +
                                         $", IsFatal = {deliveryReport.Error.IsFatal}, IsError = {deliveryReport.Error.IsError}" +
-                                        $", IsLocalError = {deliveryReport.Error.IsLocalError}, IsBrokerError = {deliveryReport.Error.IsBrokerError}");
+                                        $", IsLocalError = {deliveryReport.Error.IsLocalError}, IsBrokerError = {deliveryReport.Error.IsBrokerError}" +
+                                        $", topic = {deliveryReport.Topic}, partitionsCount = {partitionsCount}");
                             }
                             else
                             {
@@ -108,7 +134,7 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
                                 if (numProduced % 100 == 0)
                                 {
                                     Log.Log(LogLevel.Information,
-                                        $"{numProduced} messages were produced");
+                                        $"{numProduced} messages were produced in {(int)sw.Elapsed.TotalSeconds}s");
                                 }
                             }
                         });
@@ -138,11 +164,11 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
     /// all default settings, this should mirror the behaviour of publishing to a topic with 'allow.auto.create.topics'
     /// set to true.
     /// </summary>
-    public void CreateTopic(string topic, int numPartitions)
+    public async Task CreateTopicAsync(string topic, int numPartitions)
     {
         Log.Log(LogLevel.Information, ($"Creating topic: {topic}"));
 
-        _adminClient.CreateTopicsAsync(new[]
+        await _adminClient.CreateTopicsAsync(new[]
                 {
                     new TopicSpecification
                     {
@@ -154,9 +180,6 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
                 new CreateTopicsOptions
                 {
                     OperationTimeout = TimeSpan.FromSeconds(30)
-                })
-            .ConfigureAwait(false)
-            .GetAwaiter()
-            .GetResult();
+                });
     }
 }
