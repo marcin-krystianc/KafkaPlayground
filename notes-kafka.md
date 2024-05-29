@@ -36,8 +36,8 @@ MaxFollowerLagTimeMs:   0
 CurrentVoters:          [1]
 CurrentObservers:       []
 
+# https://strimzi.io/blog/2022/09/16/reassign-partitions/
 kafka-1:/opt/kafka/bin# ./kafka-reassign-partitions.sh --bootstrap-server kafka-1:19092 --generate --topics-to-move-json-file ~/topics.json  --broker-list "1"
-
 
 
 

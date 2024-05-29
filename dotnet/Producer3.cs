@@ -15,7 +15,7 @@ namespace KafkaTool;
 
 public sealed class Producer3 : AsyncCommand<Producer3Settings>
 {
-    public const int DefaultReplicationFactor = 1;
+    public const int DefaultReplicationFactor = 2;
     public const int DefaultPartitions = 1000;
 
     private IAdminClient _adminClient;
@@ -49,7 +49,7 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
                     if (!TopicExists(topic))
                     {
                         await CreateTopicAsync(topic, numPartitions: DefaultPartitions);
-                        await Task.Delay(TimeSpan.FromMilliseconds(1));
+                        await Task.Delay(TimeSpan.FromSeconds(30));
                     }
                 }
                 finally
@@ -66,13 +66,14 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
                     }
 
                     queue.Enqueue((topic: topic, k: m % 1000, v: m));
-                    await Task.Delay(TimeSpan.FromMilliseconds(1));
                 }
             }));
         
+        long numProduced = 0;
+        var sw = Stopwatch.StartNew();
+        
         var producerTask = Task.Run(async () =>
         {
-            long numProduced = 0;
             Exception e = null;
             var producerConfig = new ProducerConfig 
             {
@@ -86,20 +87,18 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
                 .Build();
 
             var m = 0;
-            var sw = Stopwatch.StartNew();
             for (;;)
             {
-                
                 await Task.Delay(TimeSpan.FromMilliseconds(1));
                 while (queue.TryDequeue(out var kvp))
                 {
                     m++;
                     if (e != null)
                     {
-                        // throw e;
                         Log.Log(LogLevel.Information,
                             $"Exception: {e.Message}");
-                        e = null;
+                        // e = null;
+                        throw e;
                     }
 
                     if (m % 1000 == 0)
@@ -130,20 +129,27 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
                             }
                             else
                             {
-                                numProduced += 1;
-                                if (numProduced % 100 == 0)
-                                {
-                                    Log.Log(LogLevel.Information,
-                                        $"{numProduced} messages were produced in {(int)sw.Elapsed.TotalSeconds}s");
-                                }
+                                Interlocked.Increment(ref numProduced);
                             }
                         });
-                    
                 }
             }
         });
-        
-        var task = await Task.WhenAny(tasks.Concat(new []{producerTask}));
+
+        var reporterTask = Task.Run(async () =>
+        {
+            var prevProduced = 0l;
+            for (;;)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(10));
+                var totalProduced = Interlocked.Read(ref numProduced);
+                var newlyProduced = totalProduced - prevProduced;
+                prevProduced = totalProduced;
+                Log.Log(LogLevel.Information, $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}) messages produced");
+            }
+        });
+    
+        var task = await Task.WhenAny(tasks.Concat(new []{producerTask,reporterTask}));
         await task;
         return 0;
     }

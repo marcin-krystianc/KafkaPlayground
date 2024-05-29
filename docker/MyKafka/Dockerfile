@@ -2,5 +2,6 @@
 FROM apache/kafka
 USER root
 RUN apk update \
- && apk add htop kcat sysstat atop iotop nano
+ && apk add htop kcat sysstat atop iotop nano jq
+ 
  
