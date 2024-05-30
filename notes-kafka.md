@@ -24,7 +24,8 @@ watch kcat -L -b kafka-1
 kcat -C -b kafka-2 -t topic1 -o -2000
 docker exec -it kafka-1 watch kcat -L -b kafka-1
 docker exec -it kafka-1 htop
-watch "ls -al /tmp/kraft-combined-logs | wc"
+docker exec -it kafka-1 watch "ls -al /tmp/kraft-combined-logs | wc"
+docker compose up > log.txt
 
 kafka-1:/opt/kafka/bin# ./kafka-metadata-quorum.sh --bootstrap-server kafka-1:19092 describe --status
 ClusterId:              Some(4L6g3nShT-eMCtK--X86sw)

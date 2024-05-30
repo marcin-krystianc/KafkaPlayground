@@ -16,7 +16,8 @@ namespace KafkaTool;
 public sealed class Producer3 : AsyncCommand<Producer3Settings>
 {
     public const int DefaultReplicationFactor = 2;
-    public const int DefaultPartitions = 1000;
+    public const int DefaultPartitions = 8;
+    public const int NumberOfTopics = 2000;
 
     private IAdminClient _adminClient;
 
@@ -26,8 +27,9 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Producer3Settings settings)
     {
+        
         await Task.Yield();
-
+        
         IConfiguration configuration = new ConfigurationBuilder()
             .AddIniFile(settings.IniFile)
             .Build();
@@ -36,30 +38,26 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
             .Build();
         
         var queue = new ConcurrentQueue<(string topic, long k, long v)>();
-        var semaphore = new SemaphoreSlim(1);
+
+        for (int i = 0; i < NumberOfTopics; i++)
+        {
+            string topic = $"topic{i}";
+            if (!TopicExists(topic))
+            {
+                await CreateTopicAsync(topic, numPartitions: DefaultPartitions);
+                await Task.Delay(TimeSpan.FromSeconds(1));
+            }
+        }
         
-        var tasks = Enumerable.Range(0, 30)
+        var msgCreationTasks = Enumerable.Range(0, NumberOfTopics)
             .Select(i => Task.Run(async () =>
             {
                 string topic = $"topic{i}";
-
-                try
-                {
-                    await semaphore.WaitAsync();
-                    if (!TopicExists(topic))
-                    {
-                        await CreateTopicAsync(topic, numPartitions: DefaultPartitions);
-                        await Task.Delay(TimeSpan.FromSeconds(30));
-                    }
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
+                long m = 0;
                 
-                const int numMessages = 1 << 28;
-                for (int m = 0; m < numMessages; ++m)
+                for (;;)
                 {
+                    m++;
                     while (queue.Count > 1000)
                     {
                         await Task.Delay(TimeSpan.FromMilliseconds(1));
@@ -68,7 +66,7 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
                     queue.Enqueue((topic: topic, k: m % 1000, v: m));
                 }
             }));
-        
+
         long numProduced = 0;
         var sw = Stopwatch.StartNew();
         
@@ -89,9 +87,9 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
             var m = 0;
             for (;;)
             {
-                await Task.Delay(TimeSpan.FromMilliseconds(1));
                 while (queue.TryDequeue(out var kvp))
                 {
+                    await Task.Delay(TimeSpan.FromMilliseconds(1));
                     m++;
                     if (e != null)
                     {
@@ -149,7 +147,7 @@ public sealed class Producer3 : AsyncCommand<Producer3Settings>
             }
         });
     
-        var task = await Task.WhenAny(tasks.Concat(new []{producerTask,reporterTask}));
+        var task = await Task.WhenAny(msgCreationTasks.Concat(new []{producerTask,reporterTask}));
         await task;
         return 0;
     }
