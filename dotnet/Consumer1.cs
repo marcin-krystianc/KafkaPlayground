@@ -8,13 +8,13 @@ using Microsoft.Extensions.Logging;
 
 namespace KafkaTool;
 
-public sealed class Consumer1 : AsyncCommand<Producer1Settings>
+public sealed class Consumer1 : AsyncCommand<Consumer1Settings>
 {
     private static readonly ILogger Log = LoggerFactory
         .Create(builder => builder.AddSimpleConsole(configure => configure.SingleLine = true))
         .CreateLogger("Consumer1");
 
-    public override async Task<int> ExecuteAsync(CommandContext context, Producer1Settings settings)
+    public override async Task<int> ExecuteAsync(CommandContext context, Consumer1Settings settings)
     {
         await Task.Yield();
 
