@@ -78,7 +78,7 @@ public sealed class Producer : AsyncCommand<ProducerSettings>
         var sw = Stopwatch.StartNew();
 
         var producersTask = Enumerable.Range(0, settings.Producers)
-            .Select(i => Task.Run(() =>
+            .Select(i => Task.Run(async () =>
             {
                 Log.Log(LogLevel.Information, $"Starting producer task: {i}");
                 
@@ -102,7 +102,8 @@ public sealed class Producer : AsyncCommand<ProducerSettings>
                         Log.Log(LogLevel.Information, $"Exception: {e.Message}");
                         throw e;
                     }
-                    
+
+                    await Task.Delay(TimeSpan.FromMilliseconds(1));
                     while (queue.TryDequeue(out var kvp))
                     {
                         m++;
