@@ -27,6 +27,10 @@ services:
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:19092,PLAINTEXT_HOST://localhost:40001
+    deploy:
+      resources:
+        limits:
+          cpus: '1' # The container can use at most 1 CPUs
 
   kafka-2:
     env_file:
@@ -39,6 +43,10 @@ services:
     environment:
       KAFKA_NODE_ID: 2
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:19092,PLAINTEXT_HOST://localhost:40002
+    deploy:
+      resources:
+        limits:
+          cpus: '2' 
 
   kafka-3:
     env_file:
@@ -51,6 +59,10 @@ services:
     environment:
       KAFKA_NODE_ID: 3
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:19092,PLAINTEXT_HOST://localhost:40003
+    deploy:
+      resources:
+        limits:
+          cpus: '2' 
 
   kafka-4:
     env_file:
@@ -63,7 +75,11 @@ services:
     environment:
       KAFKA_NODE_ID: 4
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-4:19092,PLAINTEXT_HOST://localhost:40004
-      
+    deploy:
+      resources:
+        limits:
+          cpus: '2' 
+
   kafka-5:
     env_file:
     - variables.env
@@ -75,3 +91,21 @@ services:
     environment:
       KAFKA_NODE_ID: 5
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-5:19092,PLAINTEXT_HOST://localhost:40005
+    deploy:
+      resources:
+        limits:
+          cpus: '2' 
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    hostname: kafdrop
+    container_name: kafdrop
+    ports:
+      - 9000:9000
+    environment:
+      KAFKA_BROKERCONNECT: kafka-1:19092
+      SERVER_SERVLET_CONTEXTPATH: "/" 
+    deploy:
+      resources:
+        limits:
+          cpus: '2' 
