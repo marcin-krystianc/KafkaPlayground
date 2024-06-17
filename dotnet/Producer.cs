@@ -149,7 +149,7 @@ public sealed class Producer : AsyncCommand<ProducerSettings>
                                             $"DeliveryReport.Error, Code = {deliveryReport.Error.Code}, Reason = {deliveryReport.Error.Reason}" +
                                             $", IsFatal = {deliveryReport.Error.IsFatal}, IsError = {deliveryReport.Error.IsError}" +
                                             $", IsLocalError = {deliveryReport.Error.IsLocalError}, IsBrokerError = {deliveryReport.Error.IsBrokerError}" +
-                                            $", topic = {deliveryReport.Topic}, partitionsCount = {partitionsCount}");
+                                            $", topic = {deliveryReport.Topic}, partition = {deliveryReport.Partition.Value}, partitionsCount = {partitionsCount}");
                                 }
                                 else
                                 {
