@@ -95,3 +95,22 @@ clusters."
 ####
  info: Producer1[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic topic26 partition count changed from 1000 to 0
  Error: DeliveryReport.Error, Code = Local_UnknownPartition, Reason = Local: Unknown partition, IsFatal = False, IsError = True, IsLocalError = True, IsBrokerError = False
+
+####
+13:51:43 info: Producer[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic topic181 partition count changed from 100 to 0
+13:51:43 info: Producer[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic topic181 partition count changed from 100 to 0
+%5|1718365903.660|PARTCNT|rdkafka#producer-1| [thrd:main]: Topic topic181 partition count changed from 100 to 0
+13:51:43 info: Producer[0] Exception: DeliveryReport.Error, Code = Local_UnknownPartition, Reason = Local: Unknown partition, IsFatal = False, IsError = True, IsLocalError = True, IsBrokerError = False, topic = topic181, partitionsCount = 0
+13:51:43 info: Producer[0] Exception: DeliveryReport.Error, Code = Local_UnknownPartition, Reason = Local: Unknown partition, IsFatal = False, IsError = True, IsLocalError = True, IsBrokerError = False, topic = topic181, partitionsCount = 0
+Error: DeliveryReport.Error, Code = Local_UnknownPartition, Reason = Local: Unknown partition, IsFatal = False, IsError = True, IsLocalError = True, IsBrokerError = False, topic = topic181, partitionsCount = 0
+
+####
+17:36:33 info: Producer[0] Exception: DeliveryReport.Error, Code = Local_MsgTimedOut, Reason = Local: Message timed out, IsFatal = False, IsError = True, IsLocalError = True, IsBrokerError = False, topic = topic37, partitionsCount = 100
+17:36:33 info: Producer[0] kafka-log Facility:REQTMOUT, Message[thrd:localhost:40001/bootstrap]: localhost:40001/1: Timed out ProduceRequest in flight (after 13386ms, timeout #0): possibly held back by preceeding MetadataRequest with timeout in 43027ms
+17:36:33 info: Producer[0] kafka-log Facility:REQTMOUT, Message[thrd:localhost:40001/bootstrap]: localhost:40001/1: Timed out ProduceRequest in flight (after 7616ms, timeout #1)
+17:36:33 info: Producer[0] kafka-log Facility:REQTMOUT, Message[thrd:localhost:40001/bootstrap]: localhost:40001/1: Timed out 2 in-flight, 0 retry-queued, 0 out-queue, 0 partially-sent requests
+17:36:33 info: Producer[0] kafka-log Facility:FAIL, Message[thrd:localhost:40001/bootstrap]: localhost:40001/1: 2 request(s) timed out: disconnect (after 319000ms in state UP)
+17:36:33 info: Producer[0] kafka-log Facility:ERROR, Message[thrd:app]: rdkafka#producer-72: localhost:40001/1: 2 request(s) timed out: disconnect (after 319000ms in state UP)
+Error: DeliveryReport.Error, Code = Local_MsgTimedOut, Reason = Local: Message timed out, IsFatal = False, IsError = True, IsLocalError = True, IsBrokerError = False, topic = topic37, partitionsCount = 100
+17:36:33 info: Producer[0] Exception: DeliveryReport.Error, Code = Local_MsgTimedOut, Reason = Local: Message timed out, IsFatal = False, IsError = True, IsLocalError = True, IsBrokerError = False, topic = topic142, partitionsCount = 100
+

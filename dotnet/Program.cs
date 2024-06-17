@@ -14,7 +14,6 @@ namespace KafkaTool
                 c.UseStrictParsing();
                 c.AddCommand<Producer>("producer");
                 c.AddCommand<Consumer1>("consumer1");
-                c.AddCommand<AdminClient>("admin");
             });
 
             await app.RunAsync(args);

@@ -59,8 +59,8 @@ public sealed class Producer : AsyncCommand<ProducerSettings>
             .Select(i => Task.Run(async () =>
             {
                 string topic = $"topic{i}";
-                long m = 0;
-
+                var rnd = new Random();
+                
                 for (;;)
                 {
                     if (Interlocked.Decrement(ref msgToEnqueue) < 0 || queue.Count > 1_0000_000)
@@ -69,7 +69,7 @@ public sealed class Producer : AsyncCommand<ProducerSettings>
                         continue;
                     }
 
-                    m++;
+                    var m = rnd.NextInt64();
                     queue.Enqueue((topic: topic, k: m % (settings.Partitions * 10), v: m));
                 }
             }));
@@ -80,7 +80,15 @@ public sealed class Producer : AsyncCommand<ProducerSettings>
         var producersTask = Enumerable.Range(0, settings.Producers)
             .Select(i => Task.Run(async () =>
             {
-                Log.Log(LogLevel.Information, $"Starting producer task: {i}");
+                var logger = LoggerFactory
+                    .Create(builder => builder.AddSimpleConsole(options =>
+                    {
+                        options.SingleLine = true;
+                        options.TimestampFormat = "HH:mm:ss ";
+                    }))
+                    .CreateLogger($"Producer{i}");
+    
+                logger.Log(LogLevel.Information, $"Starting producer task: {i}");
                 
                 Exception e = null;
                 var producerConfig = new ProducerConfig
@@ -91,7 +99,14 @@ public sealed class Producer : AsyncCommand<ProducerSettings>
                 var producer = new ProducerBuilder<long, long>(
                         producerConfig.AsEnumerable().Concat(configuration.AsEnumerable()))
                     .SetLogHandler(
-                        (a, b) => Log.LogInformation($"kafka-log Facility:{b.Facility}, Message{b.Message}"))
+                        (a, b) =>
+                        {
+                            if (!b.Message.Contains(": Disconnected (after ",
+                                    StringComparison.OrdinalIgnoreCase))
+                            {
+                                logger.LogInformation($"kafka-log Facility:{b.Facility}, Message{b.Message}");
+                            }
+                        })
                     .Build();
 
                 var m = 0;
@@ -99,7 +114,7 @@ public sealed class Producer : AsyncCommand<ProducerSettings>
                 {
                     if (e != null)
                     {
-                        Log.Log(LogLevel.Information, $"Exception: {e.Message}");
+                        logger.Log(LogLevel.Information, $"Exception: {e.Message}");
                         throw e;
                     }
 
@@ -125,7 +140,7 @@ public sealed class Producer : AsyncCommand<ProducerSettings>
                                     producer = new ProducerBuilder<long, long>(
                                             producerConfig.AsEnumerable().Concat(configuration.AsEnumerable()))
                                         .SetLogHandler(
-                                            (a, b) => Log.LogInformation(
+                                            (a, b) => logger.LogInformation(
                                                 $"kafka-log Facility:{b.Facility}, Message{b.Message}"))
                                         .Build();
 
