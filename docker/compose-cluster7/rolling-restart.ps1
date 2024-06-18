@@ -27,8 +27,11 @@ for($i=1; $i -le 7; $i++)
 	Write-Host (Get-Date).ToString() " Container started. Waiting for cluster to catch-up"
 	do {
 		$underReplicatedPartitions = docker exec -it $containerName /opt/kafka/bin/kafka-topics.sh --describe --under-replicated-partitions --bootstrap-server $bootstrapServer
+		$underMinIsrPartitions = docker exec -it $containerName /opt/kafka/bin/kafka-topics.sh --describe --under-min-isr-partitions --bootstrap-server $bootstrapServer
+		$unavailablePartitions = docker exec -it $containerName /opt/kafka/bin/kafka-topics.sh --describe --unavailable-partitions --bootstrap-server $bootstrapServer
+		$atMinIsrPartitions = docker exec -it $containerName /opt/kafka/bin/kafka-topics.sh --describe --at-min-isr-partitions --bootstrap-server $bootstrapServer
 		Start-Sleep -Seconds 1
-	} while ($underReplicatedPartitions) 
+	} while ($underReplicatedPartitions || $underMinIsrPartitions || $unavailablePartitions || $atMinIsrPartitions) 
 
 	Write-Host (Get-Date).ToString() " Waiting 30s for cluster to rebalance"
 	# Wait for cluster to rebalance
