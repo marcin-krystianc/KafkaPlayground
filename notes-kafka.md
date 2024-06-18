@@ -26,6 +26,8 @@ docker exec -it kafka-1 watch kcat -L -b kafka-1
 docker exec -it kafka-1 htop
 docker exec -it kafka-1 watch "ls -al /tmp/kraft-combined-logs | wc"
 docker compose up > log.txt
+iconv -f UTF-16 -t UTF-8 /workspace/KafkaPlayground/docker/compose-cluster3/cluster-log.txt | grep -i "topic88-5"
+docker.exe run -t -i --rm -v d:/workspace/:/workspace ubuntu
 
 kafka-1:/opt/kafka/bin# ./kafka-metadata-quorum.sh --bootstrap-server kafka-1:19092 describe --status
 ClusterId:              Some(4L6g3nShT-eMCtK--X86sw)
