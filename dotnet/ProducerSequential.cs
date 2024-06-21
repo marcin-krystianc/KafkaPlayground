@@ -33,20 +33,52 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
 
         _adminClient = new AdminClientBuilder(configuration.AsEnumerable())
             .Build();
-
         var queue = new ConcurrentQueue<(string topic, long k, long v)>();
 
+        var topicsCreated = false;
         for (int i = 0; i < settings.Topics; i++)
         {
             string topic = $"topic{i}";
+            
+            /*
+            if (TopicExists(topic))
+            {
+                await DeleteTopicAsync(topic);
+            }
+            */
+
             if (!TopicExists(topic))
             {
-                await CreateTopicAsync(topic, numPartitions: settings.Partitions, settings.ReplicationFactor);
-                await Task.Delay(TimeSpan.FromMilliseconds(1));
+                topicsCreated = true;
+                await CreateTopicAsync(topic, numPartitions: settings.Partitions, settings.ReplicationFactor,
+                    settings.MinISR);
+                await Task.Delay(TimeSpan.FromMilliseconds(100));
+
+                while (true)
+                {
+                    if (!TopicExists(topic))
+                    {
+                        Log.Log(LogLevel.Information, $"Waiting for {topic} to be created");
+                        await Task.Delay(TimeSpan.FromMilliseconds(100));
+                        continue;
+                    }
+
+                    break;
+                }
             }
+
+            await WaitForCLusterReadyAsync();
+            await Task.Delay(TimeSpan.FromMilliseconds(1));
         }
 
-        await WaitForCLusterReadyAsync(settings.Topics, settings.Partitions, settings.ReplicationFactor);
+        if (topicsCreated)
+        {
+            var millisecondsPerTopic = 7;
+            var delay = TimeSpan.FromMilliseconds(millisecondsPerTopic * settings.Topics * settings.Partitions);
+            await WaitForCLusterReadyAsync();
+            Log.Log(LogLevel.Information, $"Waiting for {(int)delay.TotalSeconds}s");
+            await Task.Delay(delay);
+        }
 
         long msgToEnqueue = 0;
         var msgControllerTask = Task.Run(async () =>
@@ -57,13 +89,13 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 await Task.Delay(TimeSpan.FromSeconds(1));
             }
         });
-      
+
         var msgCreationTasks = Enumerable.Range(0, settings.Topics)
             .Select(i => Task.Run(async () =>
             {
                 string topic = $"topic{i}";
                 var rnd = new Random();
-                Dictionary<long, long> valueDictionary = new ();
+                Dictionary<long, long> valueDictionary = new();
 
                 for (;;)
                 {
@@ -81,53 +113,44 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 }
             }));
 
-        var consumerTasks = Enumerable.Range(0, settings.Topics)
-            .Select(i => Task.Run( () =>
+        long numConsumed = 0;
+        long numDuplicates = 0;
+        var consumerTasks = Enumerable.Range(0, 1)
+            .Select(i => Task.Run(async () =>
             {
+                await Task.Yield();
+
                 string topic = $"topic{i}";
+                var config = new ConsumerConfig
+                {
+                    GroupId = Guid.NewGuid().ToString(),
+                    EnableAutoOffsetStore = true,
+                    EnableAutoCommit = true,
+                    StatisticsIntervalMs = null,
+                    SessionTimeoutMs = 30000,
+                    AutoOffsetReset = AutoOffsetReset.Earliest,
+                    // EnablePartitionEof = true,
+                    // A good introduction to the CooperativeSticky assignor and incremental rebalancing:
+                    // https://www.confluent.io/blog/cooperative-rebalancing-in-kafka-streams-consumer-ksqldb/
+                    PartitionAssignmentStrategy = PartitionAssignmentStrategy.CooperativeSticky
+                };
+
+                IConfiguration consumerConfiguration = new ConfigurationBuilder()
+                    .AddInMemoryCollection(config)
+                    .AddIniFile(settings.IniFile)
+                    .Build();
 
                 using (var consumer = new ConsumerBuilder<long, long>(
-                               configuration.AsEnumerable())
-                           .SetErrorHandler((_, e) => Console.WriteLine($"Error: {e.Reason}"))
-                           .SetStatisticsHandler((_, json) => Console.WriteLine($"Statistics: <<json>>"))
-                           .SetPartitionsAssignedHandler((c, partitions) =>
-                           {
-                               // Since a cooperative assignor (CooperativeSticky) has been configured, the
-                               // partition assignment is incremental (adds partitions to any existing assignment).
-                               Console.WriteLine(
-                                   "Partitions incrementally assigned: [" +
-                                   string.Join(',', partitions.Select(p => p.Partition.Value)) +
-                                   "], all: [" +
-                                   string.Join(',', c.Assignment.Concat(partitions).Select(p => p.Partition.Value)) +
-                                   "]");
-
-                               // Possibly manually specify start offsets by returning a list of topic/partition/offsets
-                               // to assign to, e.g.:
-                               // return partitions.Select(tp => new TopicPartitionOffset(tp, externalOffsets[tp]));
-                           })
-                           .SetPartitionsRevokedHandler((c, partitions) =>
-                           {
-                               // Since a cooperative assignor (CooperativeSticky) has been configured, the revoked
-                               // assignment is incremental (may remove only some partitions of the current assignment).
-                               var remaining = c.Assignment.Where(atp =>
-                                   partitions.Where(rtp => rtp.TopicPartition == atp).Count() == 0);
-                               Console.WriteLine(
-                                   "Partitions incrementally revoked: [" +
-                                   string.Join(',', partitions.Select(p => p.Partition.Value)) +
-                                   "], remaining: [" +
-                                   string.Join(',', remaining.Select(p => p.Partition.Value)) +
-                                   "]");
-                           })
-                           .SetPartitionsLostHandler((c, partitions) =>
-                           {
-                               // The lost partitions handler is called when the consumer detects that it has lost ownership
-                               // of its assignment (fallen out of the group).
-                               Console.WriteLine($"Partitions were lost: [{string.Join(", ", partitions)}]");
-                           })
+                               consumerConfiguration.AsEnumerable())
+                           .SetErrorHandler((_, e) => Console.WriteLine($"Consumer error: {e.Reason}"))
                            .Build())
                 {
-                    Dictionary<long, long> valueDictionary = new();
-                    consumer.Subscribe(topic);
+                    var topics = Enumerable.Range(0, settings.Topics)
+                        .Select(x => $"topic{x}")
+                        .ToArray();
+
+                    consumer.Subscribe(topics);
+                    Dictionary<(string Topic, long Key), ConsumeResult<long, long>> valueDictionary = new();
 
                     while (true)
                     {
@@ -135,14 +158,35 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
 
                         if (consumeResult.IsPartitionEOF)
                         {
-                            throw new Exception($"Reached end of topic {consumeResult.Topic}, partition {consumeResult.Partition}, offset {consumeResult.Offset}.");
+                            throw new Exception(
+                                $"Reached end of topic {consumeResult.Topic}, partition {consumeResult.Partition}, offset {consumeResult.Offset}.");
                         }
 
-                        long expectedValue = valueDictionary.GetValueOrDefault(consumeResult.Message.Key);
-                        if (consumeResult.Message.Value != expectedValue)
+                        var key = (consumeResult.Topic, consumeResult.Message.Key);
+                        if (valueDictionary.TryGetValue(key, out var previousResult))
                         {
-                            throw new Exception("TODO");
+                            if (consumeResult.Message.Value > previousResult.Message.Value + 1)
+                            {
+                                throw new Exception(
+                                    $"Unexpected message value, topic={topic}, partition={previousResult.Partition}/{consumeResult.Partition}, Offset={previousResult.Offset}/{consumeResult.Offset}, " +
+                                    $"LeaderEpoch={previousResult.LeaderEpoch}/{consumeResult.LeaderEpoch},  previous value:{previousResult.Message.Value}, messageValue:{consumeResult.Message.Value} !");
+                            }
+
+                            if (consumeResult.Message.Value < previousResult.Message.Value)
+                            {
+                                Interlocked.Increment(ref numDuplicates);
+                            }
+                            else
+                            {
+                                valueDictionary[key] = consumeResult;
+                            }
                         }
+                        else
+                        {
+                            valueDictionary[key] = consumeResult;
+                        }
+                        
+                        Interlocked.Increment(ref numConsumed);
                     }
                 }
             }));
@@ -165,9 +209,9 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 logger.Log(LogLevel.Information, $"Starting producer task: {i}");
 
                 Exception e = null;
-                var producerConfig = new ProducerConfig
+                var producerConfig = new ProducerConfig (new Dictionary<string, string>{{"enable.idempotence", "true"}})
                 {
-                    Acks = Acks.Leader,
+                    Acks = settings.Acks,
                 };
 
                 var producer = new ProducerBuilder<long, long>(
@@ -196,7 +240,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                     while (queue.TryDequeue(out var kvp))
                     {
                         m++;
-                        
+
                         if (m % 100000 == 0)
                         {
                             producer.Flush();
@@ -237,13 +281,19 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
         var reporterTask = Task.Run(async () =>
         {
             var prevProduced = 0l;
+            var prevConsumed = 0l;
             for (;;)
             {
                 await Task.Delay(TimeSpan.FromSeconds(10));
                 var totalProduced = Interlocked.Read(ref numProduced);
+                var totalConsumed = Interlocked.Read(ref numConsumed);
+                var totalDuplicated = Interlocked.Read(ref numDuplicates);
                 var newlyProduced = totalProduced - prevProduced;
+                var newlyConsumed = totalConsumed - prevConsumed;
                 prevProduced = totalProduced;
-                Log.Log(LogLevel.Information, $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}) messages produced");
+                prevConsumed = totalConsumed;
+                Log.Log(LogLevel.Information,
+                    $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}) messages produced, {totalConsumed} (+{newlyConsumed}) messages consumed, {totalDuplicated} duplicated.");
             }
         });
 
@@ -271,36 +321,57 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
     /// all default settings, this should mirror the behaviour of publishing to a topic with 'allow.auto.create.topics'
     /// set to true.
     /// </summary>
-    public async Task CreateTopicAsync(string topic, int numPartitions, int replicationFactor)
+    public async Task CreateTopicAsync(string topic, int numPartitions, int replicationFactor, int minIsr)
     {
-        Log.Log(LogLevel.Information, ($"Creating topic: {topic}"));
+        Log.Log(LogLevel.Information, ($"Creating a topic: {topic}"));
 
         await _adminClient.CreateTopicsAsync(new[]
+            {
+                new TopicSpecification
                 {
-                    new TopicSpecification
-                    {
-                        Name = topic,
-                        NumPartitions = numPartitions,
-                        ReplicationFactor = (short)replicationFactor,
-                    }
-                },
-                new CreateTopicsOptions
-                {
-                    OperationTimeout = TimeSpan.FromSeconds(30)
-                });
+                    Configs = new Dictionary<string, string> { { "min.insync.replicas", $"{minIsr}" } },
+                    Name = topic,
+                    NumPartitions = numPartitions,
+                    ReplicationFactor = (short)replicationFactor,
+                }
+            },
+            new CreateTopicsOptions
+            {
+                OperationTimeout = TimeSpan.FromSeconds(30),
+                RequestTimeout = TimeSpan.FromSeconds(30),
+            });
     }
 
-    public async Task WaitForCLusterReadyAsync(int numTopics, int numPartitions, int numReplicas)
+    public async Task DeleteTopicAsync(string topic)
+    {
+        Log.Log(LogLevel.Information, ($"Removing a topic: {topic}"));
+        await _adminClient.DeleteTopicsAsync(new[] { topic }, new DeleteTopicsOptions
+        {
+            OperationTimeout = TimeSpan.FromSeconds(30),
+            RequestTimeout = TimeSpan.FromSeconds(30),
+        });
+    }
+
+    public async Task WaitForCLusterReadyAsync()
     {
         while (true)
         {
             var meta = _adminClient.GetMetadata(TimeSpan.FromSeconds(60));
-            var isrCount = meta.Topics.SelectMany(x => x.Partitions).SelectMany(x => x.InSyncReplicas).Count();
-            var expectedIsrCount = numTopics * numPartitions * numReplicas;
-            if (isrCount != expectedIsrCount)
+            var isrCount = meta.Topics
+                .SelectMany(x => x.Partitions)
+                .SelectMany(x => x.InSyncReplicas)
+                .Count();
+
+            var replicas = meta.Topics
+                .SelectMany(x => x.Partitions)
+                .SelectMany(x => x.Replicas)
+                .Count();
+
+            if (isrCount != replicas)
             {
-                Log.Log(LogLevel.Information, $"isrCount = {isrCount}, expectedIsrCount = {expectedIsrCount}.");
+                Log.Log(LogLevel.Information, $"isrCount = {isrCount}, replicas  = {replicas}.");
                 await Task.Delay(TimeSpan.FromSeconds(1));
+                continue;
             }
 
             break;
