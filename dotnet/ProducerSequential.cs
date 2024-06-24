@@ -23,7 +23,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
             options.SingleLine = true;
             options.TimestampFormat = "HH:mm:ss ";
         }))
-        .CreateLogger("Producer");
+        .CreateLogger("Log");
 
     public override async Task<int> ExecuteAsync(CommandContext context, ProducerSequentialSettings settings)
     {
@@ -39,13 +39,6 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
         for (int i = 0; i < settings.Topics; i++)
         {
             string topic = $"topic{i}";
-            
-            /*
-            if (TopicExists(topic))
-            {
-                await DeleteTopicAsync(topic);
-            }
-            */
 
             if (!TopicExists(topic))
             {
@@ -113,23 +106,19 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 }
             }));
 
+        var messagesToReceive = new ConcurrentDictionary<(string Topic, long Key, long Value), DateTime>();
         long numConsumed = 0;
-        long numDuplicates = 0;
+        long numOutOfSequence = 0;
+        var producerSemaphore = new SemaphoreSlim(0);
         var consumerTasks = Enumerable.Range(0, 1)
             .Select(i => Task.Run(async () =>
             {
-                await Task.Yield();
-
-                string topic = $"topic{i}";
                 var config = new ConsumerConfig
                 {
                     GroupId = Guid.NewGuid().ToString(),
                     EnableAutoOffsetStore = true,
                     EnableAutoCommit = true,
-                    StatisticsIntervalMs = null,
-                    SessionTimeoutMs = 30000,
-                    AutoOffsetReset = AutoOffsetReset.Earliest,
-                    // EnablePartitionEof = true,
+                    AutoOffsetReset = AutoOffsetReset.Latest,
                     // A good introduction to the CooperativeSticky assignor and incremental rebalancing:
                     // https://www.confluent.io/blog/cooperative-rebalancing-in-kafka-streams-consumer-ksqldb/
                     PartitionAssignmentStrategy = PartitionAssignmentStrategy.CooperativeSticky
@@ -137,6 +126,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
 
                 IConfiguration consumerConfiguration = new ConfigurationBuilder()
                     .AddInMemoryCollection(config)
+                    .AddInMemoryCollection(settings.ConfigDictionary)
                     .AddIniFile(settings.IniFile)
                     .Build();
 
@@ -150,6 +140,12 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                         .ToArray();
 
                     consumer.Subscribe(topics);
+                    
+                    // Make sure consumer is really subscribed
+                    await Task.Delay(TimeSpan.FromSeconds(10));
+                    
+                    // Finally we can let the producer produce some message
+                    producerSemaphore.Release(1);
                     Dictionary<(string Topic, long Key), ConsumeResult<long, long>> valueDictionary = new();
 
                     while (true)
@@ -162,30 +158,27 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                                 $"Reached end of topic {consumeResult.Topic}, partition {consumeResult.Partition}, offset {consumeResult.Offset}.");
                         }
 
+                        messagesToReceive.Remove(
+                            (consumeResult.Topic, consumeResult.Message.Key, consumeResult.Message.Value), out var _);
                         var key = (consumeResult.Topic, consumeResult.Message.Key);
                         if (valueDictionary.TryGetValue(key, out var previousResult))
                         {
-                            if (consumeResult.Message.Value > previousResult.Message.Value + 1)
+                            if (consumeResult.Message.Value != previousResult.Message.Value + 1)
                             {
-                                throw new Exception(
-                                    $"Unexpected message value, topic={topic}, partition={previousResult.Partition}/{consumeResult.Partition}, Offset={previousResult.Offset}/{consumeResult.Offset}, " +
-                                    $"LeaderEpoch={previousResult.LeaderEpoch}/{consumeResult.LeaderEpoch},  previous value:{previousResult.Message.Value}, messageValue:{consumeResult.Message.Value} !");
+                                Log.Log(LogLevel.Error,
+                                    $"Unexpected message value, topic/k [p]={consumeResult.Topic}/{consumeResult.Message.Key} {consumeResult.Partition}, Offset={previousResult.Offset}/{consumeResult.Offset}, " +
+                                    $"LeaderEpoch={previousResult.LeaderEpoch}/{consumeResult.LeaderEpoch},  previous value={previousResult.Message.Value}, messageValue={consumeResult.Message.Value}, numConsumed={numConsumed} !");
+
+                                Interlocked.Increment(ref numOutOfSequence);
                             }
 
-                            if (consumeResult.Message.Value < previousResult.Message.Value)
-                            {
-                                Interlocked.Increment(ref numDuplicates);
-                            }
-                            else
-                            {
-                                valueDictionary[key] = consumeResult;
-                            }
+                            valueDictionary[key] = consumeResult;
                         }
                         else
                         {
                             valueDictionary[key] = consumeResult;
                         }
-                        
+
                         Interlocked.Increment(ref numConsumed);
                     }
                 }
@@ -198,6 +191,8 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
         var producersTask = Enumerable.Range(0, 1)
             .Select(i => Task.Run(async () =>
             {
+                await producerSemaphore.WaitAsync();
+
                 var logger = LoggerFactory
                     .Create(builder => builder.AddSimpleConsole(options =>
                     {
@@ -209,9 +204,11 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 logger.Log(LogLevel.Information, $"Starting producer task: {i}");
 
                 Exception e = null;
-                var producerConfig = new ProducerConfig (new Dictionary<string, string>{{"enable.idempotence", "true"}})
+                var producerConfig = new ProducerConfig(settings.ConfigDictionary)
                 {
                     Acks = settings.Acks,
+                    MessageTimeoutMs = 60000,
+                    RequestTimeoutMs = 120000,
                 };
 
                 var producer = new ProducerBuilder<long, long>(
@@ -246,7 +243,10 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                             producer.Flush();
                         }
 
-                        producer.Produce(kvp.topic, new Message<long, long> { Key = kvp.k, Value = kvp.v },
+                        var msg = new Message<long, long> { Key = kvp.k, Value = kvp.v };
+                        messagesToReceive.AddOrUpdate((kvp.topic, kvp.k, kvp.v), DateTime.UtcNow,
+                            (_, _) => DateTime.Now);
+                        producer.Produce(kvp.topic, msg,
                             (deliveryReport) =>
                             {
                                 if (deliveryReport.Error.Code != ErrorCode.NoError)
@@ -287,13 +287,26 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 await Task.Delay(TimeSpan.FromSeconds(10));
                 var totalProduced = Interlocked.Read(ref numProduced);
                 var totalConsumed = Interlocked.Read(ref numConsumed);
-                var totalDuplicated = Interlocked.Read(ref numDuplicates);
+                var totalDuplicated = Interlocked.Read(ref numOutOfSequence);
                 var newlyProduced = totalProduced - prevProduced;
                 var newlyConsumed = totalConsumed - prevConsumed;
                 prevProduced = totalProduced;
                 prevConsumed = totalConsumed;
+                string oldestMessageString = string.Empty;
+                var oldestMessages = messagesToReceive.ToArray();
+                if (oldestMessages.Any())
+                {
+                    var oldestMessage = oldestMessages.MinBy(x => x.Value);
+                    var age = (DateTime.UtcNow - oldestMessage.Value);
+                    if (age > TimeSpan.FromSeconds(10))
+                    {
+                        oldestMessageString =
+                            $"Oldest topic:{oldestMessage.Key.Topic}, k:{oldestMessage.Key.Key}, v:{oldestMessage.Key.Value}, age:{(int)age.TotalSeconds}s";
+                    }
+                }
+
                 Log.Log(LogLevel.Information,
-                    $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}) messages produced, {totalConsumed} (+{newlyConsumed}) messages consumed, {totalDuplicated} duplicated.");
+                    $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}) messages produced, {totalConsumed} (+{newlyConsumed}) messages consumed, {totalDuplicated} duplicated. {oldestMessageString}");
             }
         });
 

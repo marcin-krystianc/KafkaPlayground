@@ -7,8 +7,8 @@ for($i=1; $i -le 3; $i++)
 
 	Write-Host (Get-Date).ToString() " Stopping container: $containerName"
 	# Loop to continuously execute the command, wait for the container to stop, and then start it again
-	# Run the command inside the container
-	docker exec -it $containerName kill 1
+	# Run the command inside the container	
+	docker exec -it $containerName kill -s SIGTERM 1
 	
 	# Wait for the container to stop
 	Write-Host (Get-Date).ToString() " Waiting for container to stop..."
