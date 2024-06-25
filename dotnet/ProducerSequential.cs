@@ -66,7 +66,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
 
         if (topicsCreated)
         {
-            var millisecondsPerTopic = 7;
+            var millisecondsPerTopic = 127;
             var delay = TimeSpan.FromMilliseconds(millisecondsPerTopic * settings.Topics * settings.Partitions);
             await WaitForCLusterReadyAsync();
             Log.Log(LogLevel.Information, $"Waiting for {(int)delay.TotalSeconds}s");
@@ -116,12 +116,12 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 var config = new ConsumerConfig
                 {
                     GroupId = Guid.NewGuid().ToString(),
-                    EnableAutoOffsetStore = true,
-                    EnableAutoCommit = true,
+                    EnableAutoOffsetStore = false,
+                    EnableAutoCommit = false,
                     AutoOffsetReset = AutoOffsetReset.Latest,
                     // A good introduction to the CooperativeSticky assignor and incremental rebalancing:
                     // https://www.confluent.io/blog/cooperative-rebalancing-in-kafka-streams-consumer-ksqldb/
-                    PartitionAssignmentStrategy = PartitionAssignmentStrategy.CooperativeSticky
+                    PartitionAssignmentStrategy = PartitionAssignmentStrategy.CooperativeSticky,
                 };
 
                 IConfiguration consumerConfiguration = new ConfigurationBuilder()
@@ -207,8 +207,6 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 var producerConfig = new ProducerConfig(settings.ConfigDictionary)
                 {
                     Acks = settings.Acks,
-                    MessageTimeoutMs = 60000,
-                    RequestTimeoutMs = 120000,
                 };
 
                 var producer = new ProducerBuilder<long, long>(
@@ -287,7 +285,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 await Task.Delay(TimeSpan.FromSeconds(10));
                 var totalProduced = Interlocked.Read(ref numProduced);
                 var totalConsumed = Interlocked.Read(ref numConsumed);
-                var totalDuplicated = Interlocked.Read(ref numOutOfSequence);
+                var outOfSequence = Interlocked.Read(ref numOutOfSequence);
                 var newlyProduced = totalProduced - prevProduced;
                 var newlyConsumed = totalConsumed - prevConsumed;
                 prevProduced = totalProduced;
@@ -306,7 +304,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 }
 
                 Log.Log(LogLevel.Information,
-                    $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}) messages produced, {totalConsumed} (+{newlyConsumed}) messages consumed, {totalDuplicated} duplicated. {oldestMessageString}");
+                    $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}) messages produced, {totalConsumed} (+{newlyConsumed}) messages consumed, {outOfSequence} out of sequence. {oldestMessageString}");
             }
         });
 
