@@ -1,11 +1,11 @@
 
-$delayContainerStart=75
+$delayContainerStart=135
 $delayClusterRebalance=75
-$i = 0
+$clusterIteration = 0
 while ($true) {
 
-$i++
-Write-Host (Get-Date).ToString() " ########### Iteration $i ########## "
+$clusterIteration++
+Write-Host (Get-Date).ToString() " ########### Iteration $clusterIteration ########## "
 
 for($i=1; $i -le 3; $i++)
 {
@@ -28,7 +28,7 @@ for($i=1; $i -le 3; $i++)
 
 	Write-Host (Get-Date).ToString() " Container $containerName has stopped."
 
-    Write-Host (Get-Date).ToString() " Waiting $delayContainerStart s before starting again the $containerName "
+    Write-Host (Get-Date).ToString() " Waiting ${delayContainerStart}s before starting the $containerName "
 	Start-Sleep -Seconds $delayContainerStart
 	
 	# Start the container again
@@ -50,7 +50,7 @@ for($i=1; $i -le 3; $i++)
 		Start-Sleep -Seconds 1
 	} while (($underReplicatedPartitions) -or ($underMinIsrPartitions) -or ($unavailablePartitions) -or ($atMinIsrPartitions)) 
 
-	Write-Host (Get-Date).ToString() " Waiting $delayClusterRebalance s for cluster to rebalance"
+	Write-Host (Get-Date).ToString() " Waiting extra ${delayClusterRebalance}s for cluster to rebalance"
 	# Wait for cluster to rebalance
 	Start-Sleep -Seconds $delayClusterRebalance
 }}
