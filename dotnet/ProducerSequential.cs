@@ -66,7 +66,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
 
         if (topicsCreated)
         {
-            var millisecondsPerTopic = 127;
+            var millisecondsPerTopic = 31;
             var delay = TimeSpan.FromMilliseconds(millisecondsPerTopic * settings.Topics * settings.Partitions);
             await WaitForCLusterReadyAsync();
             Log.Log(LogLevel.Information, $"Waiting for {(int)delay.TotalSeconds}s");
@@ -132,7 +132,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
 
                 using (var consumer = new ConsumerBuilder<long, long>(
                                consumerConfiguration.AsEnumerable())
-                           .SetErrorHandler((_, e) => Console.WriteLine($"Consumer error: {e.Reason}"))
+                           .SetErrorHandler((_, e) => Log.Log(LogLevel.Error,$"Consumer error: {e.Reason}"))
                            .Build())
                 {
                     var topics = Enumerable.Range(0, settings.Topics)
@@ -227,7 +227,6 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 {
                     if (e != null)
                     {
-                        logger.Log(LogLevel.Information, $"Exception: {e.Message}");
                         throw e;
                     }
 
