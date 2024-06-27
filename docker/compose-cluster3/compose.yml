@@ -46,7 +46,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2' 
+          cpus: '1' 
 
   kafka-3:
     env_file:
@@ -62,7 +62,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2' 
+          cpus: '1' 
 
   kafdrop:
     image: obsidiandynamics/kafdrop
@@ -76,4 +76,4 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2' 
+          cpus: '1' 

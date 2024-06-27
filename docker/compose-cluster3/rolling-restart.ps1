@@ -1,6 +1,6 @@
 
-$delayContainerStart=135
-$delayClusterRebalance=75
+$delayContainerStart=127
+$delayClusterRebalance=127
 $clusterIteration = 0
 while ($true) {
 

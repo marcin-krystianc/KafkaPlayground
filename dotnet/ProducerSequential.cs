@@ -119,9 +119,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                     EnableAutoOffsetStore = false,
                     EnableAutoCommit = false,
                     AutoOffsetReset = AutoOffsetReset.Latest,
-                    // A good introduction to the CooperativeSticky assignor and incremental rebalancing:
-                    // https://www.confluent.io/blog/cooperative-rebalancing-in-kafka-streams-consumer-ksqldb/
-                    PartitionAssignmentStrategy = PartitionAssignmentStrategy.CooperativeSticky,
+                    PartitionAssignmentStrategy = PartitionAssignmentStrategy.Range,
                 };
 
                 IConfiguration consumerConfiguration = new ConfigurationBuilder()
@@ -132,14 +130,28 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
 
                 using (var consumer = new ConsumerBuilder<long, long>(
                                consumerConfiguration.AsEnumerable())
-                           .SetErrorHandler((_, e) => Log.Log(LogLevel.Error,$"Consumer error: {e.Reason}"))
+                           .SetErrorHandler((_, e) => Log.Log(LogLevel.Error,$"Consumer error: reason={e.Reason}, IsLocal={e.IsLocalError}, IsBroker={e.IsBrokerError}, IsFatal={e.IsFatal}, IsCode={e.Code}"))
+                           .SetLogHandler((_, m) => Log.Log(LogLevel.Information,$"Consumer log: message={m.Message}, name={m.Name}, facility={m.Facility}, level={m.Level}"))
+                           .SetPartitionsAssignedHandler((_, l) => Log.Log(LogLevel.Information,$"Consumer log: PartitionsAssignedHandler: count={l.Count}"))
+                           .SetPartitionsRevokedHandler((_, l) => Log.Log(LogLevel.Information,$"Consumer log: PartitionsRevokedHandler: count={l.Count}"))
+                           .SetPartitionsLostHandler((_, l) => Log.Log(LogLevel.Information,$"Consumer log: PartitionsLostHandler: count={l.Count}"))
                            .Build())
                 {
                     var topics = Enumerable.Range(0, settings.Topics)
                         .Select(x => $"topic{x}")
                         .ToArray();
 
-                    consumer.Subscribe(topics);
+                    var topicPartitions = new List<TopicPartitionOffset>();
+                    foreach (var topic in topics)
+                    {
+                        foreach (var partition in Enumerable.Range(0, settings.Partitions))
+                        {
+                            topicPartitions.Add(new TopicPartitionOffset(new TopicPartition(topic, new Partition(partition)), Offset.End));
+                        }
+                    }
+
+                    consumer.Assign(topicPartitions);
+                    // consumer.Subscribe(topics);
                     
                     // Make sure consumer is really subscribed
                     await Task.Delay(TimeSpan.FromSeconds(10));
