@@ -34,6 +34,9 @@ import java.util.concurrent.TimeUnit;
 public class KafkaConsumerProducerDemo {
     public static final String TOPIC_NAME = "my-topic";
     public static final String GROUP_NAME = "my-group";
+    public static final Integer NUMBER_OF_TOPICS = 150;
+    public static final Integer NUMBER_OF_PARTITIONS = 10;
+    public static final short REPLICATION_FACTOR = 3;
 
     public static void main(String[] args) {
         try {
@@ -47,18 +50,23 @@ public class KafkaConsumerProducerDemo {
             int numRecords = Integer.parseInt(args[0]);
             boolean isAsync = args.length == 1 || !args[1].trim().equalsIgnoreCase("sync");
 
+            String[] topicNames = new String[NUMBER_OF_TOPICS];
+            for (int i = 0; i < NUMBER_OF_TOPICS; i++) {
+                topicNames[i] = TOPIC_NAME + "-" + i;
+            }
+
             // stage 1: clean any topics left from previous runs
-            Utils.recreateTopics(KafkaProperties.BOOTSTRAP_SERVERS, -1, TOPIC_NAME);
+            Utils.recreateTopics(KafkaProperties.BOOTSTRAP_SERVERS, NUMBER_OF_PARTITIONS, REPLICATION_FACTOR, topicNames);
             CountDownLatch latch = new CountDownLatch(2);
 
             // stage 2: produce records to topic1
             Producer producerThread = new Producer(
-                "producer", KafkaProperties.BOOTSTRAP_SERVERS, TOPIC_NAME, isAsync, null, false, numRecords, -1, latch);
+                "producer", KafkaProperties.BOOTSTRAP_SERVERS, topicNames[0], isAsync, null, false, numRecords, -1, latch);
             producerThread.start();
 
             // stage 3: consume records from topic1
             Consumer consumerThread = new Consumer(
-                "consumer", KafkaProperties.BOOTSTRAP_SERVERS, TOPIC_NAME, GROUP_NAME, Optional.empty(), false, numRecords, latch);
+                "consumer", KafkaProperties.BOOTSTRAP_SERVERS, topicNames[0], GROUP_NAME, Optional.empty(), false, numRecords, latch);
             consumerThread.start();
 
             if (!latch.await(5, TimeUnit.MINUTES)) {

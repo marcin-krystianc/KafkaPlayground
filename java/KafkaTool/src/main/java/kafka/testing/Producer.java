@@ -52,7 +52,8 @@ public class Producer extends Thread {
     private final int transactionTimeoutMs;
     private final CountDownLatch latch;
     private volatile boolean closed;
-
+    private final int messagesPerSecond;
+    
     public Producer(String threadName,
                     String bootstrapServers,
                     String topic,
@@ -71,20 +72,34 @@ public class Producer extends Thread {
         this.numRecords = numRecords;
         this.transactionTimeoutMs = transactionTimeoutMs;
         this.latch = latch;
+        this.messagesPerSecond = 1000;
     }
 
     @Override
     public void run() {
         int key = 0;
         int sentRecords = 0;
+        int messagesToSend = 0;
+        long startTime = System.currentTimeMillis();
+        
         // the producer instance is thread safe
-        try (KafkaProducer<Integer, String> producer = createKafkaProducer()) {
-            while (!closed && sentRecords < numRecords) {
-                if (isAsync) {
-                    asyncSend(producer, key, "test" + key);
-                } else {
-                    syncSend(producer, key, "test" + key);
+        try (KafkaProducer<Integer, Integer> producer = createKafkaProducer()) {
+            while (!closed ) {
+                
+                if (messagesToSend == 0)
+                {
+                    var currentTime = System.currentTimeMillis();
+                    var elapsedTime = currentTime - startTime;
+                    if (elapsedTime < 100)
+                    {
+                        Thread.sleep(100 - elapsedTime); // Sleep for 1 second
+                    }
+                    messagesToSend = messagesPerSecond / 10;
                 }
+                messagesToSend--;
+                
+                var value = 1;
+                asyncSend(producer, key, value);
                 key++;
                 sentRecords++;
             }
@@ -103,7 +118,7 @@ public class Producer extends Thread {
         }
     }
 
-    public KafkaProducer<Integer, String> createKafkaProducer() {
+    public KafkaProducer<Integer, Integer> createKafkaProducer() {
         Properties props = new Properties();
         // bootstrap server config is required for producer to connect to brokers
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -112,7 +127,9 @@ public class Producer extends Thread {
         props.put(ProducerConfig.CLIENT_ID_CONFIG, "client-" + UUID.randomUUID());
         // key and value are just byte arrays, so we need to set appropriate serializers
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class);
+        props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 180000); 
+
         if (transactionTimeoutMs > 0) {
             // max time before the transaction coordinator proactively aborts the ongoing transaction
             props.put(ProducerConfig.TRANSACTION_TIMEOUT_CONFIG, transactionTimeoutMs);
@@ -127,36 +144,18 @@ public class Producer extends Thread {
         return new KafkaProducer<>(props);
     }
 
-    private void asyncSend(KafkaProducer<Integer, String> producer, int key, String value) {
+    private void asyncSend(KafkaProducer<Integer, Integer> producer, int key, int value) {
         // send the record asynchronously, setting a callback to be notified of the result
         // note that, even if you set a small batch.size with linger.ms=0, the send operation
         // will still be blocked when buffer.memory is full or metadata are not available
         producer.send(new ProducerRecord<>(topic, key, value), new ProducerCallback(key, value));
     }
 
-    private RecordMetadata syncSend(KafkaProducer<Integer, String> producer, int key, String value)
-        throws ExecutionException, InterruptedException {
-        try {
-            // send the record and then call get, which blocks waiting for the ack from the broker
-            RecordMetadata metadata = producer.send(new ProducerRecord<>(topic, key, value)).get();
-            Utils.maybePrintRecord(numRecords, key, value, metadata);
-            return metadata;
-        } catch (AuthorizationException | UnsupportedVersionException | ProducerFencedException
-                 | FencedInstanceIdException | OutOfOrderSequenceException | SerializationException e) {
-            Utils.printErr(e.getMessage());
-            // we can't recover from these exceptions
-            shutdown();
-        } catch (KafkaException e) {
-            Utils.printErr(e.getMessage());
-        }
-        return null;
-    }
-
     class ProducerCallback implements Callback {
         private final int key;
-        private final String value;
+        private final int value;
 
-        public ProducerCallback(int key, String value) {
+        public ProducerCallback(int key, Integer value) {
             this.key = key;
             this.value = value;
         }
@@ -177,8 +176,6 @@ public class Producer extends Thread {
                     // we can't recover from these exceptions
                     shutdown();
                 }
-            } else {
-                Utils.maybePrintRecord(numRecords, key, value, metadata);
             }
         }
     }

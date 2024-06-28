@@ -17,7 +17,7 @@
 package kafka.testing;
 
 public class KafkaProperties {
-    public static final String BOOTSTRAP_SERVERS = "localhost:9092";
+    public static final String BOOTSTRAP_SERVERS = "localhost:40001, localhost:40002, localhost:40003";
 
     private KafkaProperties() {}
 }

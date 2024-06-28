@@ -24,10 +24,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.errors.TopicExistsException;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -65,10 +62,14 @@ public class Utils {
         }
     }
 
-    public static void recreateTopics(String bootstrapServers, int numPartitions, String... topicNames) {
+    public static void recreateTopics(String bootstrapServers, int numPartitions, short replicationFactor, String... topicNames) {
         Properties props = new Properties();
         props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(AdminClientConfig.CLIENT_ID_CONFIG, "client-" + UUID.randomUUID());
+        Map<String, String> configs = new HashMap<>() {{
+            put("min.insync.replicas", String.valueOf(replicationFactor - 1));
+        }};        
+
         try (Admin admin = Admin.create(props)) {
             // delete topics if present
             try {
@@ -82,10 +83,8 @@ public class Utils {
             printOut("Deleted topics: %s", Arrays.toString(topicNames));
             // create topics in a retry loop
             while (true) {
-                // use default RF to avoid NOT_ENOUGH_REPLICAS error with minISR > 1
-                short replicationFactor = -1;
                 List<NewTopic> newTopics = Arrays.stream(topicNames)
-                    .map(name -> new NewTopic(name, numPartitions, replicationFactor))
+                    .map(name -> new NewTopic(name, numPartitions, replicationFactor).configs(configs))
                     .collect(Collectors.toList());
                 try {
                     admin.createTopics(newTopics).all().get();
