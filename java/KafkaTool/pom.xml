@@ -5,10 +5,10 @@
 
     <dependencies>
         <dependency>
-		    <groupId>com.datastax.oss</groupId>
-		    <artifactId>java-driver-core</artifactId>
-            <version>4.14.1</version>
-        </dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-clients</artifactId>
+			<version>3.7.0</version>
+		</dependency>
     </dependencies>
 	
     <modelVersion>4.0.0</modelVersion>
