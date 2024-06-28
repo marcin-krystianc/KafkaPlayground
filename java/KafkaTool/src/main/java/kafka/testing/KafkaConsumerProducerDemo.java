@@ -61,7 +61,7 @@ public class KafkaConsumerProducerDemo {
 
             // stage 2: produce records to topic1
             Producer producerThread = new Producer(
-                "producer", KafkaProperties.BOOTSTRAP_SERVERS, topicNames[0], isAsync, null, false, numRecords, -1, latch);
+                "producer", KafkaProperties.BOOTSTRAP_SERVERS, topicNames, isAsync, null, false, numRecords, -1, latch);
             producerThread.start();
 
             // stage 3: consume records from topic1

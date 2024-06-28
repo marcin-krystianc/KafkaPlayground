@@ -44,7 +44,7 @@ import java.util.concurrent.ExecutionException;
  */
 public class Producer extends Thread {
     private final String bootstrapServers;
-    private final String topic;
+    private final String[] topics;
     private final boolean isAsync;
     private final String transactionalId;
     private final boolean enableIdempotency;
@@ -53,10 +53,11 @@ public class Producer extends Thread {
     private final CountDownLatch latch;
     private volatile boolean closed;
     private final int messagesPerSecond;
+    private final int numberOfPartitions;
     
     public Producer(String threadName,
                     String bootstrapServers,
-                    String topic,
+                    String[] topics,
                     boolean isAsync,
                     String transactionalId,
                     boolean enableIdempotency,
@@ -65,50 +66,64 @@ public class Producer extends Thread {
                     CountDownLatch latch) {
         super(threadName);
         this.bootstrapServers = bootstrapServers;
-        this.topic = topic;
         this.isAsync = isAsync;
+        this.topics = topics;
         this.transactionalId = transactionalId;
         this.enableIdempotency = enableIdempotency;
         this.numRecords = numRecords;
         this.transactionTimeoutMs = transactionTimeoutMs;
         this.latch = latch;
         this.messagesPerSecond = 1000;
+        this.numberOfPartitions = 10;
     }
 
     @Override
     public void run() {
-        int key = 0;
         int sentRecords = 0;
         int messagesToSend = 0;
         long startTime = System.currentTimeMillis();
+        long logTime = System.currentTimeMillis();
         
         // the producer instance is thread safe
         try (KafkaProducer<Integer, Integer> producer = createKafkaProducer()) {
-            while (!closed ) {
+
+            for (var value = 0; ; value++)
+            for (var key = 0; key < this.numberOfPartitions; key++)
+            for (var topic  : this.topics)
+            {
+                if (closed)
+                   return;
                 
-                if (messagesToSend == 0)
+                var currentTime = System.currentTimeMillis();
+                if (currentTime - logTime > 10000)
                 {
-                    var currentTime = System.currentTimeMillis();
+                    Utils.printOut("Produced " + sentRecords + " messages. Current value = " + value);
+                    logTime = currentTime;
+                }
+                
+                if (messagesToSend == 0)                
+                {
                     var elapsedTime = currentTime - startTime;
                     if (elapsedTime < 100)
                     {
-                        Thread.sleep(100 - elapsedTime); // Sleep for 1 second
+                        Thread.sleep(100 - elapsedTime); // Sleep for 1/10 second
                     }
+                    
+                    startTime = System.currentTimeMillis();
                     messagesToSend = messagesPerSecond / 10;
                 }
                 messagesToSend--;
                 
-                var value = 1;
-                asyncSend(producer, key, value);
-                key++;
+                asyncSend(producer, topic, key, value);
                 sentRecords++;
             }
         } catch (Throwable e) {
             Utils.printErr("Unhandled exception");
             e.printStackTrace();
         }
-        Utils.printOut("Sent %d records", sentRecords);
-        shutdown();
+        finally {
+            shutdown();
+        }        
     }
 
     public void shutdown() {
@@ -144,7 +159,7 @@ public class Producer extends Thread {
         return new KafkaProducer<>(props);
     }
 
-    private void asyncSend(KafkaProducer<Integer, Integer> producer, int key, int value) {
+    private void asyncSend(KafkaProducer<Integer, Integer> producer, String topic, int key, int value) {
         // send the record asynchronously, setting a callback to be notified of the result
         // note that, even if you set a small batch.size with linger.ms=0, the send operation
         // will still be blocked when buffer.memory is full or metadata are not available
