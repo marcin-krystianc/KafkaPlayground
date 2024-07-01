@@ -32,12 +32,10 @@ import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
+import static java.lang.String.format;
 import static java.util.Collections.singleton;
 
 /**
@@ -46,53 +44,80 @@ import static java.util.Collections.singleton;
  */
 public class Consumer extends Thread implements ConsumerRebalanceListener {
     private final String bootstrapServers;
-    private final String topic;
+    private final String[] topics;
     private final String groupId;
-    private final Optional<String> instanceId;
-    private final boolean readCommitted;
-    private final int numRecords;
     private final CountDownLatch latch;
     private volatile boolean closed;
-    private int remainingRecords;
 
     public Consumer(String threadName,
                     String bootstrapServers,
-                    String topic,
+                    String[] topics,
                     String groupId,
-                    Optional<String> instanceId,
-                    boolean readCommitted,
-                    int numRecords,
                     CountDownLatch latch) {
         super(threadName);
         this.bootstrapServers = bootstrapServers;
-        this.topic = topic;
+        this.topics = topics;
         this.groupId = groupId;
-        this.instanceId = instanceId;
-        this.readCommitted = readCommitted;
-        this.numRecords = numRecords;
-        this.remainingRecords = numRecords;
         this.latch = latch;
     }
 
     @Override
     public void run() {
+
+        long receivedRecords = 0;
+        long logRecords = 0;
+        Map<String, Map<Integer, ConsumerRecord<Integer, Integer>>> consumeResults = new HashMap<>();
+
         // the consumer instance is NOT thread safe
-        try (KafkaConsumer<Integer, String> consumer = createKafkaConsumer()) {
+        try (KafkaConsumer<Integer, Integer> consumer = createKafkaConsumer()) {
             // subscribes to a list of topics to get dynamically assigned partitions
             // this class implements the rebalance listener that we pass here to be notified of such events
-            consumer.subscribe(singleton(topic), this);
-            Utils.printOut("Subscribed to %s", topic);
-            while (!closed && remainingRecords > 0) {
+            consumer.subscribe(Arrays.asList(topics), this);
+            Utils.printOut("Subscribed to %s", topics);
+
+            long logTime = System.currentTimeMillis();
+            while (!closed) {
                 try {
+                    var currentTime = System.currentTimeMillis();
+                    if (currentTime - logTime > 10000)
+                    {
+                        Utils.printOut("Received " + receivedRecords + "(+" + (receivedRecords - logRecords) + ") messages.");
+                        logTime = currentTime;
+                        logRecords = receivedRecords;
+                    }
+                    
                     // if required, poll updates partition assignment and invokes the configured rebalance listener
                     // then tries to fetch records sequentially using the last committed offset or auto.offset.reset policy
                     // returns immediately if there are records or times out returning an empty record set
                     // the next poll must be called within session.timeout.ms to avoid group rebalance
-                    ConsumerRecords<Integer, String> records = consumer.poll(Duration.ofSeconds(1));
-                    for (ConsumerRecord<Integer, String> record : records) {
-                        Utils.maybePrintRecord(numRecords, record);
+                    ConsumerRecords<Integer, Integer> records = consumer.poll(Duration.ofSeconds(1));
+                    for (ConsumerRecord<Integer, Integer> record : records) {
+
+                        receivedRecords++;
+                        
+                        if (!consumeResults.containsKey(record.topic()))
+                        {
+                            consumeResults.put(record.topic(), new HashMap<>());
+                        }
+
+                        var dictionary = consumeResults.get(record.topic());
+                        var previousResult = dictionary.getOrDefault(record.key(), null);
+                        if (previousResult != null)
+                        {
+                            if (previousResult.value() + 1 != record.value())
+                            {
+                                System.out.printf("Unexpected message value topic %s/%s [%d], Offset=%d/%d, LeaderEpoch=%d/%d Value=%d/%d %n"
+                                        , record.topic()
+                                        , record.key().toString(), record.partition()
+                                        , previousResult.offset(), record.offset()
+                                        , previousResult.leaderEpoch(), record.leaderEpoch()
+                                        , previousResult.value(), record.value()
+                                );
+ 
+                            }
+                        }
+                        
                     }
-                    remainingRecords -= records.count();
                 } catch (AuthorizationException | UnsupportedVersionException
                          | RecordDeserializationException e) {
                     // we can't recover from these exceptions
@@ -112,7 +137,7 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
             Utils.printErr("Unhandled exception");
             e.printStackTrace();
         }
-        Utils.printOut("Fetched %d records", numRecords - remainingRecords);
+        
         shutdown();
     }
 
@@ -123,26 +148,22 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
         }
     }
 
-    public KafkaConsumer<Integer, String> createKafkaConsumer() {
+    public KafkaConsumer<Integer, Integer> createKafkaConsumer() {
         Properties props = new Properties();
         // bootstrap server config is required for consumer to connect to brokers
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+
         // client id is not required, but it's good to track the source of requests beyond just ip/port
         // by allowing a logical application name to be included in server-side request logging
         props.put(ConsumerConfig.CLIENT_ID_CONFIG, "client-" + UUID.randomUUID());
+
         // consumer group id is required when we use subscribe(topics) for group management
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        // sets static membership to improve availability (e.g. rolling restart)
-        instanceId.ifPresent(id -> props.put(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, id));
-        // disables auto commit when EOS is enabled, because offsets are committed with the transaction
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, readCommitted ? "false" : "true");
+        
         // key and value are just byte arrays, so we need to set appropriate deserializers
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, IntegerDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        if (readCommitted) {
-            // skips ongoing and aborted transactions
-            props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
-        }
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, IntegerDeserializer.class);
+
         // sets the reset offset policy in case of invalid or no offset
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         return new KafkaConsumer<>(props);

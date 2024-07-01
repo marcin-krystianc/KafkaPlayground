@@ -17,6 +17,7 @@
 package kafka.testing;
 
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -66,7 +67,7 @@ public class KafkaConsumerProducerDemo {
 
             // stage 3: consume records from topic1
             Consumer consumerThread = new Consumer(
-                "consumer", KafkaProperties.BOOTSTRAP_SERVERS, topicNames[0], GROUP_NAME, Optional.empty(), false, numRecords, latch);
+                "consumer", KafkaProperties.BOOTSTRAP_SERVERS, topicNames, UUID.randomUUID().toString(), latch);
             consumerThread.start();
 
             if (!latch.await(5, TimeUnit.MINUTES)) {

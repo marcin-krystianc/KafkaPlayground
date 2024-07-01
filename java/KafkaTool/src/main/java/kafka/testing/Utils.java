@@ -47,15 +47,15 @@ public class Utils {
         System.err.printf("%s - %s%n", Thread.currentThread().getName(), format(message, args));
     }
 
-    public static void maybePrintRecord(long numRecords, ConsumerRecord<Integer, String> record) {
+    public static void maybePrintRecord(long numRecords, ConsumerRecord<Integer, Integer> record) {
         maybePrintRecord(numRecords, record.key(), record.value(), record.topic(), record.partition(), record.offset());
     }
 
-    public static void maybePrintRecord(long numRecords, int key, String value, RecordMetadata metadata) {
+    public static void maybePrintRecord(long numRecords, int key, Integer value, RecordMetadata metadata) {
         maybePrintRecord(numRecords, key, value, metadata.topic(), metadata.partition(), metadata.offset());
     }
 
-    private static void maybePrintRecord(long numRecords, int key, String value, String topic, int partition, long offset) {
+    private static void maybePrintRecord(long numRecords, int key, Integer value, String topic, int partition, long offset) {
         // we only print 10 records when there are 20 or more to send
         if (key % Math.max(1, numRecords / 10) == 0) {
             printOut("Sample: record(%d, %s), partition(%s-%d), offset(%d)", key, value, topic, partition, offset);
