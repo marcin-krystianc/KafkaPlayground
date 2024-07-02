@@ -38,7 +38,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
         var topicsCreated = false;
         for (int i = 0; i < settings.Topics; i++)
         {
-            string topic = $"topic{i}";
+            string topic = Utils.GetTopicName(i);
 
             if (!TopicExists(topic))
             {
@@ -78,8 +78,8 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
         {
             for (;;)
             {
-                Interlocked.Exchange(ref msgToEnqueue, settings.MessagesPerSecond);
-                await Task.Delay(TimeSpan.FromSeconds(1));
+                Interlocked.Exchange(ref msgToEnqueue, settings.MessagesPerSecond / 10);
+                await Task.Delay(TimeSpan.FromMilliseconds(100));
             }
         });
 
@@ -138,7 +138,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                            .Build())
                 {
                     var topics = Enumerable.Range(0, settings.Topics)
-                        .Select(x => $"topic{x}")
+                        .Select(Utils.GetTopicName)
                         .ToArray();
 
                     var topicPartitions = new List<TopicPartitionOffset>();

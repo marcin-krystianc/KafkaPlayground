@@ -20,9 +20,7 @@ namespace KafkaTool
             app.Configure(c =>
             {
                 c.UseStrictParsing();
-                c.AddCommand<Producer>("producer");
                 c.AddCommand<ProducerSequential>("producer-sequential");
-                c.AddCommand<Consumer1>("consumer1");
             });
 
             await app.RunAsync(args);
