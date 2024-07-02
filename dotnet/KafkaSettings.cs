@@ -4,16 +4,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
-using Spectre.Console;
 using Spectre.Console.Cli;
 
 namespace KafkaTool;
 
 public class KafkaSettings : CommandSettings
 {
-    [CommandOption("--ini-file")]
-    public string IniFile { get; set; }
-
     [CommandOption("--config <VALUE>")]
     [Description("Extre configuration key=value. Can be speciified mutliple times.")]
     [TypeConverter(typeof(TupleTypeConverter))]
@@ -21,16 +17,6 @@ public class KafkaSettings : CommandSettings
 
     public IDictionary<string, string> ConfigDictionary =>
         ConfigItems?.ToDictionary(x => x.Item1, x => x.Item2) ?? new Dictionary<string, string>();
-
-    public override ValidationResult Validate()
-    {
-        if (string.IsNullOrWhiteSpace(IniFile))
-        {
-            return ValidationResult.Error("IniFile is required");
-        }
-
-        return base.Validate();
-    }
 }
 
 // Use a custom TypeConverter to extract the data to a tuple

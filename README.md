@@ -7,7 +7,8 @@
 ### .NET
 dotnet run --project KafkaTool.csproj `
 producer-sequential `
---ini-file="D:\workspace\KafkaPlayground\dotnet\kafka.ini" `
+--config allow.auto.create.topics=false `
+--config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 `
 --topics=150 --partitions=10 --replication-factor=3 --min-isr=2 --messages-per-second=10000 `
 --config request.timeout.ms=180000 `
 --config message.timeout.ms=180000 `
@@ -16,6 +17,9 @@ producer-sequential `
 --config max.in.flight.requests.per.connection=1
 
  
+
+message.timeout.ms=180000
+
 
 ## Ordered, exactly once delivery
 
