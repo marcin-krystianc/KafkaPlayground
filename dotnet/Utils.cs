@@ -20,7 +20,7 @@ public static class Utils
     
     public static string GetTopicName(int i)
     {
-        return $"my-dotnet-topic-{i}";
+        return $"topic-{i}";
     }
     
     public static bool TopicExists(IAdminClient adminClient, string topic)

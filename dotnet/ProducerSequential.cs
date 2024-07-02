@@ -41,7 +41,8 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
             if (!Utils.TopicExists(_adminClient, topic))
             {
                 topicsCreated = true;
-                await Utils.CreateTopicAsync(_adminClient, topic, numPartitions: settings.Partitions, settings.ReplicationFactor,
+                await Utils.CreateTopicAsync(_adminClient, topic, numPartitions: settings.Partitions,
+                    settings.ReplicationFactor,
                     settings.MinISR);
                 await Task.Delay(TimeSpan.FromMilliseconds(100));
 
@@ -74,6 +75,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
         var messagesToReceive = new ConcurrentDictionary<(string Topic, long Key, long Value), DateTime>();
         long numConsumed = 0;
         long numOutOfSequence = 0;
+        long numDuplicated = 0;
         var producerSemaphore = new SemaphoreSlim(0);
         var consumerTask = Task.Run(async () =>
         {
@@ -140,8 +142,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                             $"Reached end of topic {consumeResult.Topic}, partition {consumeResult.Partition}, offset {consumeResult.Offset}.");
                     }
 
-                    messagesToReceive.Remove(
-                        (consumeResult.Topic, consumeResult.Message.Key, consumeResult.Message.Value), out var _);
+                    messagesToReceive.Remove((consumeResult.Topic, consumeResult.Message.Key, consumeResult.Message.Value), out _);
                     var key = (consumeResult.Topic, consumeResult.Message.Key);
                     if (valueDictionary.TryGetValue(key, out var previousResult))
                     {
@@ -151,7 +152,11 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                                 $"Unexpected message value, topic/k [p]={consumeResult.Topic}/{consumeResult.Message.Key} {consumeResult.Partition}, Offset={previousResult.Offset}/{consumeResult.Offset}, " +
                                 $"LeaderEpoch={previousResult.LeaderEpoch}/{consumeResult.LeaderEpoch},  previous value={previousResult.Message.Value}, messageValue={consumeResult.Message.Value}, numConsumed={numConsumed} !");
 
-                            Interlocked.Increment(ref numOutOfSequence);
+                            if (consumeResult.Message.Value < previousResult.Message.Value + 1)
+                                Interlocked.Increment(ref numDuplicated);
+
+                            if (consumeResult.Message.Value > previousResult.Message.Value + 1)
+                                Interlocked.Increment(ref numOutOfSequence);
                         }
 
                         valueDictionary[key] = consumeResult;
@@ -167,10 +172,9 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
         });
 
         long numProduced = 0;
-        var sw = Stopwatch.StartNew();
 
         // Only one producer to avoid messages reordering
-        var producersTask = Task.Run(async () =>
+        var producerTask = Task.Run(async () =>
         {
             await producerSemaphore.WaitAsync();
 
@@ -182,7 +186,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 }))
                 .CreateLogger($"Producer");
 
-            logger.Log(LogLevel.Information, $"Starting producer task:");
+            logger.Log(LogLevel.Information, "Starting producer task:");
 
             Exception e = null;
             var producerConfig = new ProducerConfig(settings.ConfigDictionary)
@@ -203,69 +207,81 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                     })
                 .Build();
 
+            var sw = Stopwatch.StartNew();
             var m = 0;
-            for (var currentValue = 0l;; currentValue++)
+            for (var currentValue = 0L;; currentValue++)
             for (var topicIndex = 0; topicIndex < settings.Topics; topicIndex++)
-            for (var k = 0; k < settings.Partitions * 7; k++)
             {
-                if (e != null)
-                {
-                    throw e;
-                }
-
-                m++;
-
-                if (m % 100000 == 0)
-                {
-                    producer.Flush();
-                }
-
                 var topicName = Utils.GetTopicName(topicIndex);
-
-                var msg = new Message<long, long> { Key = k, Value = currentValue };
-                messagesToReceive.AddOrUpdate((topicName, k, currentValue), DateTime.UtcNow,
-                    (_, _) => DateTime.Now);
-                producer.Produce(topicName, msg,
-                    (deliveryReport) =>
+                for (var k = 0; k < settings.Partitions * 7; k++)
+                {
+                    if (e != null)
                     {
-                        if (deliveryReport.Error.Code != ErrorCode.NoError)
-                        {
-                            var topicMetadata = _adminClient.GetMetadata(deliveryReport.Topic,
-                                TimeSpan.FromSeconds(30));
-                            var partitionsCount = topicMetadata.Topics.Single().Partitions.Count;
+                        throw e;
+                    }
 
-                            producer = new ProducerBuilder<long, long>(
-                                    producerConfig.AsEnumerable().Concat(configuration.AsEnumerable()))
-                                .SetLogHandler(
-                                    (a, b) => logger.LogInformation(
-                                        $"kafka-log Facility:{b.Facility}, Message{b.Message}"))
-                                .Build();
-
-                            if (e == null)
-                                e = new Exception(
-                                    $"DeliveryReport.Error, Code = {deliveryReport.Error.Code}, Reason = {deliveryReport.Error.Reason}" +
-                                    $", IsFatal = {deliveryReport.Error.IsFatal}, IsError = {deliveryReport.Error.IsError}" +
-                                    $", IsLocalError = {deliveryReport.Error.IsLocalError}, IsBrokerError = {deliveryReport.Error.IsBrokerError}" +
-                                    $", topic = {deliveryReport.Topic}, partition = {deliveryReport.Partition.Value}, partitionsCount = {partitionsCount}");
-                        }
-                        else
+                    if (m <= 0)
+                    {
+                        var elapsed = sw.Elapsed;
+                        if (elapsed < TimeSpan.FromMilliseconds(100))
                         {
-                            Interlocked.Increment(ref numProduced);
+                            await Task.Delay(TimeSpan.FromMilliseconds(100) - elapsed);
                         }
-                    });
+
+                        sw = Stopwatch.StartNew();
+                        m = (int)settings.MessagesPerSecond / 10;
+                    }
+
+                    m -= 1;
+
+                    var msg = new Message<long, long> { Key = k, Value = currentValue };
+                    messagesToReceive.AddOrUpdate((topicName, k, currentValue), DateTime.UtcNow,
+                        (_, _) => DateTime.Now);
+                    producer.Produce(topicName, msg,
+                        (deliveryReport) =>
+                        {
+                            if (deliveryReport.Error.Code != ErrorCode.NoError)
+                            {
+                                var topicMetadata = _adminClient.GetMetadata(deliveryReport.Topic,
+                                    TimeSpan.FromSeconds(30));
+                                var partitionsCount = topicMetadata.Topics.Single().Partitions.Count;
+
+                                producer = new ProducerBuilder<long, long>(
+                                        producerConfig.AsEnumerable().Concat(configuration.AsEnumerable()))
+                                    .SetLogHandler(
+                                        (a, b) => logger.LogInformation(
+                                            $"kafka-log Facility:{b.Facility}, Message{b.Message}"))
+                                    .Build();
+
+                                if (e == null)
+                                    e = new Exception(
+                                        $"DeliveryReport.Error, Code = {deliveryReport.Error.Code}, Reason = {deliveryReport.Error.Reason}" +
+                                        $", IsFatal = {deliveryReport.Error.IsFatal}, IsError = {deliveryReport.Error.IsError}" +
+                                        $", IsLocalError = {deliveryReport.Error.IsLocalError}, IsBrokerError = {deliveryReport.Error.IsBrokerError}" +
+                                        $", topic = {deliveryReport.Topic}, partition = {deliveryReport.Partition.Value}, partitionsCount = {partitionsCount}");
+                            }
+                        });
+
+                    if (Interlocked.Increment(ref numProduced) % 100000 == 0)
+                    {
+                        producer.Flush();
+                    }
+                }
             }
         });
 
         var reporterTask = Task.Run(async () =>
         {
-            var prevProduced = 0l;
-            var prevConsumed = 0l;
+            var sw = Stopwatch.StartNew();
+            var prevProduced = 0L;
+            var prevConsumed = 0L;
             for (;;)
             {
                 await Task.Delay(TimeSpan.FromSeconds(10));
                 var totalProduced = Interlocked.Read(ref numProduced);
                 var totalConsumed = Interlocked.Read(ref numConsumed);
                 var outOfSequence = Interlocked.Read(ref numOutOfSequence);
+                var duplicated = Interlocked.Read(ref numDuplicated);
                 var newlyProduced = totalProduced - prevProduced;
                 var newlyConsumed = totalConsumed - prevConsumed;
                 prevProduced = totalProduced;
@@ -284,11 +300,11 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 }
 
                 Log.Log(LogLevel.Information,
-                    $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}) messages produced, {totalConsumed} (+{newlyConsumed}) messages consumed, {outOfSequence} out of sequence. {oldestMessageString}");
+                    $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}) messages produced, {totalConsumed} (+{newlyConsumed}) messages consumed, {duplicated} duplicated, {outOfSequence} out of sequence. {oldestMessageString}");
             }
         });
 
-        var task = await Task.WhenAny(new[] { consumerTask, reporterTask, producersTask });
+        var task = await Task.WhenAny([consumerTask, reporterTask, producerTask]);
 
         await task;
         return 0;

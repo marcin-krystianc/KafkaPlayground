@@ -30,7 +30,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1' # The container can use at most 1 CPUs
+          cpus: '2' 
 
   kafka-2:
     env_file:
@@ -46,7 +46,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1' 
+          cpus: '2' 
 
   kafka-3:
     env_file:
@@ -62,7 +62,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1' 
+          cpus: '2' 
 
   kafdrop:
     image: obsidiandynamics/kafdrop
