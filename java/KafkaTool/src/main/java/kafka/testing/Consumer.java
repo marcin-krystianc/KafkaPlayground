@@ -29,14 +29,10 @@ import org.apache.kafka.common.errors.AuthorizationException;
 import org.apache.kafka.common.errors.RecordDeserializationException;
 import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
 
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
-
-import static java.lang.String.format;
-import static java.util.Collections.singleton;
 
 /**
  * A simple consumer thread that subscribes to a topic, fetches new records and prints them.
@@ -48,6 +44,8 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
     private final String groupId;
     private final CountDownLatch latch;
     private volatile boolean closed;
+    private KafkaConsumer<Integer, Integer> consumer;
+    private final Map<TopicPartition, Long> partitionOffsets;
 
     public Consumer(String threadName,
                     String bootstrapServers,
@@ -59,6 +57,7 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
         this.topics = topics;
         this.groupId = groupId;
         this.latch = latch;
+        this.partitionOffsets = new HashMap<>(); 
     }
 
     @Override
@@ -66,14 +65,15 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
 
         long receivedRecords = 0;
         long logRecords = 0;
-        Map<String, Map<Integer, ConsumerRecord<Integer, Integer>>> consumeResults = new HashMap<>();
 
         // the consumer instance is NOT thread safe
         try (KafkaConsumer<Integer, Integer> consumer = createKafkaConsumer()) {
+            this.consumer = consumer;
+
+            Map<String, Map<Integer, ConsumerRecord<Integer, Integer>>> consumeResults = new HashMap<>();
             // subscribes to a list of topics to get dynamically assigned partitions
             // this class implements the rebalance listener that we pass here to be notified of such events
             consumer.subscribe(Arrays.asList(topics), this);
-            Utils.printOut("Subscribed to %s", topics);
 
             long logTime = System.currentTimeMillis();
             while (!closed) {
@@ -94,29 +94,31 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
                     for (ConsumerRecord<Integer, Integer> record : records) {
 
                         receivedRecords++;
-                        
-                        if (!consumeResults.containsKey(record.topic()))
-                        {
+
+                        synchronized (partitionOffsets) {
+                            partitionOffsets.put(new TopicPartition(record.topic().toString(), record.partition()), record.offset());
+                        }
+
+                        if (!consumeResults.containsKey(record.topic())) {
                             consumeResults.put(record.topic(), new HashMap<>());
                         }
 
                         var dictionary = consumeResults.get(record.topic());
                         var previousResult = dictionary.getOrDefault(record.key(), null);
-                        if (previousResult != null)
-                        {
-                            if (previousResult.value() + 1 != record.value())
-                            {
-                                System.out.printf("Unexpected message value topic %s/%s [%d], Offset=%d/%d, LeaderEpoch=%d/%d Value=%d/%d %n"
+                        if (previousResult != null) {
+                            if (previousResult.value() != record.value() && previousResult.value() + 1 != record.value()) {
+                                Utils.printErr("Unexpected message value topic %s/%s [%d], Offset=%d/%d, LeaderEpoch=%d/%d Value=%d/%d %n"
                                         , record.topic()
                                         , record.key().toString(), record.partition()
                                         , previousResult.offset(), record.offset()
-                                        , previousResult.leaderEpoch(), record.leaderEpoch()
+                                        , previousResult.leaderEpoch().orElse(-1), record.leaderEpoch().orElse(-1)
                                         , previousResult.value(), record.value()
                                 );
- 
+
                             }
                         }
-                        
+
+                        dictionary.put(record.key(), record);
                     }
                 } catch (AuthorizationException | UnsupportedVersionException
                          | RecordDeserializationException e) {
@@ -165,7 +167,7 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, IntegerDeserializer.class);
 
         // sets the reset offset policy in case of invalid or no offset
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
         return new KafkaConsumer<>(props);
     }
 
@@ -179,6 +181,14 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
     public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
         Utils.printOut("Assigned partitions: %s", partitions);
         // this can be used to read the offsets from an external store or some other initialization
+
+        synchronized (partitionOffsets) {
+            for (var partition : partitions) {
+                if (partitionOffsets.containsKey(partition)) {
+                    consumer.seek(partition, partitionOffsets.get(partition) + 1);
+                }
+            }
+        }
     }
 
     @Override
@@ -187,5 +197,6 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
         // this is called when partitions are reassigned before we had a chance to revoke them gracefully
         // we can't commit pending offsets because these partitions are probably owned by other consumers already
         // nevertheless, we may need to do some other cleanup
+
     }
 }

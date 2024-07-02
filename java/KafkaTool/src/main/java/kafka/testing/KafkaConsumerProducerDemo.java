@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class KafkaConsumerProducerDemo {
     public static final String TOPIC_NAME = "my-topic";
-    public static final String GROUP_NAME = "my-group";
     public static final Integer NUMBER_OF_TOPICS = 150;
     public static final Integer NUMBER_OF_PARTITIONS = 10;
     public static final short REPLICATION_FACTOR = 3;
@@ -48,9 +47,6 @@ public class KafkaConsumerProducerDemo {
                 return;
             }
 
-            int numRecords = Integer.parseInt(args[0]);
-            boolean isAsync = args.length == 1 || !args[1].trim().equalsIgnoreCase("sync");
-
             String[] topicNames = new String[NUMBER_OF_TOPICS];
             for (int i = 0; i < NUMBER_OF_TOPICS; i++) {
                 topicNames[i] = TOPIC_NAME + "-" + i;
@@ -62,7 +58,7 @@ public class KafkaConsumerProducerDemo {
 
             // stage 2: produce records to topic1
             Producer producerThread = new Producer(
-                "producer", KafkaProperties.BOOTSTRAP_SERVERS, topicNames, isAsync, null, false, numRecords, -1, latch);
+                "producer", KafkaProperties.BOOTSTRAP_SERVERS, topicNames, true, latch);
             producerThread.start();
 
             // stage 3: consume records from topic1
@@ -70,11 +66,11 @@ public class KafkaConsumerProducerDemo {
                 "consumer", KafkaProperties.BOOTSTRAP_SERVERS, topicNames, UUID.randomUUID().toString(), latch);
             consumerThread.start();
 
-            if (!latch.await(5, TimeUnit.MINUTES)) {
-                Utils.printErr("Timeout after 5 minutes waiting for termination");
-                producerThread.shutdown();
-                consumerThread.shutdown();
-            }
+            latch.await();                    
+            Utils.printErr("Timeout after 5 minutes waiting for termination");
+            producerThread.shutdown();
+            consumerThread.shutdown();
+
         } catch (Throwable e) {
             e.printStackTrace();
         }

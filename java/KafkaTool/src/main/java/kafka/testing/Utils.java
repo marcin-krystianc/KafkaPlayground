@@ -24,6 +24,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.errors.TopicExistsException;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -40,28 +41,17 @@ public class Utils {
     }
 
     public static void printOut(String message, Object... args) {
+        Date time = new java.util.Date(System.currentTimeMillis());
+        System.out.print(new SimpleDateFormat("[HH:mm:ss] ").format(time));
         System.out.printf("%s - %s%n", Thread.currentThread().getName(), format(message, args));
     }
 
     public static void printErr(String message, Object... args) {
+        Date time = new java.util.Date(System.currentTimeMillis());
+        System.err.print(new SimpleDateFormat("[HH:mm:ss] ").format(time));
         System.err.printf("%s - %s%n", Thread.currentThread().getName(), format(message, args));
     }
-
-    public static void maybePrintRecord(long numRecords, ConsumerRecord<Integer, Integer> record) {
-        maybePrintRecord(numRecords, record.key(), record.value(), record.topic(), record.partition(), record.offset());
-    }
-
-    public static void maybePrintRecord(long numRecords, int key, Integer value, RecordMetadata metadata) {
-        maybePrintRecord(numRecords, key, value, metadata.topic(), metadata.partition(), metadata.offset());
-    }
-
-    private static void maybePrintRecord(long numRecords, int key, Integer value, String topic, int partition, long offset) {
-        // we only print 10 records when there are 20 or more to send
-        if (key % Math.max(1, numRecords / 10) == 0) {
-            printOut("Sample: record(%d, %s), partition(%s-%d), offset(%d)", key, value, topic, partition, offset);
-        }
-    }
-
+    
     public static void recreateTopics(String bootstrapServers, int numPartitions, short replicationFactor, String... topicNames) {
         Properties props = new Properties();
         props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);

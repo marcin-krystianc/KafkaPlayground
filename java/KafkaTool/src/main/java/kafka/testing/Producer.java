@@ -45,11 +45,7 @@ import java.util.concurrent.ExecutionException;
 public class Producer extends Thread {
     private final String bootstrapServers;
     private final String[] topics;
-    private final boolean isAsync;
-    private final String transactionalId;
     private final boolean enableIdempotency;
-    private final int numRecords;
-    private final int transactionTimeoutMs;
     private final CountDownLatch latch;
     private volatile boolean closed;
     private final int messagesPerSecond;
@@ -58,20 +54,12 @@ public class Producer extends Thread {
     public Producer(String threadName,
                     String bootstrapServers,
                     String[] topics,
-                    boolean isAsync,
-                    String transactionalId,
                     boolean enableIdempotency,
-                    int numRecords,
-                    int transactionTimeoutMs,
                     CountDownLatch latch) {
         super(threadName);
         this.bootstrapServers = bootstrapServers;
-        this.isAsync = isAsync;
         this.topics = topics;
-        this.transactionalId = transactionalId;
         this.enableIdempotency = enableIdempotency;
-        this.numRecords = numRecords;
-        this.transactionTimeoutMs = transactionTimeoutMs;
         this.latch = latch;
         this.messagesPerSecond = 1000;
         this.numberOfPartitions = 10;
@@ -88,7 +76,7 @@ public class Producer extends Thread {
         try (KafkaProducer<Integer, Integer> producer = createKafkaProducer()) {
 
             for (var value = 0; ; value++)
-            for (var key = 0; key < this.numberOfPartitions; key++)
+            for (var key = 0; key < this.numberOfPartitions * 3; key++)
             for (var topic  : this.topics)
             {
                 if (closed)
@@ -143,19 +131,11 @@ public class Producer extends Thread {
         // key and value are just byte arrays, so we need to set appropriate serializers
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class);
-        props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 180000); 
+        props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 180000);
 
-        if (transactionTimeoutMs > 0) {
-            // max time before the transaction coordinator proactively aborts the ongoing transaction
-            props.put(ProducerConfig.TRANSACTION_TIMEOUT_CONFIG, transactionTimeoutMs);
-        }
-        if (transactionalId != null) {
-            // the transactional id must be static and unique
-            // it is used to identify the same producer instance across process restarts
-            props.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, transactionalId);
-        }
         // enable duplicates protection at the partition level
         props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, enableIdempotency);
+        props.put(ProducerConfig.ACKS_CONFIG, "all"); // -1 all, 0 None, 1 Leader
         return new KafkaProducer<>(props);
     }
 
