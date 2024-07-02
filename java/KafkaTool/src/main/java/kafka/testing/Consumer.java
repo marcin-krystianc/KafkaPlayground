@@ -39,7 +39,6 @@ import java.util.concurrent.CountDownLatch;
  * The thread does not stop until all records are completed or an exception is raised.
  */
 public class Consumer extends Thread implements ConsumerRebalanceListener {
-    private final String bootstrapServers;
     private final String[] topics;
     private final String groupId;
     private final CountDownLatch latch;
@@ -48,12 +47,10 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
     private final Map<TopicPartition, Long> partitionOffsets;
 
     public Consumer(String threadName,
-                    String bootstrapServers,
                     String[] topics,
                     String groupId,
                     CountDownLatch latch) {
         super(threadName);
-        this.bootstrapServers = bootstrapServers;
         this.topics = topics;
         this.groupId = groupId;
         this.latch = latch;
@@ -152,8 +149,6 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
 
     public KafkaConsumer<Integer, Integer> createKafkaConsumer() {
         Properties props = new Properties();
-        // bootstrap server config is required for consumer to connect to brokers
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
 
         // client id is not required, but it's good to track the source of requests beyond just ip/port
         // by allowing a logical application name to be included in server-side request logging

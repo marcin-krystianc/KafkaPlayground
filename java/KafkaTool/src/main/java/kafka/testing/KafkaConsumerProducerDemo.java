@@ -34,36 +34,28 @@ import java.util.concurrent.TimeUnit;
  */
 public class KafkaConsumerProducerDemo {
     public static final String TOPIC_NAME = "my-topic";
-    public static final Integer NUMBER_OF_TOPICS = 150;
-    public static final Integer NUMBER_OF_PARTITIONS = 10;
-    public static final short REPLICATION_FACTOR = 3;
 
     public static void main(String[] args) {
         try {
-            if (args.length == 0) {
-                Utils.printHelp("This example takes 2 parameters (i.e. 10000 sync):%n" +
-                    "- records: total number of records to send (required)%n" +
-                    "- mode: pass 'sync' to send records synchronously (optional)");
-                return;
-            }
+            var kafkaProperties = new KafkaProperties(args);
 
-            String[] topicNames = new String[NUMBER_OF_TOPICS];
-            for (int i = 0; i < NUMBER_OF_TOPICS; i++) {
+            String[] topicNames = new String[kafkaProperties.getNumberOfTopics()];
+            for (int i = 0; i < kafkaProperties.getNumberOfTopics(); i++) {
                 topicNames[i] = TOPIC_NAME + "-" + i;
             }
 
             // stage 1: clean any topics left from previous runs
-            Utils.recreateTopics(KafkaProperties.BOOTSTRAP_SERVERS, NUMBER_OF_PARTITIONS, REPLICATION_FACTOR, topicNames);
+            Utils.recreateTopics(kafkaProperties.getNumberOfTopics(), kafkaProperties.getReplicationFactor(), topicNames);
             CountDownLatch latch = new CountDownLatch(2);
 
             // stage 2: produce records to topic1
             Producer producerThread = new Producer(
-                "producer", KafkaProperties.BOOTSTRAP_SERVERS, topicNames, true, latch);
+                "producer", topicNames, true, latch);
             producerThread.start();
 
             // stage 3: consume records from topic1
             Consumer consumerThread = new Consumer(
-                "consumer", KafkaProperties.BOOTSTRAP_SERVERS, topicNames, UUID.randomUUID().toString(), latch);
+                "consumer", topicNames, UUID.randomUUID().toString(), latch);
             consumerThread.start();
 
             latch.await();                    

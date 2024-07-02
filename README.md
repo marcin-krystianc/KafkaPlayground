@@ -16,10 +16,6 @@ producer-sequential `
 --config enable.idempotence=false `
 --config max.in.flight.requests.per.connection=1
 
- 
-
-message.timeout.ms=180000
-
 
 ## Ordered, exactly once delivery
 

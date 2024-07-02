@@ -52,9 +52,8 @@ public class Utils {
         System.err.printf("%s - %s%n", Thread.currentThread().getName(), format(message, args));
     }
     
-    public static void recreateTopics(String bootstrapServers, int numPartitions, short replicationFactor, String... topicNames) {
+    public static void recreateTopics(int numPartitions, int replicationFactor, String... topicNames) {
         Properties props = new Properties();
-        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(AdminClientConfig.CLIENT_ID_CONFIG, "client-" + UUID.randomUUID());
         Map<String, String> configs = new HashMap<>() {{
             put("min.insync.replicas", String.valueOf(replicationFactor - 1));

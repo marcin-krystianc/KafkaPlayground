@@ -43,7 +43,6 @@ import java.util.concurrent.ExecutionException;
  * - Sync mode: each send operation blocks waiting for the response.
  */
 public class Producer extends Thread {
-    private final String bootstrapServers;
     private final String[] topics;
     private final boolean enableIdempotency;
     private final CountDownLatch latch;
@@ -52,12 +51,10 @@ public class Producer extends Thread {
     private final int numberOfPartitions;
     
     public Producer(String threadName,
-                    String bootstrapServers,
                     String[] topics,
                     boolean enableIdempotency,
                     CountDownLatch latch) {
         super(threadName);
-        this.bootstrapServers = bootstrapServers;
         this.topics = topics;
         this.enableIdempotency = enableIdempotency;
         this.latch = latch;
