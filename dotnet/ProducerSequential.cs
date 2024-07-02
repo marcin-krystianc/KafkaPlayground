@@ -27,7 +27,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
     public override async Task<int> ExecuteAsync(CommandContext context, ProducerSequentialSettings settings)
     {
         IConfiguration configuration = new ConfigurationBuilder()
-            .AddIniFile(settings.IniFile)
+            .AddInMemoryCollection(settings.ConfigDictionary)
             .Build();
 
         _adminClient = new AdminClientBuilder(configuration.AsEnumerable())
@@ -91,7 +91,6 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
             IConfiguration consumerConfiguration = new ConfigurationBuilder()
                 .AddInMemoryCollection(config)
                 .AddInMemoryCollection(settings.ConfigDictionary)
-                .AddIniFile(settings.IniFile)
                 .Build();
 
             using (var consumer = new ConsumerBuilder<long, long>(
