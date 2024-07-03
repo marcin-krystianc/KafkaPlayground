@@ -62,6 +62,8 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
 
         long receivedRecords = 0;
         long logRecords = 0;
+        long duplicatedRecords = 0;
+        long outOfSequenceRecords = 0;
 
         // the consumer instance is NOT thread safe
         try (KafkaConsumer<Integer, Integer> consumer = createKafkaConsumer(kafkaProperties.getConfigs())) {
@@ -78,7 +80,8 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
                     var currentTime = System.currentTimeMillis();
                     if (currentTime - logTime > 10000)
                     {
-                        Utils.printOut("Received " + receivedRecords + "(+" + (receivedRecords - logRecords) + ") messages.");
+                        Utils.printOut("Received " + receivedRecords + "(+" + (receivedRecords - logRecords) + ") messages, " + 
+                                        duplicatedRecords + " duplicated, " + outOfSequenceRecords +  " out of sequence.");
                         logTime = currentTime;
                         logRecords = receivedRecords;
                     }
@@ -103,7 +106,7 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
                         var dictionary = consumeResults.get(record.topic());
                         var previousResult = dictionary.getOrDefault(record.key(), null);
                         if (previousResult != null) {
-                            if (previousResult.value() != record.value() && previousResult.value() + 1 != record.value()) {
+                            if (record.value() != previousResult.value() + 1) {
                                 Utils.printErr("Unexpected message value topic %s/%s [%d], Offset=%d/%d, LeaderEpoch=%d/%d Value=%d/%d %n"
                                         , record.topic()
                                         , record.key().toString(), record.partition()
@@ -111,7 +114,14 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
                                         , previousResult.leaderEpoch().orElse(-1), record.leaderEpoch().orElse(-1)
                                         , previousResult.value(), record.value()
                                 );
+                                
+                                if (record.value() < previousResult.value() + 1) {
+                                    duplicatedRecords++;
+                                }
 
+                                if (record.value() > previousResult.value() + 1) {
+                                    outOfSequenceRecords++;
+                                }                                        
                             }
                         }
 

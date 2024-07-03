@@ -62,6 +62,7 @@ public class Producer extends Thread {
     @Override
     public void run() {
         int sentRecords = 0;
+        int logRecords = 0;
         int messagesToSend = 0;
         long startTime = System.currentTimeMillis();
         long logTime = System.currentTimeMillis();
@@ -80,8 +81,9 @@ public class Producer extends Thread {
                 var currentTime = System.currentTimeMillis();
                 if (currentTime - logTime > 10000)
                 {
-                    Utils.printOut("Produced " + sentRecords + " messages. Current value = " + value);
+                    Utils.printOut("Produced " + sentRecords + "(+" + (sentRecords - logRecords) + ") messages. Current value = " + value);
                     logTime = currentTime;
+                    logRecords = sentRecords;
                 }
                 
                 if (messagesToSend == 0)                

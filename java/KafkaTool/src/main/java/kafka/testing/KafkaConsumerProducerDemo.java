@@ -16,10 +16,8 @@
  */
 package kafka.testing;
 
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This example can be decomposed into the following stages:

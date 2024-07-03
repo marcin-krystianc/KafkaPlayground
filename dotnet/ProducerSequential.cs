@@ -72,7 +72,6 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
             await Task.Delay(delay);
         }
 
-        var messagesToReceive = new ConcurrentDictionary<(string Topic, long Key, long Value), DateTime>();
         long numConsumed = 0;
         long numOutOfSequence = 0;
         long numDuplicated = 0;
@@ -141,7 +140,6 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                             $"Reached end of topic {consumeResult.Topic}, partition {consumeResult.Partition}, offset {consumeResult.Offset}.");
                     }
 
-                    messagesToReceive.Remove((consumeResult.Topic, consumeResult.Message.Key, consumeResult.Message.Value), out _);
                     var key = (consumeResult.Topic, consumeResult.Message.Key);
                     if (valueDictionary.TryGetValue(key, out var previousResult))
                     {
@@ -188,10 +186,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
             logger.Log(LogLevel.Information, "Starting producer task:");
 
             Exception e = null;
-            var producerConfig = new ProducerConfig(settings.ConfigDictionary)
-            {
-                Acks = settings.Acks,
-            };
+            var producerConfig = new ProducerConfig(settings.ConfigDictionary);
 
             var producer = new ProducerBuilder<long, long>(
                     producerConfig.AsEnumerable().Concat(configuration.AsEnumerable()))
@@ -234,8 +229,6 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                     m -= 1;
 
                     var msg = new Message<long, long> { Key = k, Value = currentValue };
-                    messagesToReceive.AddOrUpdate((topicName, k, currentValue), DateTime.UtcNow,
-                        (_, _) => DateTime.Now);
                     producer.Produce(topicName, msg,
                         (deliveryReport) =>
                         {
@@ -285,21 +278,9 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 var newlyConsumed = totalConsumed - prevConsumed;
                 prevProduced = totalProduced;
                 prevConsumed = totalConsumed;
-                string oldestMessageString = string.Empty;
-                var oldestMessages = messagesToReceive.ToArray();
-                if (oldestMessages.Any())
-                {
-                    var oldestMessage = oldestMessages.MinBy(x => x.Value);
-                    var age = (DateTime.UtcNow - oldestMessage.Value);
-                    if (age > TimeSpan.FromSeconds(10))
-                    {
-                        oldestMessageString =
-                            $"Oldest topic:{oldestMessage.Key.Topic}, k:{oldestMessage.Key.Key}, v:{oldestMessage.Key.Value}, age:{(int)age.TotalSeconds}s";
-                    }
-                }
 
                 Log.Log(LogLevel.Information,
-                    $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}) messages produced, {totalConsumed} (+{newlyConsumed}) messages consumed, {duplicated} duplicated, {outOfSequence} out of sequence. {oldestMessageString}");
+                    $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}) messages produced, {totalConsumed} (+{newlyConsumed}) messages consumed, {duplicated} duplicated, {outOfSequence} out of sequence.");
             }
         });
 

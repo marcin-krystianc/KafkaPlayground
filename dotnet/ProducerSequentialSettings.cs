@@ -30,9 +30,4 @@ public class ProducerSequentialSettings : KafkaSettings
     [Description("Number of messages per second")]
     [DefaultValue(1000)]
     public long MessagesPerSecond { get; set; }
-
-    [CommandOption("--acks")]
-    [Description("Acks for produced message: All, None, Leader")]
-    [DefaultValue("Leader")]
-    public Acks Acks { get; set; }
 }
