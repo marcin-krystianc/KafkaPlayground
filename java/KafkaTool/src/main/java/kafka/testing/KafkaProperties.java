@@ -17,18 +17,54 @@
 package kafka.testing;
 
 import org.apache.commons.cli.*;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public class KafkaProperties {
     public CommandLine commandLine;
     public int getNumberOfTopics()
     {
         return Integer.parseInt(commandLine.getOptionValue("topics"));
     }
-
+    
+    public int getNumberOfPartitions()
+    {
+        return Integer.parseInt(commandLine.getOptionValue("partitions"));
+    }
+    
     public int getReplicationFactor()
     {
         return Integer.parseInt(commandLine.getOptionValue("replication-factor"));
     }
     
+    public int getMinIsr()
+    {
+        return Integer.parseInt(commandLine.getOptionValue("min-isr"));
+    }
+    
+    public int getMessagesPerSecond()
+    {
+        return Integer.parseInt(commandLine.getOptionValue("messages-per-second"));
+    }
+    
+    public Map<String, String> getConfigs()
+    {
+        var strings = commandLine.getOptionValues("config");
+        Map<String, String> map = new HashMap<>();
+
+        for (var s : strings) {
+            String[] parts = s.split("=", 2); // Split each string into key and value
+            if (parts.length != 2) {
+                throw new IllegalArgumentException("Invalid config string:" + s);
+            }
+
+            map.put(parts[0], parts[1]);
+        }
+        
+        return map;           
+    }    
+
     KafkaProperties(String[] args) throws ParseException
     {
         var options = new Options();

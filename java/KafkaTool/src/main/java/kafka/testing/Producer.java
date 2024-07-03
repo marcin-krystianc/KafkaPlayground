@@ -32,6 +32,7 @@ import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -44,22 +45,18 @@ import java.util.concurrent.ExecutionException;
  */
 public class Producer extends Thread {
     private final String[] topics;
-    private final boolean enableIdempotency;
+    private final KafkaProperties kafkaProperties;
     private final CountDownLatch latch;
     private volatile boolean closed;
-    private final int messagesPerSecond;
-    private final int numberOfPartitions;
     
-    public Producer(String threadName,
+    public Producer(KafkaProperties kafkaProperties,
                     String[] topics,
                     boolean enableIdempotency,
                     CountDownLatch latch) {
-        super(threadName);
+        super("producer");
+        this.kafkaProperties = kafkaProperties;
         this.topics = topics;
-        this.enableIdempotency = enableIdempotency;
         this.latch = latch;
-        this.messagesPerSecond = 1000;
-        this.numberOfPartitions = 10;
     }
 
     @Override
@@ -70,10 +67,11 @@ public class Producer extends Thread {
         long logTime = System.currentTimeMillis();
         
         // the producer instance is thread safe
-        try (KafkaProducer<Integer, Integer> producer = createKafkaProducer()) {
-
+        try (KafkaProducer<Integer, Integer> producer = createKafkaProducer(kafkaProperties.getConfigs())) {
+            
+            var numberOfKeys = kafkaProperties.getNumberOfPartitions() * 7;
             for (var value = 0; ; value++)
-            for (var key = 0; key < this.numberOfPartitions * 3; key++)
+            for (var key = 0; key < numberOfKeys; key++)
             for (var topic  : this.topics)
             {
                 if (closed)
@@ -95,7 +93,7 @@ public class Producer extends Thread {
                     }
                     
                     startTime = System.currentTimeMillis();
-                    messagesToSend = messagesPerSecond / 10;
+                    messagesToSend = kafkaProperties.getMessagesPerSecond() / 10;
                 }
                 messagesToSend--;
                 
@@ -118,10 +116,8 @@ public class Producer extends Thread {
         }
     }
 
-    public KafkaProducer<Integer, Integer> createKafkaProducer() {
+    public KafkaProducer<Integer, Integer> createKafkaProducer(Map<String, String> configs) {
         Properties props = new Properties();
-        // bootstrap server config is required for producer to connect to brokers
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         // client id is not required, but it's good to track the source of requests beyond just ip/port
         // by allowing a logical application name to be included in server-side request logging
         props.put(ProducerConfig.CLIENT_ID_CONFIG, "client-" + UUID.randomUUID());
@@ -130,9 +126,11 @@ public class Producer extends Thread {
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class);
         props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 180000);
 
-        // enable duplicates protection at the partition level
-        props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, enableIdempotency);
-        props.put(ProducerConfig.ACKS_CONFIG, "all"); // -1 all, 0 None, 1 Leader
+        for (var entry : configs.entrySet())
+        {
+            props.put(entry.getKey(), entry.getValue());
+        }
+        
         return new KafkaProducer<>(props);
     }
 

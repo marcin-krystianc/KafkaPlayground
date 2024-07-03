@@ -40,19 +40,19 @@ import java.util.concurrent.CountDownLatch;
  */
 public class Consumer extends Thread implements ConsumerRebalanceListener {
     private final String[] topics;
-    private final String groupId;
     private final CountDownLatch latch;
+    private final KafkaProperties kafkaProperties;
     private volatile boolean closed;
     private KafkaConsumer<Integer, Integer> consumer;
     private final Map<TopicPartition, Long> partitionOffsets;
 
-    public Consumer(String threadName,
+    public Consumer(KafkaProperties kafkaProperties,
                     String[] topics,
                     String groupId,
                     CountDownLatch latch) {
-        super(threadName);
+        super("consumer");
+        this.kafkaProperties = kafkaProperties; 
         this.topics = topics;
-        this.groupId = groupId;
         this.latch = latch;
         this.partitionOffsets = new HashMap<>(); 
     }
@@ -64,7 +64,7 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
         long logRecords = 0;
 
         // the consumer instance is NOT thread safe
-        try (KafkaConsumer<Integer, Integer> consumer = createKafkaConsumer()) {
+        try (KafkaConsumer<Integer, Integer> consumer = createKafkaConsumer(kafkaProperties.getConfigs())) {
             this.consumer = consumer;
 
             Map<String, Map<Integer, ConsumerRecord<Integer, Integer>>> consumeResults = new HashMap<>();
@@ -147,7 +147,7 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
         }
     }
 
-    public KafkaConsumer<Integer, Integer> createKafkaConsumer() {
+    public KafkaConsumer<Integer, Integer> createKafkaConsumer(Map<String, String> configs) {
         Properties props = new Properties();
 
         // client id is not required, but it's good to track the source of requests beyond just ip/port
@@ -155,7 +155,7 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
         props.put(ConsumerConfig.CLIENT_ID_CONFIG, "client-" + UUID.randomUUID());
 
         // consumer group id is required when we use subscribe(topics) for group management
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "group-" + UUID.randomUUID());
         
         // key and value are just byte arrays, so we need to set appropriate deserializers
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, IntegerDeserializer.class);
@@ -163,6 +163,11 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
 
         // sets the reset offset policy in case of invalid or no offset
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
+        for (var entry : configs.entrySet())
+        {
+            props.put(entry.getKey(), entry.getValue());
+        }
+
         return new KafkaConsumer<>(props);
     }
 

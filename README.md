@@ -12,6 +12,7 @@ producer-sequential `
 --topics=150 --partitions=10 --replication-factor=3 --min-isr=2 --messages-per-second=10000 `
 --config request.timeout.ms=180000 `
 --config message.timeout.ms=180000 `
+--config max.block.ms=180000 `
 --acks=All `
 --config enable.idempotence=false `
 --config max.in.flight.requests.per.connection=1

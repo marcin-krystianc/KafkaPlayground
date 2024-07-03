@@ -45,17 +45,15 @@ public class KafkaConsumerProducerDemo {
             }
 
             // stage 1: clean any topics left from previous runs
-            Utils.recreateTopics(kafkaProperties.getNumberOfTopics(), kafkaProperties.getReplicationFactor(), topicNames);
+            Utils.recreateTopics(kafkaProperties.getConfigs(), kafkaProperties.getNumberOfPartitions(), kafkaProperties.getReplicationFactor(), kafkaProperties.getMinIsr(), topicNames);
             CountDownLatch latch = new CountDownLatch(2);
 
             // stage 2: produce records to topic1
-            Producer producerThread = new Producer(
-                "producer", topicNames, true, latch);
+            Producer producerThread = new Producer(kafkaProperties, topicNames, true, latch);
             producerThread.start();
 
             // stage 3: consume records from topic1
-            Consumer consumerThread = new Consumer(
-                "consumer", topicNames, UUID.randomUUID().toString(), latch);
+            Consumer consumerThread = new Consumer(kafkaProperties, topicNames, UUID.randomUUID().toString(), latch);
             consumerThread.start();
 
             latch.await();                    

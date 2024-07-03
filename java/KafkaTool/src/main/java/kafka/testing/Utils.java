@@ -36,10 +36,6 @@ public class Utils {
     private Utils() {
     }
 
-    public static void printHelp(String message, Object... args) {
-        System.out.println(format(message, args));
-    }
-
     public static void printOut(String message, Object... args) {
         Date time = new java.util.Date(System.currentTimeMillis());
         System.out.print(new SimpleDateFormat("[HH:mm:ss] ").format(time));
@@ -51,13 +47,18 @@ public class Utils {
         System.err.print(new SimpleDateFormat("[HH:mm:ss] ").format(time));
         System.err.printf("%s - %s%n", Thread.currentThread().getName(), format(message, args));
     }
-    
-    public static void recreateTopics(int numPartitions, int replicationFactor, String... topicNames) {
+
+    public static void recreateTopics(Map<String, String> configs, int numPartitions, int replicationFactor, int minIsr, String... topicNames) {
         Properties props = new Properties();
         props.put(AdminClientConfig.CLIENT_ID_CONFIG, "client-" + UUID.randomUUID());
-        Map<String, String> configs = new HashMap<>() {{
-            put("min.insync.replicas", String.valueOf(replicationFactor - 1));
-        }};        
+        for (var entry : configs.entrySet())
+        {
+            props.put(entry.getKey(), entry.getValue());
+        }
+        
+        Map<String, String> topicConfigs = new HashMap<>() {{
+            put("min.insync.replicas", String.valueOf(minIsr));
+        }};
 
         try (Admin admin = Admin.create(props)) {
             // delete topics if present
@@ -70,10 +71,11 @@ public class Utils {
                 printErr("Topics deletion error: %s", e.getCause());
             }
             printOut("Deleted topics: %s", Arrays.toString(topicNames));
+
             // create topics in a retry loop
             while (true) {
                 List<NewTopic> newTopics = Arrays.stream(topicNames)
-                    .map(name -> new NewTopic(name, numPartitions, replicationFactor).configs(configs))
+                    .map(name -> new NewTopic(name, numPartitions, (short)replicationFactor).configs(topicConfigs))
                     .collect(Collectors.toList());
                 try {
                     admin.createTopics(newTopics).all().get();
