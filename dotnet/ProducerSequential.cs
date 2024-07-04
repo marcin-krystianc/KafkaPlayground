@@ -13,8 +13,6 @@ namespace KafkaTool;
 
 public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings>
 {
-    private IAdminClient _adminClient;
-
     private static readonly ILogger Log = LoggerFactory
         .Create(builder => builder.AddSimpleConsole(options =>
         {
@@ -29,20 +27,19 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
             .AddInMemoryCollection(settings.ConfigDictionary)
             .Build();
 
-        _adminClient = new AdminClientBuilder(configuration.AsEnumerable())
-            .SetErrorHandler((_, e) => Log.Log(LogLevel.Error,
-                $"Admin error: reason={e.Reason}, IsLocal={e.IsLocalError}, IsBroker={e.IsBrokerError}, IsFatal={e.IsFatal}, IsCode={e.Code}"))
-            .SetLogHandler((_, m) => Log.Log(LogLevel.Information,
-                $"Admin log: message={m.Message}, name={m.Name}, facility={m.Facility}, level={m.Level}"))
-            .Build();
-
-        for (int i = 0; i < settings.Topics; i++)
         {
-            string topic = Utils.GetTopicName(i);
-
-            if (!Utils.TopicExists(_adminClient, topic))
+            using var adminClient = Utils.GetAdminClient(settings.ConfigDictionary);
+            for (var i = 0; i < settings.Topics; i++)
             {
-                await Utils.CreateTopicAsync(_adminClient, topic, numPartitions: settings.Partitions,
+                string topic = Utils.GetTopicName(i);
+
+                if (Utils.TopicExists(adminClient, topic))
+                {
+                    await Utils.DeleteTopicAsync(adminClient, topic);
+                    await Task.Delay(TimeSpan.FromMilliseconds(100));
+                }
+
+                await Utils.CreateTopicAsync(adminClient, topic, numPartitions: settings.Partitions,
                     settings.ReplicationFactor,
                     settings.MinISR);
                 await Task.Delay(TimeSpan.FromMilliseconds(100));
@@ -113,7 +110,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                     foreach (var partition in Enumerable.Range(0, settings.Partitions))
                     {
                         topicPartitions.Add(
-                            new TopicPartitionOffset(new TopicPartition(topic, new Partition(partition)), Offset.End));
+                            new TopicPartitionOffset(new TopicPartition(topic, new Partition(partition)), Offset.Beginning));
                     }
                 }
 
@@ -186,9 +183,6 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
         var producerTasks = Enumerable.Range(0, settings.Producers)
             .Select(producerIndex => Task.Run(async () =>
             {
-                // Make sure consumer is really subscribed
-                await Task.Delay(TimeSpan.FromSeconds(10));
-
                 var logger = LoggerFactory
                     .Create(builder => builder.AddSimpleConsole(options =>
                     {
@@ -220,7 +214,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
 
                 if (settings.Topics % settings.Producers != 0)
                 {
-                throw new Exception($"Cannot evenly schedule {settings.Topics} on a {settings.Producers}! producers");
+                    throw new Exception($"Cannot evenly schedule {settings.Topics} on a {settings.Producers}! producers");
                 }
 
                 var topicPerProducer = settings.Topics / settings.Producers;
@@ -255,7 +249,8 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                             {
                                 if (deliveryReport.Error.Code != ErrorCode.NoError)
                                 {
-                                    var topicMetadata = _adminClient.GetMetadata(deliveryReport.Topic,
+                                    using var adminClient = Utils.GetAdminClient(settings.ConfigDictionary);
+                                    var topicMetadata = adminClient.GetMetadata(deliveryReport.Topic,
                                         TimeSpan.FromSeconds(30));
                                     var partitionsCount = topicMetadata.Topics.Single().Partitions.Count;
 

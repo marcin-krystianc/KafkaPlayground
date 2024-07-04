@@ -85,4 +85,14 @@ public static class Utils
             break;
         }
     }
+
+    public static IAdminClient GetAdminClient(IEnumerable<KeyValuePair<string, string>> configuration)
+    {
+        return new AdminClientBuilder(configuration.AsEnumerable())
+            .SetErrorHandler((_, e) => Log.Log(LogLevel.Error,
+                $"Admin error: reason={e.Reason}, IsLocal={e.IsLocalError}, IsBroker={e.IsBrokerError}, IsFatal={e.IsFatal}, IsCode={e.Code}"))
+            .SetLogHandler((_, m) => Log.Log(LogLevel.Information,
+                $"Admin log: message={m.Message}, name={m.Name}, facility={m.Facility}, level={m.Level}"))
+            .Build();
+    }
 }
