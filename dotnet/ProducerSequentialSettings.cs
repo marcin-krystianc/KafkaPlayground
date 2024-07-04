@@ -15,6 +15,11 @@ public class ProducerSequentialSettings : KafkaSettings
     [Description("Number of topics")]
     [DefaultValue(1)]
     public int Topics { get; set; }
+    
+    [CommandOption("--topic")]
+    [Description("Topic stem")]
+    [DefaultValue("topic")]
+    public string TopicStem { get; set; }
 
     [CommandOption("--partitions")]
     [Description("Number of partitions per topic")]

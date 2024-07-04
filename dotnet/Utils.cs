@@ -18,9 +18,9 @@ public static class Utils
         }))
         .CreateLogger("Log");
     
-    public static string GetTopicName(int i)
+    public static string GetTopicName(string topicStem, int i)
     {
-        return $"topic-{i}";
+        return $"{topicStem}-{i}";
     }
     
     public static bool TopicExists(IAdminClient adminClient, string topic)

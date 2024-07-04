@@ -31,7 +31,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
             using var adminClient = Utils.GetAdminClient(settings.ConfigDictionary);
             for (var i = 0; i < settings.Topics; i++)
             {
-                string topic = Utils.GetTopicName(i);
+                string topic = Utils.GetTopicName(settings.TopicStem, i);
 
                 if (Utils.TopicExists(adminClient, topic))
                 {
@@ -101,7 +101,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                        .Build())
             {
                 var topics = Enumerable.Range(0, settings.Topics)
-                    .Select(Utils.GetTopicName)
+                    .Select(x => Utils.GetTopicName(settings.TopicStem, x))
                     .ToArray();
 
                 var topicPartitions = new List<TopicPartitionOffset>();
@@ -221,7 +221,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 for (var currentValue = 0L;; currentValue++)
                 for (var topicIndex = 0; topicIndex < topicPerProducer; topicIndex++)
                 {
-                    var topicName = Utils.GetTopicName(topicIndex + producerIndex * topicPerProducer);
+                    var topicName = Utils.GetTopicName(settings.TopicStem, topicIndex + producerIndex * topicPerProducer);
                     for (var k = 0; k < settings.Partitions * 7; k++)
                     {
                         if (e != null)

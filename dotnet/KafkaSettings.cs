@@ -14,7 +14,7 @@ public class KafkaSettings : CommandSettings
     [Description("Extre configuration key=value. Can be speciified mutliple times.")]
     [TypeConverter(typeof(TupleTypeConverter))]
     public Tuple<string, string>[] ConfigItems { get; set; }
-
+    
     public IDictionary<string, string> ConfigDictionary =>
         ConfigItems?.ToDictionary(x => x.Item1, x => x.Item2) ?? new Dictionary<string, string>();
 }
