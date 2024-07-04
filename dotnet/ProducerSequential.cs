@@ -56,15 +56,23 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
         {
             var consumedAnyRecords = false;
             var errorLogged = false;
-            create_consumer:
 
+            var logger = LoggerFactory
+                .Create(builder => builder.AddSimpleConsole(options =>
+                {
+                    options.SingleLine = true;
+                    options.TimestampFormat = "HH:mm:ss ";
+                }))
+                .CreateLogger($"Consumer:");
+
+            logger.Log(LogLevel.Information, "Starting consumer task:");
+            
             var config = new ConsumerConfig
             {
                 GroupId = Guid.NewGuid().ToString(),
                 EnableAutoOffsetStore = false,
                 EnableAutoCommit = false,
-                AutoOffsetReset = AutoOffsetReset.Latest,
-                PartitionAssignmentStrategy = PartitionAssignmentStrategy.Range,
+                AutoOffsetReset = AutoOffsetReset.Error,
             };
 
             IConfiguration consumerConfiguration = new ConfigurationBuilder()
@@ -72,25 +80,26 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 .AddInMemoryCollection(settings.ConfigDictionary)
                 .Build();
 
+            create_consumer:
             using (var consumer = new ConsumerBuilder<long, long>(
                            consumerConfiguration.AsEnumerable())
                        .SetErrorHandler((_, e) =>
                        {
                            if (consumedAnyRecords || !errorLogged)
                            {
-                               Log.Log(LogLevel.Error,
+                               logger.Log(LogLevel.Error,
                                    $"Consumer error: reason={e.Reason}, IsLocal={e.IsLocalError}, IsBroker={e.IsBrokerError}, IsFatal={e.IsFatal}, IsCode={e.Code}");
                            }
 
                            errorLogged = true;
                        })
-                       .SetLogHandler((_, m) => Log.Log(LogLevel.Information,
+                       .SetLogHandler((_, m) => logger.Log(LogLevel.Information,
                            $"Consumer log: message={m.Message}, name={m.Name}, facility={m.Facility}, level={m.Level}"))
-                       .SetPartitionsAssignedHandler((_, l) => Log.Log(LogLevel.Information,
+                       .SetPartitionsAssignedHandler((_, l) => logger.Log(LogLevel.Information,
                            $"Consumer log: PartitionsAssignedHandler: count={l.Count}"))
-                       .SetPartitionsRevokedHandler((_, l) => Log.Log(LogLevel.Information,
+                       .SetPartitionsRevokedHandler((_, l) => logger.Log(LogLevel.Information,
                            $"Consumer log: PartitionsRevokedHandler: count={l.Count}"))
-                       .SetPartitionsLostHandler((_, l) => Log.Log(LogLevel.Information,
+                       .SetPartitionsLostHandler((_, l) => logger.Log(LogLevel.Information,
                            $"Consumer log: PartitionsLostHandler: count={l.Count}"))
                        .Build())
             {
@@ -114,10 +123,9 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("consumer.Assign:" + e);
+                    logger.Log(LogLevel.Error,"consumer.Assign:" + e);
                     throw;
                 }
-                // consumer.Subscribe(topics);
 
                 Dictionary<(string Topic, long Key), ConsumeResult<long, long>> valueDictionary = new();
 
@@ -139,7 +147,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                         {
                             if (consumeResult.Message.Value != previousResult.Message.Value + 1)
                             {
-                                Log.Log(LogLevel.Error,
+                                logger.Log(LogLevel.Error,
                                     $"Unexpected message value, topic/k [p]={consumeResult.Topic}/{consumeResult.Message.Key} {consumeResult.Partition}, Offset={previousResult.Offset}/{consumeResult.Offset}, " +
                                     $"LeaderEpoch={previousResult.LeaderEpoch}/{consumeResult.LeaderEpoch},  previous value={previousResult.Message.Value}, messageValue={consumeResult.Message.Value}, numConsumed={numConsumed} !");
 
@@ -161,11 +169,11 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                     }
                     catch (ConsumeException e)
                     {
-                        Console.WriteLine("Consumer.Consume:" + e);
+                        logger.Log(LogLevel.Error,"Consumer.Consume:" + e);
                         if (e.Error.Code == ErrorCode.UnknownTopicOrPart && !consumedAnyRecords)
                         {
                             await Task.Delay(TimeSpan.FromMilliseconds(1000));
-                            Console.WriteLine("Recreating consumer.");
+                            logger.Log(LogLevel.Warning,"Recreating consumer.");
                             goto create_consumer;
                         }
                     }
