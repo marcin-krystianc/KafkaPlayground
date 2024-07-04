@@ -6,6 +6,11 @@ namespace KafkaTool;
 
 public class ProducerSequentialSettings : KafkaSettings
 {
+    [CommandOption("--producers")]
+    [Description("Number of producers")]
+    [DefaultValue(1)]
+    public int Producers { get; set; }
+
     [CommandOption("--topics")]
     [Description("Number of topics")]
     [DefaultValue(1)]

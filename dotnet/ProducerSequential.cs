@@ -63,6 +63,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
             await Task.Delay(TimeSpan.FromMilliseconds(1));
         }
 
+        
         if (topicsCreated)
         {
             var millisecondsPerTopic = 31;
@@ -75,7 +76,6 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
         long numConsumed = 0;
         long numOutOfSequence = 0;
         long numDuplicated = 0;
-        var producerSemaphore = new SemaphoreSlim(0);
         var consumerTask = Task.Run(async () =>
         {
             var config = new ConsumerConfig
@@ -123,11 +123,6 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 consumer.Assign(topicPartitions);
                 // consumer.Subscribe(topics);
 
-                // Make sure consumer is really subscribed
-                await Task.Delay(TimeSpan.FromSeconds(10));
-
-                // Finally we can let the producer produce some message
-                producerSemaphore.Release(1);
                 Dictionary<(string Topic, long Key), ConsumeResult<long, long>> valueDictionary = new();
 
                 while (true)
@@ -170,10 +165,11 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
 
         long numProduced = 0;
 
-        // Only one producer to avoid messages reordering
-        var producerTask = Task.Run(async () =>
+        var producerTasks = Enumerable.Range(0, settings.Producers)
+            .Select(producerIndex => Task.Run(async () =>
         {
-            await producerSemaphore.WaitAsync();
+            // Make sure consumer is really subscribed
+            await Task.Delay(TimeSpan.FromSeconds(10));
 
             var logger = LoggerFactory
                 .Create(builder => builder.AddSimpleConsole(options =>
@@ -181,7 +177,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                     options.SingleLine = true;
                     options.TimestampFormat = "HH:mm:ss ";
                 }))
-                .CreateLogger($"Producer");
+                .CreateLogger($"Producer{producerIndex}:");
 
             logger.Log(LogLevel.Information, "Starting producer task:");
 
@@ -203,10 +199,17 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
 
             var sw = Stopwatch.StartNew();
             var m = 0;
-            for (var currentValue = 0L;; currentValue++)
-            for (var topicIndex = 0; topicIndex < settings.Topics; topicIndex++)
+
+            if (settings.Topics % settings.Producers != 0)
             {
-                var topicName = Utils.GetTopicName(topicIndex);
+                throw new Exception($"Cannot evenly schedule {settings.Topics} on a {settings.Producers}! producers");
+            }
+
+            var topicPerProducer = settings.Topics / settings.Producers;
+            for (var currentValue = 0L;; currentValue++)
+            for (var topicIndex = 0; topicIndex < topicPerProducer; topicIndex++)
+            {
+                var topicName = Utils.GetTopicName(topicIndex + producerIndex * topicPerProducer);
                 for (var k = 0; k < settings.Partitions * 7; k++)
                 {
                     if (e != null)
@@ -260,7 +263,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                     }
                 }
             }
-        });
+        }));
 
         var reporterTask = Task.Run(async () =>
         {
@@ -284,7 +287,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
             }
         });
 
-        var task = await Task.WhenAny([consumerTask, reporterTask, producerTask]);
+        var task = await Task.WhenAny(producerTasks.Concat([consumerTask, reporterTask]));
 
         await task;
         return 0;
