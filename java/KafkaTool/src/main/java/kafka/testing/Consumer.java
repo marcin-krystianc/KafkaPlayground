@@ -189,7 +189,7 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
 
     @Override
     public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-        Utils.printOut("Assigned partitions: %s", partitions);
+        Utils.printOut("Assigned partitions: %d", partitions.size());
         // this can be used to read the offsets from an external store or some other initialization
 
         synchronized (partitionOffsets) {
@@ -203,7 +203,7 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
 
     @Override
     public void onPartitionsLost(Collection<TopicPartition> partitions) {
-        Utils.printOut("Lost partitions: %s", partitions);
+        Utils.printOut("Lost partitions: %d", partitions.size());
         // this is called when partitions are reassigned before we had a chance to revoke them gracefully
         // we can't commit pending offsets because these partitions are probably owned by other consumers already
         // nevertheless, we may need to do some other cleanup

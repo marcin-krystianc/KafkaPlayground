@@ -70,7 +70,7 @@ public class Utils {
                 }
                 printErr("Topics deletion error: %s", e.getCause());
             }
-            printOut("Deleted topics: %s", Arrays.toString(topicNames));
+            printOut("Deleted topics");
 
             // create topics in a retry loop
             while (true) {
@@ -78,8 +78,12 @@ public class Utils {
                     .map(name -> new NewTopic(name, numPartitions, (short)replicationFactor).configs(topicConfigs))
                     .collect(Collectors.toList());
                 try {
-                    admin.createTopics(newTopics).all().get();
-                    printOut("Created topics: %s", Arrays.toString(topicNames));
+                    for (var newTopic : newTopics)
+                    {
+                        admin.createTopics(List.of(newTopic)).all().get();
+                        printOut("Created topic: %s", newTopic);
+                        Thread.sleep(10);
+                    }
                     break;
                 } catch (ExecutionException e) {
                     if (!(e.getCause() instanceof TopicExistsException)) {
