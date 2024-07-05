@@ -54,6 +54,8 @@ public static class ProducerTask
                             logger.LogInformation($"kafka-log Facility:{b.Facility}, Message{b.Message}");
                         }
                     })
+                .SetErrorHandler((_, e) => logger.Log(LogLevel.Error,
+                    $"Consumer error: reason={e.Reason}, IsLocal={e.IsLocalError}, IsBroker={e.IsBrokerError}, IsFatal={e.IsFatal}, IsCode={e.Code}"))
                 .Build();
 
             var sw = Stopwatch.StartNew();
