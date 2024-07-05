@@ -66,7 +66,6 @@ public class Producer extends Thread {
     public void run() {
         int messagesToSend = 0;
         long startTime = System.currentTimeMillis();
-        long logTime = System.currentTimeMillis();
         
         // the producer instance is thread safe
         try (KafkaProducer<Integer, Integer> producer = createKafkaProducer(kafkaProperties.getConfigs())) {

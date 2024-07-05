@@ -118,7 +118,7 @@ public static class ProducerTask
                         });
 
                     data.IncrementProduced();
-                    if (++flushCounter % 1000000 == 0)
+                    if (++flushCounter % 100000 == 0)
                     {
                         producer.Flush();
                     }
