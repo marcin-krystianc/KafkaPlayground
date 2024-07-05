@@ -192,6 +192,9 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
                 if (partitionOffsets.containsKey(partition)) {
                     consumer.seek(partition, partitionOffsets.get(partition) + 1);
                 }
+                else {
+                    consumer.seekToBeginning(Collections.singleton(partition));
+                }
             }
         }
     }

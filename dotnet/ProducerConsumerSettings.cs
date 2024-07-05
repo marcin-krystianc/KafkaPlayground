@@ -4,7 +4,7 @@ using Spectre.Console.Cli;
 
 namespace KafkaTool;
 
-public class ProducerSequentialSettings : KafkaSettings
+public class ProducerConsumerSettings : KafkaSettings
 {
     [CommandOption("--producers")]
     [Description("Number of producers")]

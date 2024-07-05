@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace KafkaTool;
 
-public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings>
+public sealed class ProducerSequential : AsyncCommand<ProducerConsumerSettings>
 {
     private static readonly ILogger Log = LoggerFactory
         .Create(builder => builder.AddSimpleConsole(options =>
@@ -21,7 +21,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
         }))
         .CreateLogger("Log");
 
-    public override async Task<int> ExecuteAsync(CommandContext context, ProducerSequentialSettings settings)
+    public override async Task<int> ExecuteAsync(CommandContext context, ProducerConsumerSettings settings)
     {
         IConfiguration configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(settings.ConfigDictionary)
@@ -278,27 +278,7 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
                 }
             }));
 
-        var reporterTask = Task.Run(async () =>
-        {
-            var sw = Stopwatch.StartNew();
-            var prevProduced = 0L;
-            var prevConsumed = 0L;
-            for (;;)
-            {
-                await Task.Delay(TimeSpan.FromSeconds(10));
-                var totalProduced = Interlocked.Read(ref numProduced);
-                var totalConsumed = Interlocked.Read(ref numConsumed);
-                var outOfSequence = Interlocked.Read(ref numOutOfSequence);
-                var duplicated = Interlocked.Read(ref numDuplicated);
-                var newlyProduced = totalProduced - prevProduced;
-                var newlyConsumed = totalConsumed - prevConsumed;
-                prevProduced = totalProduced;
-                prevConsumed = totalConsumed;
-
-                Log.Log(LogLevel.Information,
-                    $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}) messages produced, {totalConsumed} (+{newlyConsumed}) messages consumed, {duplicated} duplicated, {outOfSequence} out of sequence.");
-            }
-        });
+  
 
         var task = await Task.WhenAny(producerTasks.Concat([consumerTask, reporterTask]));
 
