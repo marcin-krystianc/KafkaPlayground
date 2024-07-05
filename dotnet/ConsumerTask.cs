@@ -21,7 +21,7 @@ public static class ConsumerTask
         }))
         .CreateLogger("Log");
     
-    public static Task GetTask(ConsumerSettings settings, ProducerConsumerData data)
+    public static Task GetTask(ProducerConsumerSettings settings, ProducerConsumerData data)
     {
         return Task.Run(async () =>
         {
