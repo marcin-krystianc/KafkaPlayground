@@ -214,14 +214,14 @@ public sealed class ProducerSequential : AsyncCommand<ProducerSequentialSettings
 
                 if (settings.Topics % settings.Producers != 0)
                 {
-                    throw new Exception($"Cannot evenly schedule {settings.Topics} on a {settings.Producers}! producers");
+                    throw new Exception($"Cannot evenly schedule {settings.Topics} on a {settings.Producers} producers!");
                 }
 
-                var topicPerProducer = settings.Topics / settings.Producers;
+                var topicsPerProducer = settings.Topics / settings.Producers;
                 for (var currentValue = 0L;; currentValue++)
-                for (var topicIndex = 0; topicIndex < topicPerProducer; topicIndex++)
+                for (var topicIndex = 0; topicIndex < topicsPerProducer; topicIndex++)
                 {
-                    var topicName = Utils.GetTopicName(settings.TopicStem, topicIndex + producerIndex * topicPerProducer);
+                    var topicName = Utils.GetTopicName(settings.TopicStem, topicIndex + producerIndex * topicsPerProducer);
                     for (var k = 0; k < settings.Partitions * 7; k++)
                     {
                         if (e != null)

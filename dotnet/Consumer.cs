@@ -158,7 +158,6 @@ public class Consumer : AsyncCommand<ConsumerSettings>
         var reporterTask = Task.Run(async () =>
         {
             var sw = Stopwatch.StartNew();
-            var prevProduced = 0L;
             var prevConsumed = 0L;
             for (;;)
             {

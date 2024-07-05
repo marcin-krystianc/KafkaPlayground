@@ -16,8 +16,7 @@
  */
 package kafka.testing;
 
-import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
+import java.util.Arrays;
 
 /**
  * This example can be decomposed into the following stages:
@@ -30,7 +29,7 @@ import java.util.concurrent.CountDownLatch;
  * You can also set an output log file in `Modify Run Configuration - Modify options - Save console output to file` to
  * record all the log output together.
  */
-public class KafkaConsumerProducerDemo {
+public class ProducerConsumer {
     public static final String TOPIC_NAME = "my-topic";
 
     public static void main(String[] args) {
@@ -44,20 +43,33 @@ public class KafkaConsumerProducerDemo {
 
             // stage 1: clean any topics left from previous runs
             Utils.recreateTopics(kafkaProperties.getConfigs(), kafkaProperties.getNumberOfPartitions(), kafkaProperties.getReplicationFactor(), kafkaProperties.getMinIsr(), topicNames);
-            CountDownLatch latch = new CountDownLatch(2);
 
-            // stage 2: produce records to topic1
-            Producer producerThread = new Producer(kafkaProperties, topicNames, true, latch);
-            producerThread.start();
+            if (kafkaProperties.getNumberOfTopics() % kafkaProperties.getNumberOfProducers() != 0) {
+                throw new Exception(String.format("Cannot evenly schedule %d topics on a %d producers!", kafkaProperties.getNumberOfTopics(), kafkaProperties.getNumberOfProducers()));
+            }
+
+            var topicsPerProducer = kafkaProperties.getNumberOfTopics() / kafkaProperties.getNumberOfProducers();
+            Producer[] producers = new Producer[kafkaProperties.getNumberOfProducers()];
+            for (int i = 0; i < kafkaProperties.getNumberOfProducers(); i++) {
+                producers[i] = new Producer(kafkaProperties, Arrays.copyOfRange(topicNames, i * topicsPerProducer, (i+1) * topicsPerProducer));
+                producers[i].start();
+            }
 
             // stage 3: consume records from topic1
-            Consumer consumerThread = new Consumer(kafkaProperties, topicNames, UUID.randomUUID().toString(), latch);
-            consumerThread.start();
+            Consumer consumer = new Consumer(kafkaProperties, topicNames);
+            consumer.start();
+            
+            Reporter reporter = new Reporter(producers, consumer);
+            reporter.start();
 
-            latch.await();                    
-            Utils.printErr("Timeout after 5 minutes waiting for termination");
-            producerThread.shutdown();
-            consumerThread.shutdown();
+            var allThreadsAreAlive = true;
+            do {
+                allThreadsAreAlive = allThreadsAreAlive && consumer.isAlive();
+                allThreadsAreAlive = allThreadsAreAlive && reporter.isAlive();
+                for (var producer : producers) {
+                    allThreadsAreAlive = allThreadsAreAlive && producer.isAlive();
+                }
+            } while(allThreadsAreAlive);
 
         } catch (Throwable e) {
             e.printStackTrace();

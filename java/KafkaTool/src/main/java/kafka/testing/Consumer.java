@@ -32,7 +32,7 @@ import org.apache.kafka.common.serialization.IntegerDeserializer;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A simple consumer thread that subscribes to a topic, fetches new records and prints them.
@@ -40,30 +40,35 @@ import java.util.concurrent.CountDownLatch;
  */
 public class Consumer extends Thread implements ConsumerRebalanceListener {
     private final String[] topics;
-    private final CountDownLatch latch;
     private final KafkaProperties kafkaProperties;
     private volatile boolean closed;
     private KafkaConsumer<Integer, Integer> consumer;
     private final Map<TopicPartition, Long> partitionOffsets;
+    private final AtomicInteger receivedRecords = new AtomicInteger(0);
+    private final AtomicInteger duplicatedRecords = new AtomicInteger(0);
+    private final AtomicInteger outOfSequence = new AtomicInteger(0);
 
     public Consumer(KafkaProperties kafkaProperties,
-                    String[] topics,
-                    String groupId,
-                    CountDownLatch latch) {
+                    String[] topics) {
         super("consumer");
         this.kafkaProperties = kafkaProperties; 
         this.topics = topics;
-        this.latch = latch;
         this.partitionOffsets = new HashMap<>(); 
+    }
+    public long GetReceivedRecords() {
+        return this.receivedRecords.get();
+    }
+    
+    public long GetDuplicatedRecords() {
+        return this.duplicatedRecords.get();
+    }
+
+    public long GetOutOfSequenceRecords() {
+        return this.outOfSequence.get();
     }
 
     @Override
     public void run() {
-
-        long receivedRecords = 0;
-        long logRecords = 0;
-        long duplicatedRecords = 0;
-        long outOfSequenceRecords = 0;
 
         // the consumer instance is NOT thread safe
         try (KafkaConsumer<Integer, Integer> consumer = createKafkaConsumer(kafkaProperties.getConfigs())) {
@@ -74,18 +79,9 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
             // this class implements the rebalance listener that we pass here to be notified of such events
             consumer.subscribe(Arrays.asList(topics), this);
 
-            long logTime = System.currentTimeMillis();
             while (!closed) {
                 try {
-                    var currentTime = System.currentTimeMillis();
-                    if (currentTime - logTime > 10000)
-                    {
-                        Utils.printOut("Received " + receivedRecords + "(+" + (receivedRecords - logRecords) + ") messages, " + 
-                                        duplicatedRecords + " duplicated, " + outOfSequenceRecords +  " out of sequence.");
-                        logTime = currentTime;
-                        logRecords = receivedRecords;
-                    }
-                    
+                 
                     // if required, poll updates partition assignment and invokes the configured rebalance listener
                     // then tries to fetch records sequentially using the last committed offset or auto.offset.reset policy
                     // returns immediately if there are records or times out returning an empty record set
@@ -93,7 +89,7 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
                     ConsumerRecords<Integer, Integer> records = consumer.poll(Duration.ofSeconds(1));
                     for (ConsumerRecord<Integer, Integer> record : records) {
 
-                        receivedRecords++;
+                        receivedRecords.incrementAndGet();
 
                         synchronized (partitionOffsets) {
                             partitionOffsets.put(new TopicPartition(record.topic().toString(), record.partition()), record.offset());
@@ -116,11 +112,11 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
                                 );
                                 
                                 if (record.value() < previousResult.value() + 1) {
-                                    duplicatedRecords++;
+                                    duplicatedRecords.incrementAndGet();
                                 }
 
                                 if (record.value() > previousResult.value() + 1) {
-                                    outOfSequenceRecords++;
+                                    outOfSequence.incrementAndGet();
                                 }                                        
                             }
                         }
@@ -153,7 +149,6 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
     public void shutdown() {
         if (!closed) {
             closed = true;
-            latch.countDown();
         }
     }
 

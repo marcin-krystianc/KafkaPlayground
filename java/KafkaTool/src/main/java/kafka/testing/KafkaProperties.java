@@ -47,7 +47,15 @@ public class KafkaProperties {
     {
         return Integer.parseInt(commandLine.getOptionValue("messages-per-second"));
     }
-    
+
+    public int getNumberOfProducers()
+    {
+        if (!commandLine.hasOption("producers"))
+            return 1;
+        
+        return Integer.parseInt(commandLine.getOptionValue("producers"));
+    }
+
     public Map<String, String> getConfigs()
     {
         var strings = commandLine.getOptionValues("config");
@@ -88,12 +96,16 @@ public class KafkaProperties {
         var messagesPerSecond = new Option(null, "messages-per-second", true, "Messages per second");
         messagesPerSecond.setRequired(true);
         
+        var producers = new Option(null, "producers", true, "Number of producers (default 1)");
+        producers.setRequired(false);
+       
         options.addOption(config);
         options.addOption(topics);
         options.addOption(partitions);
         options.addOption(replicationFactor);
         options.addOption(minIsr);
         options.addOption(messagesPerSecond);
+        options.addOption(producers);
         
         CommandLineParser parser = new DefaultParser();
         commandLine = parser.parse(options, args);

@@ -37,6 +37,7 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A simple producer thread supporting two send modes:
@@ -46,30 +47,30 @@ import java.util.concurrent.ExecutionException;
 public class Producer extends Thread {
     private final String[] topics;
     private final KafkaProperties kafkaProperties;
-    private final CountDownLatch latch;
     private volatile boolean closed;
-    
+    private final AtomicInteger sentRecords = new AtomicInteger(0);
+        
     public Producer(KafkaProperties kafkaProperties,
-                    String[] topics,
-                    boolean enableIdempotency,
-                    CountDownLatch latch) {
+                    String[] topics
+    ) {
         super("producer");
         this.kafkaProperties = kafkaProperties;
         this.topics = topics;
-        this.latch = latch;
+    }
+    
+    public long GetSentRecords() {
+        return this.sentRecords.get();
     }
 
     @Override
     public void run() {
-        int sentRecords = 0;
-        int logRecords = 0;
         int messagesToSend = 0;
         long startTime = System.currentTimeMillis();
         long logTime = System.currentTimeMillis();
         
         // the producer instance is thread safe
         try (KafkaProducer<Integer, Integer> producer = createKafkaProducer(kafkaProperties.getConfigs())) {
-            
+
             var numberOfKeys = kafkaProperties.getNumberOfPartitions() * 7;
             for (var value = 0; ; value++)
             for (var key = 0; key < numberOfKeys; key++)
@@ -79,14 +80,7 @@ public class Producer extends Thread {
                    return;
                 
                 var currentTime = System.currentTimeMillis();
-                if (currentTime - logTime > 10000)
-                {
-                    Utils.printOut("Produced " + sentRecords + "(+" + (sentRecords - logRecords) + ") messages. Current value = " + value);
-                    logTime = currentTime;
-                    logRecords = sentRecords;
-                }
-                
-                if (messagesToSend == 0)                
+                       if (messagesToSend == 0)                
                 {
                     var elapsedTime = currentTime - startTime;
                     if (elapsedTime < 100)
@@ -100,7 +94,7 @@ public class Producer extends Thread {
                 messagesToSend--;
                 
                 asyncSend(producer, topic, key, value);
-                sentRecords++;
+                sentRecords.incrementAndGet();
             }
         } catch (Throwable e) {
             Utils.printErr("Unhandled exception");
@@ -114,7 +108,6 @@ public class Producer extends Thread {
     public void shutdown() {
         if (!closed) {
             closed = true;
-            latch.countDown();
         }
     }
 
