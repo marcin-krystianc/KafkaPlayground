@@ -29,20 +29,18 @@ public static class Utils
         return topicMetadata.Topics.Single().Partitions.Count > 0;
     }
 
-    public static async Task CreateTopicAsync(IAdminClient adminClient, string topic, int numPartitions, int replicationFactor, int minIsr)
+    public static async Task CreateTopicAsync(IAdminClient adminClient, IReadOnlyCollection<string> topics, int numPartitions, int replicationFactor, int minIsr)
     {
-        Log.Log(LogLevel.Information, ($"Creating a topic: {topic}"));
+        Log.Log(LogLevel.Information, ($"Creating {topics.Count} topics"));
 
-        await adminClient.CreateTopicsAsync(new[]
+        await adminClient.CreateTopicsAsync(
+            topics.Select(x =>  new TopicSpecification
             {
-                new TopicSpecification
-                {
-                    Configs = new Dictionary<string, string> { { "min.insync.replicas", $"{minIsr}" } },
-                    Name = topic,
-                    NumPartitions = numPartitions,
-                    ReplicationFactor = (short)replicationFactor,
-                }
-            },
+                Configs = new Dictionary<string, string> { { "min.insync.replicas", $"{minIsr}" } },
+                Name = x,
+                NumPartitions = numPartitions,
+                ReplicationFactor = (short)replicationFactor,
+            }).ToArray(),
             new CreateTopicsOptions
             {
                 OperationTimeout = TimeSpan.FromSeconds(30),
@@ -50,10 +48,10 @@ public static class Utils
             });
     }
 
-    public static async Task DeleteTopicAsync(IAdminClient adminClient, string topic)
+    public static async Task DeleteTopicAsync(IAdminClient adminClient, IReadOnlyCollection<string> topics)
     {
-        Log.Log(LogLevel.Information, ($"Removing a topic: {topic}"));
-        await adminClient.DeleteTopicsAsync(new[] { topic }, new DeleteTopicsOptions
+        Log.Log(LogLevel.Information, ($"Removing {topics.Count} topics"));
+        await adminClient.DeleteTopicsAsync(topics, new DeleteTopicsOptions
         {
             OperationTimeout = TimeSpan.FromSeconds(30),
             RequestTimeout = TimeSpan.FromSeconds(30),

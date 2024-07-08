@@ -117,3 +117,16 @@ Error: DeliveryReport.Error, Code = Local_UnknownPartition, Reason = Local: Unkn
 Error: DeliveryReport.Error, Code = Local_MsgTimedOut, Reason = Local: Message timed out, IsFatal = False, IsError = True, IsLocalError = True, IsBrokerError = False, topic = topic37, partitionsCount = 100
 17:36:33 info: Producer[0] Exception: DeliveryReport.Error, Code = Local_MsgTimedOut, Reason = Local: Message timed out, IsFatal = False, IsError = True, IsLocalError = True, IsBrokerError = False, topic = topic142, partitionsCount = 100
 
+
+
+
+
+ 
+ 
+# Logs after --config debug=metadata
+ 
+ : message=[thrd:main]: localhost:40001/1:   Topic topic-125 with 0 partitions: Broker: Unknown topic or partition, name=rdkafka#consumer-6, facility=METADATA, level=Debug
+	Line  80118: 16:28:01 info: Consumer:[0] Consumer log: message=[thrd:main]: Error in metadata reply for topic topic-125 (PartCnt 0): Broker: Unknown topic or partition, name=rdkafka#consumer-6, facility=METADATA, level=Debug
+	Line  80119: 16:28:01 info: Consumer:[0] Consumer log: message=[thrd:main]: Topic topic-125 partition count changed from 10 to 0, name=rdkafka#consumer-6, facility=PARTCNT, level=Notice
+	
+	

@@ -13,6 +13,13 @@ for($i=1; $i -le 3; $i++)
 	$bootstrapServer="$containerName" + ":19092"
 
 	Write-Host (Get-Date).ToString() " -------- Container $containerName ------- "
+	Write-Host (Get-Date).ToString() " Checking if cluster is healthy."
+
+	do {
+		$unhealthyPartitions = docker exec -it $containerName /opt/kafka/bin/kafka-topics.sh --describe --under-replicated-partitions --at-min-isr-partitions --under-min-isr-partitions --unavailable-partitions --bootstrap-server $bootstrapServer
+		Start-Sleep -Seconds 1
+	} while (($unhealthyPartitions))
+
 	Write-Host (Get-Date).ToString() " Stopping container: $containerName"
 	# Loop to continuously execute the command, wait for the container to stop, and then start it again
 	# Run the command inside the container	
@@ -43,12 +50,9 @@ for($i=1; $i -le 3; $i++)
 	Write-Host (Get-Date).ToString() " Container $containerName started. Waiting for cluster to catch-up"
 	
 	do {
-		$underReplicatedPartitions = docker exec -it $containerName /opt/kafka/bin/kafka-topics.sh --describe --under-replicated-partitions --bootstrap-server $bootstrapServer
-		$underMinIsrPartitions = docker exec -it $containerName /opt/kafka/bin/kafka-topics.sh --describe --under-min-isr-partitions --bootstrap-server $bootstrapServer
-		$unavailablePartitions = docker exec -it $containerName /opt/kafka/bin/kafka-topics.sh --describe --unavailable-partitions --bootstrap-server $bootstrapServer
-		$atMinIsrPartitions = docker exec -it $containerName /opt/kafka/bin/kafka-topics.sh --describe --at-min-isr-partitions --bootstrap-server $bootstrapServer
+		$unhealthyPartitions = docker exec -it $containerName /opt/kafka/bin/kafka-topics.sh --describe --under-replicated-partitions --at-min-isr-partitions --under-min-isr-partitions --unavailable-partitions --bootstrap-server $bootstrapServer
 		Start-Sleep -Seconds 1
-	} while (($underReplicatedPartitions) -or ($underMinIsrPartitions) -or ($unavailablePartitions) -or ($atMinIsrPartitions)) 
+	} while (($unhealthyPartitions))
 
 	Write-Host (Get-Date).ToString() " Waiting extra ${delayClusterRebalance}s for cluster to rebalance"
 	# Wait for cluster to rebalance

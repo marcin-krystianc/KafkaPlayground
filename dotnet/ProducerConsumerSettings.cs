@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using Confluent.Kafka;
 using Spectre.Console.Cli;
 
 namespace KafkaTool;
@@ -16,9 +15,9 @@ public class ProducerConsumerSettings : KafkaSettings
     [DefaultValue(1)]
     public int Topics { get; set; }
     
-    [CommandOption("--topic")]
+    [CommandOption("--topic-stem")]
     [Description("Topic stem")]
-    [DefaultValue("topic")]
+    [DefaultValue("my-topic")]
     public string TopicStem { get; set; }
 
     [CommandOption("--partitions")]

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Spectre.Console.Cli;
 using Microsoft.Extensions.Logging;
+using MoreLinq;
 
 namespace KafkaTool;
 
@@ -20,20 +21,26 @@ public sealed class ProducerConsumer : AsyncCommand<ProducerConsumerSettings>
     {
         {
             using var adminClient = Utils.GetAdminClient(settings.ConfigDictionary);
-            for (var i = 0; i < settings.Topics; i++)
+            foreach (var batch in Enumerable.Range(0, settings.Topics)
+                         .Select(x => Utils.GetTopicName(settings.TopicStem, x))
+                             .Where(x => Utils.TopicExists(adminClient, x))
+                             .Batch(100))
             {
-                string topic = Utils.GetTopicName(settings.TopicStem, i);
+                await Utils.DeleteTopicAsync(adminClient, batch.ToArray());
+                await Task.Delay(TimeSpan.FromSeconds(10));
+            }
 
-                if (Utils.TopicExists(adminClient, topic))
-                {
-                    await Utils.DeleteTopicAsync(adminClient, topic);
-                    await Task.Delay(TimeSpan.FromMilliseconds(100));
-                }
+            foreach (var batch in Enumerable.Range(0, settings.Topics).Batch(100))
+            {
+                var topics = batch
+                    .Select(x => Utils.GetTopicName(settings.TopicStem, x))
+                    .ToArray();
 
-                await Utils.CreateTopicAsync(adminClient, topic, numPartitions: settings.Partitions,
+                await Utils.CreateTopicAsync(adminClient, topics, numPartitions: settings.Partitions,
                     settings.ReplicationFactor,
                     settings.MinISR);
-                await Task.Delay(TimeSpan.FromMilliseconds(100));
+
+                await Task.Delay(TimeSpan.FromSeconds(10));
             }
         }
 

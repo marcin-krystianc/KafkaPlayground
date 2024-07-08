@@ -103,13 +103,6 @@ public static class ProducerTask
                                     TimeSpan.FromSeconds(30));
                                 var partitionsCount = topicMetadata.Topics.Single().Partitions.Count;
 
-                                producer = new ProducerBuilder<long, long>(
-                                        producerConfig.AsEnumerable().Concat(configuration.AsEnumerable()))
-                                    .SetLogHandler(
-                                        (a, b) => logger.LogInformation(
-                                            $"kafka-log Facility:{b.Facility}, Message{b.Message}"))
-                                    .Build();
-
                                 if (e == null)
                                     e = new Exception(
                                         $"DeliveryReport.Error, Code = {deliveryReport.Error.Code}, Reason = {deliveryReport.Error.Reason}" +
