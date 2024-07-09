@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Confluent.Kafka;
 using Confluent.Kafka.Admin;
 using Microsoft.Extensions.Logging;
+using MoreLinq.Extensions;
 
 namespace KafkaTool;
 
@@ -28,7 +29,16 @@ public static class Utils
         var topicMetadata = adminClient.GetMetadata(topic, TimeSpan.FromSeconds(30));
         return topicMetadata.Topics.Single().Partitions.Count > 0;
     }
-
+    
+    public static IReadOnlyList<string> GetExistingTopics(IAdminClient adminClient)
+    {
+        var topicMetadata = adminClient.GetMetadata(TimeSpan.FromSeconds(30));
+        return topicMetadata.Topics
+            .Where(x => x.Partitions.Count > 0)
+            .Select(x => x.Topic)
+            .ToList();
+    }
+    
     public static async Task CreateTopicAsync(IAdminClient adminClient, IReadOnlyCollection<string> topics, int numPartitions, int replicationFactor, int minIsr)
     {
         Log.Log(LogLevel.Information, ($"Creating {topics.Count} topics"));
@@ -92,5 +102,35 @@ public static class Utils
             .SetLogHandler((_, m) => Log.Log(LogLevel.Information,
                 $"Admin log: message={m.Message}, name={m.Name}, facility={m.Facility}, level={m.Level}"))
             .Build();
+    }
+
+
+    public static async Task RecreateTopics(ProducerConsumerSettings settings)
+    {
+        using var adminClient = Utils.GetAdminClient(settings.ConfigDictionary);
+
+        var existingTopics = Utils.GetExistingTopics(adminClient);
+            
+        foreach (var batch in Enumerable.Range(0, settings.Topics)
+                     .Select(x => Utils.GetTopicName(settings.TopicStem, x))
+                     .Intersect(existingTopics)
+                     .Batch(500))
+        {
+            await DeleteTopicAsync(adminClient, batch.ToArray());
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
+
+        foreach (var batch in Enumerable.Range(0, settings.Topics).Batch(500))
+        {
+            var topics = batch
+                .Select(x => Utils.GetTopicName(settings.TopicStem, x))
+                .ToArray();
+
+            await CreateTopicAsync(adminClient, topics, numPartitions: settings.Partitions,
+                settings.ReplicationFactor,
+                settings.MinISR);
+
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
     }
 }

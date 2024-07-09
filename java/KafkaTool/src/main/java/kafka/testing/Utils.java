@@ -71,27 +71,20 @@ public class Utils {
                 printErr("Topics deletion error: %s", e.getCause());
             }
             printOut("Deleted topics");
+            Thread.sleep(1000);
+            List<NewTopic> newTopics = Arrays.stream(topicNames)
+                .map(name -> new NewTopic(name, numPartitions, (short)replicationFactor).configs(topicConfigs))
+                .collect(Collectors.toList());
 
-            // create topics in a retry loop
-            while (true) {
-                List<NewTopic> newTopics = Arrays.stream(topicNames)
-                    .map(name -> new NewTopic(name, numPartitions, (short)replicationFactor).configs(topicConfigs))
-                    .collect(Collectors.toList());
-                try {
-                    for (var newTopic : newTopics)
-                    {
-                        admin.createTopics(List.of(newTopic)).all().get();
-                        printOut("Created topic: %s", newTopic);
-                        Thread.sleep(10);
-                    }
-                    break;
-                } catch (ExecutionException e) {
-                    if (!(e.getCause() instanceof TopicExistsException)) {
-                        throw e;
-                    }
-                    printOut("Waiting for topics metadata cleanup");
-                    TimeUnit.MILLISECONDS.sleep(1_000);
-                }
+            // Batch size
+            int batchSize = 500;
+
+            // Iterate over the list in batches
+            for (int i = 0; i < newTopics.size(); i += batchSize) {
+                int end = Math.min(i + batchSize, newTopics.size());
+                printOut("Creating %d topics", end - i);
+                admin.createTopics(newTopics.subList(i, end)).all().get();
+                Thread.sleep(1000);
             }
         } catch (Throwable e) {
             throw new RuntimeException("Topics creation error", e);

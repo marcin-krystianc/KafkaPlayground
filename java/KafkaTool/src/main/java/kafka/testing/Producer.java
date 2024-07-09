@@ -49,7 +49,7 @@ public class Producer extends Thread {
     private final KafkaProperties kafkaProperties;
     private volatile boolean closed;
     private final AtomicInteger sentRecords = new AtomicInteger(0);
-        
+
     public Producer(KafkaProperties kafkaProperties,
                     String[] topics
     ) {
@@ -57,7 +57,7 @@ public class Producer extends Thread {
         this.kafkaProperties = kafkaProperties;
         this.topics = topics;
     }
-    
+
     public long GetSentRecords() {
         return this.sentRecords.get();
     }
@@ -66,42 +66,38 @@ public class Producer extends Thread {
     public void run() {
         int messagesToSend = 0;
         long startTime = System.currentTimeMillis();
-        
+
         // the producer instance is thread safe
         try (KafkaProducer<Integer, Integer> producer = createKafkaProducer(kafkaProperties.getConfigs())) {
 
             var numberOfKeys = kafkaProperties.getNumberOfPartitions() * 7;
             for (var value = 0; ; value++)
-            for (var key = 0; key < numberOfKeys; key++)
-            for (var topic  : this.topics)
-            {
-                if (closed)
-                   return;
-                
-                var currentTime = System.currentTimeMillis();
-                       if (messagesToSend == 0)                
-                {
-                    var elapsedTime = currentTime - startTime;
-                    if (elapsedTime < 100)
-                    {
-                        Thread.sleep(100 - elapsedTime); // Sleep for 1/10 second
+                for (var key = 0; key < numberOfKeys; key++)
+                    for (var topic : this.topics) {
+                        if (closed)
+                            return;
+
+                        var currentTime = System.currentTimeMillis();
+                        if (messagesToSend == 0) {
+                            var elapsedTime = currentTime - startTime;
+                            if (elapsedTime < 100) {
+                                Thread.sleep(100 - elapsedTime); // Sleep for 1/10 second
+                            }
+
+                            startTime = System.currentTimeMillis();
+                            messagesToSend = kafkaProperties.getMessagesPerSecond() / 10;
+                        }
+                        messagesToSend--;
+
+                        asyncSend(producer, topic, key, value);
+                        sentRecords.incrementAndGet();
                     }
-                    
-                    startTime = System.currentTimeMillis();
-                    messagesToSend = kafkaProperties.getMessagesPerSecond() / 10;
-                }
-                messagesToSend--;
-                
-                asyncSend(producer, topic, key, value);
-                sentRecords.incrementAndGet();
-            }
         } catch (Throwable e) {
             Utils.printErr("Unhandled exception");
             e.printStackTrace();
-        }
-        finally {
+        } finally {
             shutdown();
-        }        
+        }
     }
 
     public void shutdown() {
@@ -120,11 +116,10 @@ public class Producer extends Thread {
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class);
         props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 180000);
 
-        for (var entry : configs.entrySet())
-        {
+        for (var entry : configs.entrySet()) {
             props.put(entry.getKey(), entry.getValue());
         }
-        
+
         return new KafkaProducer<>(props);
     }
 
@@ -149,8 +144,8 @@ public class Producer extends Thread {
          * be called when the record sent to the server has been acknowledged. When exception is not null in the callback,
          * metadata will contain the special -1 value for all fields except for topicPartition, which will be valid.
          *
-         * @param metadata The metadata for the record that was sent (i.e. the partition and offset). An empty metadata
-         *                 with -1 value for all fields except for topicPartition will be returned if an error occurred.
+         * @param metadata  The metadata for the record that was sent (i.e. the partition and offset). An empty metadata
+         *                  with -1 value for all fields except for topicPartition will be returned if an error occurred.
          * @param exception The exception thrown during processing of this record. Null if no error occurred.
          */
         public void onCompletion(RecordMetadata metadata, Exception exception) {
