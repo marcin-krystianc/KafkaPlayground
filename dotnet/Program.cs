@@ -22,7 +22,7 @@ namespace KafkaTool
                 c.UseStrictParsing();
                 c.AddCommand<ProducerConsumer>("producer-consumer");
                 c.AddCommand<Consumer>("consumer");
-                c.AddCommand<Consumer>("producer");
+                c.AddCommand<Producer>("producer");
             });
 
             await app.RunAsync(args);
