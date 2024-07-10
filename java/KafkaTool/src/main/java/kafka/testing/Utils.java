@@ -71,7 +71,7 @@ public class Utils {
                 printErr("Topics deletion error: %s", e.getCause());
             }
             printOut("Deleted topics");
-            Thread.sleep(1000);
+            Thread.sleep(1);
             List<NewTopic> newTopics = Arrays.stream(topicNames)
                 .map(name -> new NewTopic(name, numPartitions, (short)replicationFactor).configs(topicConfigs))
                 .collect(Collectors.toList());
@@ -84,7 +84,7 @@ public class Utils {
                 int end = Math.min(i + batchSize, newTopics.size());
                 printOut("Creating %d topics", end - i);
                 admin.createTopics(newTopics.subList(i, end)).all().get();
-                Thread.sleep(1000);
+                Thread.sleep(1);
             }
         } catch (Throwable e) {
             throw new RuntimeException("Topics creation error", e);

@@ -68,7 +68,7 @@ public static class Utils
         });
     }
 
-    public static async Task WaitForCLusterReadyAsync(IAdminClient adminClient)
+    public static async Task WaitForClusterReadyAsync(IAdminClient adminClient)
     {
         while (true)
         {
@@ -104,7 +104,6 @@ public static class Utils
             .Build();
     }
 
-
     public static async Task RecreateTopics(ProducerConsumerSettings settings)
     {
         using var adminClient = Utils.GetAdminClient(settings.ConfigDictionary);
@@ -114,13 +113,14 @@ public static class Utils
         foreach (var batch in Enumerable.Range(0, settings.Topics)
                      .Select(x => Utils.GetTopicName(settings.TopicStem, x))
                      .Intersect(existingTopics)
-                     .Batch(500))
+                     .Batch(settings.RecreateTopicsBatchSize))
         {
             await DeleteTopicAsync(adminClient, batch.ToArray());
-            await Task.Delay(TimeSpan.FromSeconds(1));
+            await Task.Delay(TimeSpan.FromMilliseconds(settings.RecreateTopicsDelayMs));
         }
 
-        foreach (var batch in Enumerable.Range(0, settings.Topics).Batch(500))
+        foreach (var batch in Enumerable.Range(0, settings.Topics)
+                     .Batch(settings.RecreateTopicsBatchSize))
         {
             var topics = batch
                 .Select(x => Utils.GetTopicName(settings.TopicStem, x))
@@ -130,7 +130,7 @@ public static class Utils
                 settings.ReplicationFactor,
                 settings.MinISR);
 
-            await Task.Delay(TimeSpan.FromSeconds(1));
+            await Task.Delay(TimeSpan.FromMilliseconds(settings.RecreateTopicsDelayMs));
         }
     }
 }
