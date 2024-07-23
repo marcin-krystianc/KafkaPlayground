@@ -19,7 +19,7 @@ services:
   kafka-1:
     env_file:
     - variables.env
-    image: apache/kafka
+    image: `mykafka
     hostname: kafka-1
     container_name: kafka-1
     ports:
@@ -35,7 +35,7 @@ services:
   kafka-2:
     env_file:
     - variables.env
-    image: apache/kafka
+    image: mykafka
     hostname: kafka-2
     container_name: kafka-2
     ports:
@@ -51,7 +51,7 @@ services:
   kafka-3:
     env_file:
     - variables.env
-    image: apache/kafka
+    image: mykafka
     hostname: kafka-3
     container_name: kafka-3
     ports:
