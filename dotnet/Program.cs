@@ -16,7 +16,7 @@ namespace KafkaTool
             Console.WriteLine( $"Debug Contexts: {string.Join(", ", Library.DebugContexts)}");
 
             var app = new CommandApp();
-            
+
             app.Configure(c =>
             {
                 c.UseStrictParsing();

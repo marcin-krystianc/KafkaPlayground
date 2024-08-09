@@ -59,12 +59,22 @@ public class Reporter extends Thread {
                     produced += producer.GetSentRecords();
                 }
 
-                var consumed = consumer.GetReceivedRecords();
+                long consumed = 0;
+                long duplicated = 0;
+                long outOfSequence = 0;
+
+                if (consumer != null)
+                {
+                    consumed = consumer.GetReceivedRecords();
+                    duplicated = consumer.GetDuplicatedRecords();
+                    outOfSequence = consumer.GetOutOfSequenceRecords();
+                }
+
                 var elapsed = (currentTime - startTime) / 1000;
                 Utils.printOut("Elapsed: %ds, Produced: %d (+%d), Consumed: %d (+%d), Duplicated: %d, Out of sequence: %d."
                         , elapsed, produced, (produced - loggedProduced)
                         , consumed, (consumed - loggedConsumed)
-                        , consumer.GetDuplicatedRecords(), consumer.GetOutOfSequenceRecords());
+                        , duplicated, outOfSequence);
     
                 logTime = currentTime;
                 loggedProduced = produced;

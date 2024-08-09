@@ -40,7 +40,7 @@ producer-consumer `
 
 - JAVA:
 ```
-mvn package; mvn exec:java "-Dexec.mainClass=kafka.testing.Main" "-Dexec.args=--config allow.auto.create.topics=false --config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 --topics=150 --partitions=10 --replication-factor=3 --min-isr=2 --messages-per-second=10000 --config request.timeout.ms=180000 --config message.timeout.ms=180000 --config request.required.acks=-1 --config enable.idempotence=false --config max.in.flight.requests.per.connection=1"
+mvn package; mvn exec:java "-Dexec.mainClass=kafka.testing.Main" "-Dexec.args=producer-consumer --config allow.auto.create.topics=false --config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 --topics=150 --partitions=10 --replication-factor=3 --min-isr=2 --messages-per-second=10000 --config request.timeout.ms=180000 --config message.timeout.ms=180000 --config request.required.acks=-1 --config enable.idempotence=false --config max.in.flight.requests.per.connection=1"
 ```
 
 # Message order guarantee

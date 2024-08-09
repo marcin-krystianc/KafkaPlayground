@@ -71,7 +71,12 @@ public class KafkaProperties {
         
         return Integer.parseInt(commandLine.getOptionValue("recreate-topics-batch-size"));
     }
-
+    
+    public String[] getArgs()
+    {
+        return commandLine.getArgs();
+    }
+    
     public Map<String, String> getConfigs()
     {
         var strings = commandLine.getOptionValues("config");
