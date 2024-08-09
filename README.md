@@ -77,3 +77,7 @@ I've also found out empirically, that it is necessary to limit the number of con
 - `request.required.acks=-1`
 - `enable.idempotence=true`
 - `max.in.flight.requests.per.connection=1`
+
+# TODO
+- https://github.com/confluentinc/librdkafka/issues/3848
+- https://github.com/confluentinc/librdkafka/issues/4401
