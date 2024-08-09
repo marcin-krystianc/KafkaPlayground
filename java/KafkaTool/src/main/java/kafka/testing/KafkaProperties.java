@@ -56,6 +56,22 @@ public class KafkaProperties {
         return Integer.parseInt(commandLine.getOptionValue("producers"));
     }
 
+    public int getRecreateTopicsDelay()
+    {
+        if (!commandLine.hasOption("recreate-topics-delay"))
+            return 1;
+        
+        return Integer.parseInt(commandLine.getOptionValue("recreate-topics-delay"));
+    }
+
+    public int getRecreateTopicsBatchSize()
+    {
+        if (!commandLine.hasOption("recreate-topics-batch-size"))
+            return 500;
+        
+        return Integer.parseInt(commandLine.getOptionValue("recreate-topics-batch-size"));
+    }
+
     public Map<String, String> getConfigs()
     {
         var strings = commandLine.getOptionValues("config");
@@ -99,6 +115,12 @@ public class KafkaProperties {
         var producers = new Option(null, "producers", true, "Number of producers (default 1)");
         producers.setRequired(false);
        
+        var recreateTopicsDelay = new Option(null, "recreate-topics-delay", true, "Delay after crating a batch of topics (default 1ms)");
+        recreateTopicsDelay.setRequired(false);
+          
+        var recreateTopicsBatch = new Option(null, "recreate-topics-batch-size", true, "Size of the batch of topics to create (default 500)");
+        recreateTopicsBatch.setRequired(false);
+       
         options.addOption(config);
         options.addOption(topics);
         options.addOption(partitions);
@@ -106,6 +128,8 @@ public class KafkaProperties {
         options.addOption(minIsr);
         options.addOption(messagesPerSecond);
         options.addOption(producers);
+        options.addOption(recreateTopicsDelay);
+        options.addOption(recreateTopicsBatch);
         
         CommandLineParser parser = new DefaultParser();
         commandLine = parser.parse(options, args);

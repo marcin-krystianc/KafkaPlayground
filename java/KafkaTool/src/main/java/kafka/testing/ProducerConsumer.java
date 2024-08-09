@@ -42,7 +42,10 @@ public class ProducerConsumer {
             }
 
             // stage 1: clean any topics left from previous runs
-            Utils.recreateTopics(kafkaProperties.getConfigs(), kafkaProperties.getNumberOfPartitions(), kafkaProperties.getReplicationFactor(), kafkaProperties.getMinIsr(), topicNames);
+            Utils.recreateTopics(kafkaProperties.getConfigs(), kafkaProperties.getNumberOfPartitions()
+                , kafkaProperties.getReplicationFactor(), kafkaProperties.getMinIsr()
+                , kafkaProperties.getRecreateTopicsDelay(), kafkaProperties.getRecreateTopicsBatchSize()
+                , topicNames);
 
             if (kafkaProperties.getNumberOfTopics() % kafkaProperties.getNumberOfProducers() != 0) {
                 throw new Exception(String.format("Cannot evenly schedule %d topics on a %d producers!", kafkaProperties.getNumberOfTopics(), kafkaProperties.getNumberOfProducers()));

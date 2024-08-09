@@ -48,7 +48,7 @@ public class Utils {
         System.err.printf("%s - %s%n", Thread.currentThread().getName(), format(message, args));
     }
 
-    public static void recreateTopics(Map<String, String> configs, int numPartitions, int replicationFactor, int minIsr, String... topicNames) {
+    public static void recreateTopics(Map<String, String> configs, int numPartitions, int replicationFactor, int minIsr, int delay, int batchSize, String... topicNames) {
         Properties props = new Properties();
         props.put(AdminClientConfig.CLIENT_ID_CONFIG, "client-" + UUID.randomUUID());
         for (var entry : configs.entrySet())
@@ -76,15 +76,12 @@ public class Utils {
                 .map(name -> new NewTopic(name, numPartitions, (short)replicationFactor).configs(topicConfigs))
                 .collect(Collectors.toList());
 
-            // Batch size
-            int batchSize = 500;
-
             // Iterate over the list in batches
             for (int i = 0; i < newTopics.size(); i += batchSize) {
                 int end = Math.min(i + batchSize, newTopics.size());
                 printOut("Creating %d topics", end - i);
                 admin.createTopics(newTopics.subList(i, end)).all().get();
-                Thread.sleep(1);
+                Thread.sleep(delay);
             }
         } catch (Throwable e) {
             throw new RuntimeException("Topics creation error", e);
