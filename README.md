@@ -48,8 +48,8 @@ mvn package; mvn exec:java "-Dexec.mainClass=kafka.testing.Main" "-Dexec.args=pr
 Message ordering is an important guarantee of Kafka. 
 Each topic may have several partitions, but message order is only preserved within individual partitions (but not for entire topics). 
 Messages are written to the same partitions when they have the same message key.
-To guarantee the order of messages, it is critical to set the `max.in.flight.requests.per.connection` to 1 (default is 5, this applies to C# and Java libraries).
-If the number of concurrent requests is greater than 1, then the later requests can succeed first - resulting in unordered messages.
+To guarantee the order of messages, it is critical to set the `max.in.flight.requests.per.connection` to 1 (mind that default is 5).
+If the number of concurrent requests is greater than 1, then the later requests can succeed first - resulting in unordered messages (Applies to C# and Java libraries when `enable.idempotence=false)`.
 
 # Kafka delivery semantics and rolling restarts
 
@@ -73,7 +73,7 @@ If it is not necessary to guarantee delivery of all messages, then it is ok to u
 
 ### Exactly once delivery
 To achieve, the "Exactly once deliver" semantic it is necessary to set the number of required acks (`request.required.acks`) for the producer to `-1` (`All`) and we need to use idempotent producer (`enable.idempotence=true`) to prevent from duplicates
-I've also found out empirically, that it is necessary to limit the number of concurrent requests to 1 (`max.in.flight.requests.per.connection=1`) to make sure no duplicates are ever created.
+I've also found out empirically, that it is necessary to limit the number of concurrent requests to 1 (`max.in.flight.requests.per.connection=1`) to make sure no duplicates are ever created (We are sure that it applies to C#, but not confirmed if it applies to Java as well).
 - `request.required.acks=-1`
 - `enable.idempotence=true`
 - `max.in.flight.requests.per.connection=1`
@@ -81,3 +81,31 @@ I've also found out empirically, that it is necessary to limit the number of con
 # TODO
 - https://github.com/confluentinc/librdkafka/issues/3848
 - https://github.com/confluentinc/librdkafka/issues/4401
+- Exactly once delivery in c#:
+```
+dotnet run -c Release --project KafkaTool.csproj `
+>> producer-consumer `
+>> --config allow.auto.create.topics=false `
+>> --config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 `
+>> --topics=200 `
+>> --partitions=10 `
+>> --replication-factor=3 `
+>> --min-isr=2 `
+>> --messages-per-second=200 `
+>> --config request.timeout.ms=180000 `
+>> --config message.timeout.ms=180000 `
+>> --config request.required.acks=-1 `
+>> --config enable.idempotence=true `
+>> --config max.in.flight.requests.per.connection=5 `
+>> --producers=50 `
+>> --recreate-topics-delay=10000 `
+>> --recreate-topics-batch-size=100 `
+>>
+```
+```
+...
+09:46:57 fail: Consumer:[0] Unexpected message value, topic/k [p]=my-topic-163/16 [9], Offset=2004/2005, LeaderEpoch=1/2,  previous value=182, messageValue=182!
+09:46:57 fail: Consumer:[0] Unexpected message value, topic/k [p]=my-topic-123/6 [4], Offset=1456/1457, LeaderEpoch=1/2,  previous value=182, messageValue=182!
+09:47:03 info: Log[0] Elapsed: 310s, 2880380 (+92820) messages produced, 2871183 (+141581) messages consumed, 2 duplicated, 0 out of sequence.
+09:47:13 info: Log[0] Elapsed: 320s, 2972422 (+92042) messages produced, 2972230 (+101047) messages consumed, 2 duplicated, 0 out of sequence.
+```
