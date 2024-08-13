@@ -4,10 +4,10 @@
 - A sample script to perform rolling restart (PowerShell + docker) - https://github.com/marcin-krystianc/KafkaPlayground/blob/master/docker/compose-cluster3/rolling-restart.ps1
 - How to check if a cluster is healthy?
 We can use `kafka-topics.sh` script to look for any partition that is not fully healthy:
-    - `--under-replicated-partitions`
-    - `--under-min-isr-partitions`
-    - `--unavailable-partitions`
-    - `--at-min-isr-partitions`
+  - `--under-replicated-partitions`
+  - `--under-min-isr-partitions`
+  - `--unavailable-partitions`
+  - `--at-min-isr-partitions`
 
 E.g.: `kafka-topics.sh --describe --under-replicated-partitions --unavailable-partitions --under-min-isr-partitions --at-min-isr-partitions --bootstrap-server ... `
 To guarantee uninterrupted service, brokers can be stopped only when there are no unhealthy partitions!
