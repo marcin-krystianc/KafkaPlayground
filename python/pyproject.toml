@@ -1,0 +1,15 @@
+[project]
+name = "kafka-tool"
+version = "0.1.0"
+description = "Python implementation of Kafka test tool"
+requires-python = ">=3.12"
+dependencies = [
+    "confluent-kafka>=2.5.0",
+]
+
+[project.scripts]
+kafka_tool = "kafka_tool:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
