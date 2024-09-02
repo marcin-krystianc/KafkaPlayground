@@ -1,4 +1,3 @@
-from concurrent.futures import ThreadPoolExecutor
 import threading
 from typing import Dict
 
@@ -11,10 +10,9 @@ from .utils import run_tasks
 
 def run_consumer(config: Dict[str, str], settings: ProducerConsumerSettings) -> None:
     data = ProducerConsumerData()
-    executor = ThreadPoolExecutor(2)
     shutdown = threading.Event()
-    futures = [
-        executor.submit(run_consumer_task, config, settings, data, shutdown),
-        executor.submit(run_reporter_task, data, shutdown),
+    threads = [
+        threading.Thread(target=run_consumer_task, args=[config, settings, data, shutdown]),
+        threading.Thread(target=run_reporter_task, args=[data, shutdown]),
     ]
-    run_tasks(futures, shutdown)
+    run_tasks(threads, shutdown)

@@ -1,4 +1,3 @@
-from concurrent.futures import ThreadPoolExecutor
 import threading
 from typing import Dict
 
@@ -14,12 +13,11 @@ def run_producer_consumer(config: Dict[str, str], settings: ProducerConsumerSett
     recreate_topics(config, settings)
     data = ProducerConsumerData()
     # Make sure we have enough threads to run all producers, consumer and reporter:
-    executor = ThreadPoolExecutor(settings.producers + 2)
     shutdown = threading.Event()
-    futures = [
-        executor.submit(run_producer_task, config, settings, data, producer_index, shutdown)
+    threads = [
+        threading.Thread(target=run_producer_task, args=[config, settings, data, producer_index, shutdown])
         for producer_index in range(settings.producers)]
-    futures.append(executor.submit(run_consumer_task, config, settings, data, shutdown))
-    futures.append(executor.submit(run_reporter_task, data, shutdown))
+    threads.append(threading.Thread(target=run_consumer_task, args=[config, settings, data, shutdown]))
+    threads.append(threading.Thread(target=run_reporter_task, args=[data, shutdown]))
 
-    run_tasks(futures, shutdown)
+    run_tasks(threads, shutdown)

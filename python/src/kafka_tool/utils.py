@@ -2,7 +2,7 @@ import itertools
 import logging
 import time
 import threading
-from typing import Dict
+from typing import Dict, Sequence
 
 from confluent_kafka.admin import AdminClient, NewTopic
 
@@ -61,12 +61,14 @@ def topic_spec(name: str, settings: ProducerConsumerSettings) -> NewTopic:
     )
 
 
-def run_tasks(futures, shutdown: threading.Event):
+def run_tasks(threads: Sequence[threading.Thread], shutdown: threading.Event):
+    for thread in threads:
+        thread.start()
     try:
         while True:
             time.sleep(0.2)
     except KeyboardInterrupt:
         print("Ctrl-C detected, stopping all tasks")
         shutdown.set()
-    for future in futures:
-        future.result()
+    for thread in threads:
+        thread.join(timeout=10.0)
