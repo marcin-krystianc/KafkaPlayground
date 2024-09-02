@@ -1,6 +1,7 @@
 import itertools
 import logging
 import time
+import threading
 from typing import Dict
 
 from confluent_kafka.admin import AdminClient, NewTopic
@@ -58,3 +59,14 @@ def topic_spec(name: str, settings: ProducerConsumerSettings) -> NewTopic:
             "min.insync.replicas": str(settings.min_isr),
         }
     )
+
+
+def run_tasks(futures, shutdown: threading.Event):
+    try:
+        while True:
+            time.sleep(0.2)
+    except KeyboardInterrupt:
+        print("Ctrl-C detected, stopping all tasks")
+        shutdown.set()
+    for future in futures:
+        future.result()

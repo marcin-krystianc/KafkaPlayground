@@ -1,5 +1,6 @@
 import logging
 import time
+import threading
 from typing import Dict
 
 from confluent_kafka import Producer, KafkaError
@@ -16,7 +17,8 @@ def run_producer_task(
         config: Dict[str, str],
         settings: ProducerConsumerSettings,
         data: ProducerConsumerData,
-        producer_index: int):
+        producer_index: int,
+        shutdown: threading.Event):
 
     if settings.topics % settings.producers != 0:
         raise Exception(
@@ -49,7 +51,7 @@ def run_producer_task(
     start_time = time.monotonic()
 
     current_value = 0
-    while True:
+    while not shutdown.is_set():
         for topic_index in range(topics_per_producer):
             topic_name = get_topic_name(
                 settings.topic_stem, topic_index + producer_index * topics_per_producer)

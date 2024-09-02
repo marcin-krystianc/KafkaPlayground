@@ -1,5 +1,6 @@
 import logging
 import time
+import threading
 
 from .data import ProducerConsumerData
 
@@ -8,13 +9,18 @@ log = logging.getLogger(__name__)
 
 
 def run_reporter_task(
-        data: ProducerConsumerData):
+        data: ProducerConsumerData,
+        shutdown: threading.Event):
     start = time.monotonic()
     prev_produced = 0
     prev_consumed = 0
 
     while True:
-        time.sleep(10.0)
+        for _ in range(10):
+            if not shutdown.is_set():
+                time.sleep(1.0)
+            else:
+                return
         consumed, produced, duplicated, out_of_order = data.get_stats()
         newly_produced = produced - prev_produced
         newly_consumed = consumed - prev_consumed

@@ -1,4 +1,5 @@
 import logging
+import threading
 from typing import Dict
 import uuid
 
@@ -15,7 +16,8 @@ log = logging.getLogger(__name__)
 def run_consumer_task(
         config: Dict[str, str],
         settings: ProducerConsumerSettings,
-        data: ProducerConsumerData):
+        data: ProducerConsumerData,
+        shutdown: threading.Event):
 
     consumer_config = {
         'group.id': str(uuid.uuid4()),
@@ -37,8 +39,8 @@ def run_consumer_task(
 
     value_dictionary: Dict[(str, int), Message] = {}
 
-    while True:
-        messages = consumer.consume()
+    while not shutdown.is_set():
+        messages = consumer.consume(num_messages=1, timeout=0.2)
         for message in messages:
             err = message.error()
             if err is not None:
