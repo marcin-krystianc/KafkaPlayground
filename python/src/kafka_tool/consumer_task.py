@@ -53,7 +53,7 @@ def run_consumer_task(
                 prev_message = value_dictionary[value_key]
                 prev_value = int(prev_message.value())
                 if value != prev_value + 1:
-                    partition  = message.partition()
+                    partition = message.partition()
                     log.error(
                         "Unexpected message value, topic/k [p]=%s/%d %s, Offset=%d/%d, LeaderEpoch=%d/%d,  previous value=%d, messageValue=%d",
                         topic, key, partition, prev_message.offset(), message.offset(), prev_message.leader_epoch(), message.leader_epoch(), prev_value, value)

@@ -42,13 +42,13 @@ def run_producer_task(
                 exception = Exception(
                     f"DeliveryReport.Error, Code = {err.code()}, Reason = {err.str()}"
                     f", IsFatal = {err.fatal()}, IsError = {err.code() != KafkaError.NO_ERROR}"
-                    f", IsLocalError = {err.retriable()}, IsBrokerError = {err.broker_error()}"
+                    f", IsLocalError = {err.retriable()}"
                     f", topic = {msg.topic()}, partition = {msg.partition()}, partitionsCount = {partitions_count}"
                 )
 
     messages_until_sleep = 0
     flush_counter = 0
-    start_time = time.monotonic()
+    time_since_sleep = time.monotonic()
 
     current_value = 0
     while not shutdown.is_set():
@@ -60,10 +60,10 @@ def run_producer_task(
                     raise exception
 
                 if messages_until_sleep <= 0:
-                    elapsed = time.monotonic() - start_time
+                    elapsed = time.monotonic() - time_since_sleep
                     if elapsed < 0.1:
                         time.sleep(0.1 - elapsed)
-                    start_time = time.monotonic()
+                    time_since_sleep = time.monotonic()
                     messages_until_sleep = settings.messages_per_second // 10
 
                 messages_until_sleep -= 1
@@ -75,6 +75,8 @@ def run_producer_task(
 
                 flush_counter += 1
                 if flush_counter % 100_000 == 0:
+                    log.info("Flushing producer task %d", producer_index)
                     producer.flush()
+                    log.info("Flush of producer %d completed", producer_index)
 
         current_value += 1

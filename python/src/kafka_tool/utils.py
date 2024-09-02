@@ -28,10 +28,9 @@ def recreate_topics(config: Dict[str, str], settings: ProducerConsumerSettings):
     required_topics = set(get_topic_name(settings.topic_stem, i) for i in range(settings.topics))
     admin_client = get_admin_client(config)
     existing_topics = admin_client.list_topics(timeout=30).topics
-    batch_size: int = settings.recreate_topics_batch_size
+    batch_size = settings.recreate_topics_batch_size
     for batch in itertools.batched(
-            required_topics.intersection(existing_topics),
-            batch_size):
+            required_topics.intersection(existing_topics), batch_size):
         log.info("Deleting a batch of %d topics", len(batch))
         futures = admin_client.delete_topics(list(batch), operation_timeout=30, request_timeout=30)
         for fut in futures.values():
@@ -64,11 +63,17 @@ def topic_spec(name: str, settings: ProducerConsumerSettings) -> NewTopic:
 def run_tasks(threads: Sequence[threading.Thread], shutdown: threading.Event):
     for thread in threads:
         thread.start()
+
     try:
         while True:
             time.sleep(0.2)
+            if not all(t.is_alive() for t in threads):
+                # Unexpected stop of thread
+                log.info("Detected a stopped thread, stopping all tasks")
+                break
     except KeyboardInterrupt:
-        print("Ctrl-C detected, stopping all tasks")
-        shutdown.set()
+        log.info("Ctrl-C detected, stopping all tasks")
+
+    shutdown.set()
     for thread in threads:
         thread.join(timeout=10.0)

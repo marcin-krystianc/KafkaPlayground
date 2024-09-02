@@ -4,10 +4,15 @@ import argparse
 import logging
 from typing import Dict
 
+import confluent_kafka
+
 from .consumer import run_consumer
 from .producer import run_producer
 from .producer_consumer import run_producer_consumer
 from .settings import ProducerConsumerSettings
+
+
+log = logging.getLogger(__name__)
 
 
 def main():
@@ -86,16 +91,13 @@ def main():
 
     logging.basicConfig(level=logging.INFO)
 
+    log.info("confluent_kafka version = %s", confluent_kafka.__version__)
+
     {
         'producer': run_producer,
         'consumer': run_consumer,
         'producer-consumer': run_producer_consumer,
     }[args.command](config, settings)
-
-
-def parse_config_arg(config: Dict[str, str], arg: str):
-    key, value = arg.split("=", 1)
-    config[key] = value
 
 
 class StoreConfigEntry(argparse.Action):
@@ -109,3 +111,7 @@ class StoreConfigEntry(argparse.Action):
             setattr(namespace, self.dest, config)
         key, value = arg_value.split("=", 1)
         config[key] = value
+
+
+if __name__ == '__main__':
+    main()

@@ -15,6 +15,8 @@ def run_reporter_task(
     prev_produced = 0
     prev_consumed = 0
 
+    log.info("Running reporter task")
+
     while True:
         for _ in range(10):
             if not shutdown.is_set():
