@@ -29,7 +29,7 @@ def recreate_topics(config: Dict[str, str], settings: ProducerConsumerSettings):
     admin_client = get_admin_client(config)
     existing_topics = admin_client.list_topics(timeout=30).topics
     batch_size = settings.recreate_topics_batch_size
-    for batch in itertools.batched(
+    for batch in batched(
             required_topics.intersection(existing_topics), batch_size):
         log.info("Deleting a batch of %d topics", len(batch))
         futures = admin_client.delete_topics(list(batch), operation_timeout=30, request_timeout=30)
@@ -38,7 +38,7 @@ def recreate_topics(config: Dict[str, str], settings: ProducerConsumerSettings):
 
     time.sleep(settings.recreate_topics_delay_s)
 
-    for batch in itertools.batched(required_topics, batch_size):
+    for batch in batched(required_topics, batch_size):
         log.info("Creating a batch of %d topics", len(batch))
         new_topics = [topic_spec(name, settings) for name in batch]
         futures = admin_client.create_topics(new_topics, operation_timeout=30, request_timeout=30)
@@ -77,3 +77,12 @@ def run_tasks(threads: Sequence[threading.Thread], shutdown: threading.Event):
     shutdown.set()
     for thread in threads:
         thread.join(timeout=10.0)
+
+
+def batched(iterable, n):
+    it = iter(iterable)
+    while True:
+        batch = list(itertools.islice(it, n))
+        if not batch:
+            return
+        yield batch
