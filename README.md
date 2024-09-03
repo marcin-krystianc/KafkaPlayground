@@ -109,3 +109,31 @@ dotnet run -c Release --project KafkaTool.csproj `
 09:47:03 info: Log[0] Elapsed: 310s, 2880380 (+92820) messages produced, 2871183 (+141581) messages consumed, 2 duplicated, 0 out of sequence.
 09:47:13 info: Log[0] Elapsed: 320s, 2972422 (+92042) messages produced, 2972230 (+101047) messages consumed, 2 duplicated, 0 out of sequence.
 ```
+- Stack overflow in C++/C#/Python (librdkafka 2.5.3):
+```
+dotnet run --project KafkaTool.csproj `
+producer `
+--config allow.auto.create.topics=false `
+--config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 `
+--topics=3000 --partitions=1 --replication-factor=3 --min-isr=2 --messages-per-second=10000 `
+--config request.timeout.ms=180000 `
+--config message.timeout.ms=180000 `
+--config request.required.acks=-1 `
+--config enable.idempotence=true `
+--config max.in.flight.requests.per.connection=1 `
+--config topic.metadata.propagation.max.ms=60000 `
+--producers=1 `
+--recreate-topics-delay=100 `
+--recreate-topics-batch-size=500
+```
+
+Fails with this stack trace:
+```
+centos8-librdkafka.so!rd_avl_insert_node[localalias] (Unknown Source:0)
+centos8-librdkafka.so!rd_avl_insert_node[localalias] (Unknown Source:0)
+centos8-librdkafka.so!rd_avl_insert_node[localalias] (Unknown Source:0)
+...
+centos8-librdkafka.so!rd_avl_insert_node[localalias] (Unknown Source:0)
+centos8-librdkafka.so!rd_avl_insert_node[localalias] (Unknown Source:0)
+centos8-librdkafka.so!rd_avl_insert_node[localalias] (Unknown Source:0)
+```
