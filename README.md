@@ -109,7 +109,7 @@ dotnet run -c Release --project KafkaTool.csproj `
 09:47:03 info: Log[0] Elapsed: 310s, 2880380 (+92820) messages produced, 2871183 (+141581) messages consumed, 2 duplicated, 0 out of sequence.
 09:47:13 info: Log[0] Elapsed: 320s, 2972422 (+92042) messages produced, 2972230 (+101047) messages consumed, 2 duplicated, 0 out of sequence.
 ```
-- Stack overflow in C++/C#/Python (librdkafka 2.5.3):
+- Stack overflow in C++/C#/Python (librdkafka v2.4.0 (2.3.0 is ok)):
 ```
 dotnet run --project KafkaTool.csproj `
 producer `
