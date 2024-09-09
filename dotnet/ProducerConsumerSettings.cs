@@ -37,12 +37,12 @@ public class ProducerConsumerSettings : KafkaSettings
 
     [CommandOption("--messages-per-second")]
     [Description("Number of messages per second")]
-    [DefaultValue(1000)]
+    [DefaultValue((long)1000)]
     public long MessagesPerSecond { get; set; }
     
     [CommandOption("--recreate-topics-delay")]
     [Description("Recreate topics delay in ms")]
-    [DefaultValue(1000)]
+    [DefaultValue((long)1000)]
     public long RecreateTopicsDelayMs { get; set; }
     
     [CommandOption("--recreate-topics-batch-size")]
