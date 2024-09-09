@@ -1,0 +1,26 @@
+version = 1
+requires-python = "==3.11.*"
+
+[[package]]
+name = "confluent-kafka"
+version = "2.1.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/b7/25/bb5a2ae32db3ac0160e3530a09dcb0b795272f0372ba6f1033a2e3d9f200/confluent-kafka-2.1.1.tar.gz", hash = "sha256:a665e74030a85c5f4203538cfe77e401133a849c4b92052a60225b26052a7e9d", size = 122398 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/22/71/c70b6a80c5162c2211f48d2042b3aa75841e00c6fa6944cefa69e9027fcb/confluent_kafka-2.1.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:f37cdeacb94a1c43b8bc5dddbe44b0bd72b932b906597ad62795cd43ef5aa6b8", size = 3266447 },
+    { url = "https://files.pythonhosted.org/packages/32/b2/510e2750346ad62a936f9ec6e2eec7b70722a1048184425f50728eb74ed2/confluent_kafka-2.1.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:4767e049c7d76e73b3c9fc036fcab24f1cff79b98c55d78b06edb4354b6e59c1", size = 2790057 },
+    { url = "https://files.pythonhosted.org/packages/3e/4c/66d985122dd66981d2b28966a87d947fcb9bb9304c525f5ab6b7f2ba222b/confluent_kafka-2.1.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c906bb753381c809dbd8576507ff3410193f8edb28a63caef85ccd0f85996b4d", size = 3898346 },
+    { url = "https://files.pythonhosted.org/packages/e8/d2/fe7732e9162d3a3bf9b91328ba77f8784cb34e4cfcb74557c9c99f83becc/confluent_kafka-2.1.1-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:7a6eb7aaced82bf0f99702e76829dfe0d318a5c504bd6a6c36a63737e4b6ff36", size = 13733615 },
+    { url = "https://files.pythonhosted.org/packages/2c/fd/758416b524b1044736d58f8035dc135e48afea360f03175c10877585b8e7/confluent_kafka-2.1.1-cp311-cp311-win_amd64.whl", hash = "sha256:82322e774f307d7fce236a47ced2830a92a43f98194c1d2a277b366587def382", size = 3366239 },
+]
+
+[[package]]
+name = "kafka-tool"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "confluent-kafka" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "confluent-kafka", specifier = "==2.1.1" }]
