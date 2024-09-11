@@ -71,7 +71,15 @@ public class KafkaProperties {
         
         return Integer.parseInt(commandLine.getOptionValue("recreate-topics-batch-size"));
     }
-    
+
+    public String getTopicStem()
+    {
+        if (!commandLine.hasOption("topic-stem"))
+            return "my-topic";
+        
+        return commandLine.getOptionValue("topic-stem");
+    }
+
     public String[] getArgs()
     {
         return commandLine.getArgs();
@@ -126,6 +134,9 @@ public class KafkaProperties {
         var recreateTopicsBatch = new Option(null, "recreate-topics-batch-size", true, "Size of the batch of topics to create (default 500)");
         recreateTopicsBatch.setRequired(false);
        
+        var topicStem = new Option(null, "topic-stem", true, "Topic stem");
+        topicStem.setRequired(false);
+      
         options.addOption(config);
         options.addOption(topics);
         options.addOption(partitions);
@@ -135,6 +146,7 @@ public class KafkaProperties {
         options.addOption(producers);
         options.addOption(recreateTopicsDelay);
         options.addOption(recreateTopicsBatch);
+        options.addOption(topicStem);
         
         CommandLineParser parser = new DefaultParser();
         commandLine = parser.parse(options, args);

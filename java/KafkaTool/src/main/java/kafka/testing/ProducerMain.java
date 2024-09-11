@@ -4,7 +4,6 @@ package kafka.testing;
 import java.util.Arrays;
 
 public class ProducerMain {
-    public static final String TOPIC_NAME = "my-topic";
 
     public static void main(String[] args) {
         try {
@@ -12,7 +11,7 @@ public class ProducerMain {
 
             String[] topicNames = new String[kafkaProperties.getNumberOfTopics()];
             for (int i = 0; i < kafkaProperties.getNumberOfTopics(); i++) {
-                topicNames[i] = TOPIC_NAME + "-" + i;
+                topicNames[i] = kafkaProperties.getTopicStem() + "-" + i;
             }
 
             // stage 1: clean any topics left from previous runs

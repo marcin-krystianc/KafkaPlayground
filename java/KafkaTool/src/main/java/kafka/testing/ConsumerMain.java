@@ -3,7 +3,6 @@ package kafka.testing;
 import java.util.Arrays;
 
 public class ConsumerMain {
-    public static final String TOPIC_NAME = "my-topic";
 
     public static void main(String[] args) {
         try {
@@ -11,7 +10,7 @@ public class ConsumerMain {
 
             String[] topicNames = new String[kafkaProperties.getNumberOfTopics()];
             for (int i = 0; i < kafkaProperties.getNumberOfTopics(); i++) {
-                topicNames[i] = TOPIC_NAME + "-" + i;
+                topicNames[i] = kafkaProperties.getTopicStem() + "-" + i;
             }
 
             // stage 3: consume records from topic1
