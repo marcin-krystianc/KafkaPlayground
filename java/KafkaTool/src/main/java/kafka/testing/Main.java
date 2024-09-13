@@ -9,18 +9,18 @@ public class Main {
         {
             if (cliArgs[0].equals("producer-consumer"))
             {
-                var demo = new ProducerConsumerMain();
-                demo.main(args);
+                var app = new ProducerConsumerMain();
+                app.main(args);
             }
             else if (cliArgs[0].equals("consumer"))
             {
-                var demo = new ConsumerMain();
-                demo.main(args);
+                var app = new ConsumerMain();
+                app.main(args);
             } 
             else if (cliArgs[0].equals("producer"))
             {
-                var demo = new ProducerMain();
-                demo.main(args);
+                var app = new ProducerMain();
+                app.main(args);
             }
         }
         
