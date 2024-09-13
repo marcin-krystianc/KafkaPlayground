@@ -79,9 +79,15 @@ I've also found out empirically, that it is necessary to limit the number of con
 - `max.in.flight.requests.per.connection=1`
 
 # TODO
-- https://github.com/confluentinc/librdkafka/issues/3848
-- https://github.com/confluentinc/librdkafka/issues/4401
-- Exactly once delivery in c#:
+Several issues have been identified with the librdkafka library. Further investigation and solutions for these issues are planned as part of our efforts.
+
+- Idempotent producer can oocassionaly get stuck when acquiring idempotence PID (https://github.com/confluentinc/librdkafka/issues/3848)
+
+- Producer can fail with "Unknown topic or partition" (https://github.com/confluentinc/librdkafka/issues/4401)
+
+- Exactly once delivery in C#/Python/C++. 
+
+To our understanding it shouldn't be required to set `max.in.flight.requests.per.connection=1` for the "exactly once delivery", but it seems it is the case for librdkafka:
 ```
 dotnet run -c Release --project KafkaTool.csproj `
 >> producer-consumer `
@@ -109,6 +115,7 @@ dotnet run -c Release --project KafkaTool.csproj `
 09:47:03 info: Log[0] Elapsed: 310s, 2880380 (+92820) messages produced, 2871183 (+141581) messages consumed, 2 duplicated, 0 out of sequence.
 09:47:13 info: Log[0] Elapsed: 320s, 2972422 (+92042) messages produced, 2972230 (+101047) messages consumed, 2 duplicated, 0 out of sequence.
 ```
+
 - Stack overflow in C++/C#/Python (librdkafka v2.4.0 (2.3.0 is ok)):
 ```
 dotnet run --project KafkaTool.csproj `
@@ -138,8 +145,7 @@ centos8-librdkafka.so!rd_avl_insert_node[localalias] (Unknown Source:0)
 centos8-librdkafka.so!rd_avl_insert_node[localalias] (Unknown Source:0)
 ```
 
-
-- Error: Local: Inconsistent state in C++/C#/Python (librdkafka v2.3.0 + rolling restarts):
+- Java Producer fails with "Error: Local: Inconsistent state" in C++/C#/Python (librdkafka v2.3.0 + rolling restarts):
 ```
 dotnet run --project KafkaTool.csproj -- \
 producer-consumer \
@@ -170,7 +176,7 @@ Logs:
 11:48:39 fail: Producer0:[0] Producer error: reason=Unable to reconstruct MessageSet (currently with 18 message(s)) with msgid range 21106..21147: last message added has msgid 21123: unable to guarantee consistency, IsLocal=True, IsBroker=False, IsFatal=True, IsCode=Local_Inconsistent
 11:48:39 info: Log[0] Admin log: message=[thrd:localhost:40002/bootstrap]: localhost:40002/bootstrap: Connect to ipv6#[::1]:40002 failed: Connection refused (after 0ms in state CONNECT), name=rdkafka#producer-4, facility=FAIL, level=Error
 11:48:39 fail: Log[0] Admin error: reason=localhost:40002/bootstrap: Connect to ipv6#[::1]:40002 failed: Connection refused (after 0ms in state CONNECT), IsLocal=True, IsBroker=False, IsFatal=False, IsCode=Local_Transport
-Error: Local: Inconsistent state
+
 ```
 
 - Producer: expiring messages without delivery error report ?
