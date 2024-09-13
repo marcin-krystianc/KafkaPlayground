@@ -1,0 +1,37 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch kafka-tool (Debug)",
+            "type": "cppdbg",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "/dotnet/dotnet",
+            "args": [
+                "${workspaceFolder}/bin/Debug/net8.0/KafkaTool.dll", 
+                "producer",
+                "--config", "allow.auto.create.topics=false",
+                "--config", "bootstrap.servers=localhost:40001,localhost:40002,localhost:40003",
+                "--topics=3000", "--partitions=1", "--replication-factor=3", "--min-isr=2", "--messages-per-second=10000",
+                "--config", "request.timeout.ms=180000",
+                "--config", "message.timeout.ms=180000",
+                "--config", "request.required.acks=-1",
+                "--config", "enable.idempotence=true",
+                "--config", "max.in.flight.requests.per.connection=1",
+                "--config", "topic.metadata.propagation.max.ms=60000",
+                "--producers=1",
+                "--recreate-topics-delay=100",
+                "--recreate-topics-batch-size=100"
+            ],
+            // "stopAtEntry": false,
+            // "environment": [],
+            // "externalConsole": false,
+            "miDebuggerPath": "/usr/bin/gdb",
+            "MIMode": "gdb",
+            "launchCompleteCommand": "exec-run",
+        },
+    ]
+}
