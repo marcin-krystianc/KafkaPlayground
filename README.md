@@ -23,62 +23,153 @@ This tool was used to validate, the guarantees during the continuous rolling res
 
 - Example of usage of .NET version:
 ```
-dotnet run --project KafkaTool.csproj `
-producer-consumer `
---config allow.auto.create.topics=false `
---config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 `
---topics=150 --partitions=10 --replication-factor=3 --min-isr=2 `
---producers=75 --messages-per-second=1000 `
---topic-stem=my-topic `
---config request.timeout.ms=180000 `
---config message.timeout.ms=180000 `
---config request.required.acks=-1 `
---config enable.idempotence=false `
---config max.in.flight.requests.per.connection=1 `
---config debug=all
+dotnet run --project KafkaTool.csproj \
+producer-consumer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 
+--config request.timeout.ms=180000 \
+--config message.timeout.ms=180000 \
+--config request.required.acks=-1 \
+--config enable.idempotence=false \
+--config max.in.flight.requests.per.connection=1 \
+--topics=1 \
+--partitions=1 \
+--replication-factor=3 \
+--min-isr=2 \
+--producers=1 \
+--messages-per-second=1000 \
+--recreate-topics-delay=10000 \
+--recreate-topics-batch-size=500 \
+--topic-stem=oss.my-topic
 ```
 
 - JAVA:
 ```
-mvn package; mvn exec:java "-Dexec.mainClass=kafka.testing.Main" "-Dexec.args=producer-consumer --config allow.auto.create.topics=false --config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 --topics=150 --partitions=10 --replication-factor=3 --min-isr=2 --messages-per-second=10000 --config request.timeout.ms=180000 --config message.timeout.ms=180000 --config request.required.acks=-1 --config enable.idempotence=false --config max.in.flight.requests.per.connection=1"
+mvn package; mvn exec:java "-Dexec.mainClass=kafka.testing.Main" "$(cat <<EOF | tr '\n' ' ' | sed 's/ *$//'
+"-Dexec.args=producer-consumer 
+--config allow.auto.create.topics=false 
+--config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 
+--config request.timeout.ms=180000 
+--config message.timeout.ms=180000 
+--config request.required.acks=-1 
+--config enable.idempotence=false 
+--config max.in.flight.requests.per.connection=5
+--topics=100
+--partitions=1
+--replication-factor=3 
+--min-isr=2 
+--producers=1
+--messages-per-second=7777
+--recreate-topics-delay=1000 
+--recreate-topics-batch-size=100 
+--topic-stem=oss.my-topic"
+EOF
+)"
 ```
 
-# Message order guarantee
+## Message Order Guarantee
 
-Message ordering is an important guarantee of Kafka. 
-Each topic may have several partitions, but message order is only preserved within individual partitions (but not for entire topics). 
-Messages are written to the same partitions when they have the same message key.
-To guarantee the order of messages, it is critical to set the `max.in.flight.requests.per.connection` to 1 (mind that default is 5).
-If the number of concurrent requests is greater than 1, then the later requests can succeed first - resulting in unordered messages (Applies to C# and Java libraries when `enable.idempotence=false)`.
+In Kafka, message ordering is preserved within individual partitions of a topic but not across the topic as a whole. For messages with identical keys, the assignment to the same partition is guaranteed.
 
-# Kafka delivery semantics and rolling restarts
+To ensure message order, it is essential to:
 
-Kafka supports three different delivery semantics:
-- At least once delivery (duplicates possible)
-- At most once delivery (No duplicates but messages might be lost)
-- Exactly once delivery (Each message is stored and consumed exactly once)
+- Either Set `max.in.flight.requests.per.connection=1` (default is 5).
+- Or enable idempotence by setting `enable.idempotence=true` (default is `false`).
 
-### At least once delivery (duplicates possible)
+When idempotence is not enabled and the number of concurrent requests exceeds one, messages may not arrive in order, as subsequent requests might complete before earlier ones.
 
-It is necessary to set the number of required acks (`request.required.acks`) for the producer to `-1` (`All`).
-Such configuration ensures that the producer considers the write request to be complete only after receiving at least `min.insync.replicas` confirmations.
-Thus any controlled or uncontrolled shutdown of a broker will not lead to lost messages if the value of `min.insync.replicas` is at least 2:
-- `min.insync.replicas=2`
-- `request.required.acks=-1`
+### Examples of out of order messages
 
-### At most once delivery (no duplicates, but messages might be lost)
+<details>
+  <summary>Java</summary>
 
-If it is not necessary to guarantee delivery of all messages, then it is ok to use a less strict number of acks `0` (`None`) or `1` (`Leader`).
+- Start the [test cluster](https://github.com/marcin-krystianc/KafkaPlayground/tree/master/docker/compose-cluster3)
+- Run the test tool
+```
+  mvn package; mvn exec:java "-Dexec.mainClass=kafka.testing.Main" "$(cat <<EOF | tr '\n' ' ' | sed 's/ *$//'
+	"-Dexec.args=producer-consumer 
+	--config allow.auto.create.topics=false 
+	--config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 
+	--config request.timeout.ms=180000 
+	--config message.timeout.ms=180000 
+	--config request.required.acks=-1 
+	--config enable.idempotence=false 
+	--config max.in.flight.requests.per.connection=5
+	--topics=100
+	--partitions=1
+	--replication-factor=3 
+	--min-isr=2 
+	--producers=1
+	--messages-per-second=7777
+	--recreate-topics-delay=1000 
+	--recreate-topics-batch-size=100 
+	--topic-stem=oss.my-topic"
+	EOF
+	)"
+```
+- Start the [rolling restart procedure](https://github.com/marcin-krystianc/KafkaPlayground/blob/master/docker/compose-cluster3/rolling-restart.ps1)
+- Log:
+```
+[11:20:15] consumer - Unexpected message value topic oss.my-topic-15/6 [0], Offset=7830/7839, LeaderEpoch=1/1 Value=1117/1119
+```
+
+</details>
+
+<details>
+  <summary>C#/Python/C++</summary>
+
+- Start the [test cluster](https://github.com/marcin-krystianc/KafkaPlayground/tree/master/docker/compose-cluster3)
+- Run the [KafkaTool](https://github.com/marcin-krystianc/KafkaPlayground/tree/master/java/KafkaTool):
+	```
+	dotnet run --project KafkaTool.csproj -- \
+	producer-consumer \
+	--config allow.auto.create.topics=false \
+	--config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 \
+	--config request.timeout.ms=180000 \
+	--config message.timeout.ms=180000 \
+	--config request.required.acks=-1 \
+	--config enable.idempotence=false \
+	--config max.in.flight.requests.per.connection=5 \
+	--topics=100 \
+	--partitions=1 \
+	--replication-factor=3 \
+	--min-isr=2 \
+	--producers=1 \
+	--messages-per-second=7777 \
+	--recreate-topics-delay=1000 \
+	--recreate-topics-batch-size=100 \
+	--topic-stem=oss.my-topic
+	```
+- Start the [rolling restart procedure](https://github.com/marcin-krystianc/KafkaPlayground/blob/master/docker/compose-cluster3/rolling-restart.ps1)
+- Log:
+```
+11:24:48 fail: Consumer:[0] Unexpected message value, topic/k [p]=oss.my-topic-66/6 [0], Offset=10604/10611, LeaderEpoch=1/2,  previous value=1514, messageValue=1513!
+```
+
+</details>
+
+## Kafka Delivery Semantics
+
+### At least once: Messages are delivered once or more; duplicates may occur. 
+
+To achieve at least once delivery, which may include duplicate messages, it is essential to configure the producer to require acknowledgments from all replicas. This is set by specifying `request.required.acks=-1` (All). This configuration ensures that the producer only considers a write request complete after receiving acknowledgment from at least the minimum number of in-sync replicas (`min.insync.replicas`). To safeguard against message loss during either controlled or uncontrolled broker shutdowns, it is recommended to set `min.insync.replicas` to at least two. This ensures redundancy and reliability in message delivery under varied network conditions.
+
+- `min.insync.replicas=2` (or more)
+
+### At most once: No duplicates, but messages may be lost. 
+
+For scenarios where the complete delivery of all messages is not critical, it is ok to use a less strict number of acks `0` (`None`) or `1` (`Leader`).
 - `request.required.acks=1`
 
-### Exactly once delivery
-To achieve, the "Exactly once deliver" semantic it is necessary to set the number of required acks (`request.required.acks`) for the producer to `-1` (`All`) and we need to use idempotent producer (`enable.idempotence=true`) to prevent from duplicates
-I've also found out empirically, that it is necessary to limit the number of concurrent requests to 1 (`max.in.flight.requests.per.connection=1`) to make sure no duplicates are ever created (We are sure that it applies to C#, but not confirmed if it applies to Java as well).
+### Exactly once: Each message is delivered and processed exactly once
+To guarantee, the "Exactly once" semantic it is necessary to set `request.required.acks=-1` (`All`) and we need to set `enable.idempotence=true` to prevent from any message duplicates.
+
+There is also a known issue with librdkafka (C#/Python/C++), where message duplicates are still possible until `max.in.flight.requests.per.connection=1` is set.
 - `request.required.acks=-1`
 - `enable.idempotence=true`
-- `max.in.flight.requests.per.connection=1`
+- `max.in.flight.requests.per.connection=1` (librdkafka)
 
-# TODO
+## Known librdkafka (C#/Python/C++) issues
 Several issues have been identified with the librdkafka library. Further investigation and solutions for these issues are planned as part of our efforts.
 
 - Idempotent producer can oocassionaly get stuck when acquiring idempotence PID (https://github.com/confluentinc/librdkafka/issues/3848)
