@@ -303,3 +303,28 @@ EOF
 [16:30:35] kafka-producer-network-thread | client-9b1e09e5-5181-449f-a01c-2fa23f2aa2e1 - Expiring 6 record(s) for oss.my-topic-55-5:180000 ms has passed since batch creation
 [16:30:35] kafka-producer-network-thread | client-4e6b400f-e9c7-480d-a326-de6c4b5eeb6c - Expiring 1 record(s) for oss.my-topic-91-5:180000 ms has passed since batch creation
 ```
+
+- Assertions in a debug build 
+```
+dotnet run --project KafkaTool.csproj \
+producer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 \
+--topics=3000 \
+--partitions=1 \
+--replication-factor=3 \
+--min-isr=2 \
+--messages-per-second=10000 \
+--config request.timeout.ms=180000 \
+--config message.timeout.ms=180000 \
+--config request.required.acks=-1 \
+--config enable.idempotence=true \
+--config max.in.flight.requests.per.connection=1 \
+--config topic.metadata.propagation.max.ms=60000 \
+--producers=1 \
+--recreate-topics-delay=500 \
+--recreate-topics-batch-size=500
+```
+```
+KafkaTool: rdkafka_queue.h:509: rd_kafka_q_deq0: Assertion `rkq->rkq_qlen > 0 && rkq->rkq_qsize >= (int64_t)rko->rko_len' failed.
+```
