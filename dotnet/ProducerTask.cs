@@ -25,6 +25,7 @@ public static class ProducerTask
     {
         return Task.Run(async () =>
         {
+            var cancellationTokenSource = new CancellationTokenSource();
             var flushCounter = 0;
             IConfiguration configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(settings.ConfigDictionary)
@@ -104,18 +105,22 @@ public static class ProducerTask
                                 var partitionsCount = topicMetadata.Topics.Single().Partitions.Count;
 
                                 if (e == null)
+                                {
                                     e = new Exception(
                                         $"DeliveryReport.Error, Code = {deliveryReport.Error.Code}, Reason = {deliveryReport.Error.Reason}" +
                                         $", IsFatal = {deliveryReport.Error.IsFatal}, IsError = {deliveryReport.Error.IsError}" +
                                         $", IsLocalError = {deliveryReport.Error.IsLocalError}, IsBrokerError = {deliveryReport.Error.IsBrokerError}" +
                                         $", topic = {deliveryReport.Topic}, partition = {deliveryReport.Partition.Value}, partitionsCount = {partitionsCount}");
+                                    
+                                    cancellationTokenSource.Cancel();
+                                }
                             }
                         });
 
                     data.IncrementProduced();
                     if (++flushCounter % 99999 == 0)
                     {
-                        producer.Flush();
+                        producer.Flush(cancellationTokenSource.Token);
                     }
                 }
             }
