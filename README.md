@@ -328,3 +328,12 @@ producer \
 ```
 KafkaTool: rdkafka_queue.h:509: rd_kafka_q_deq0: Assertion `rkq->rkq_qlen > 0 && rkq->rkq_qsize >= (int64_t)rko->rko_len' failed.
 ```
+
+
+- Ocasional memory corruption (debug build, ASAN)
+```
+ Producer0:[0] kafka-log Facility:METADATAUPDATE, Message[thrd:main]: Partition my-topic-1723(AAAAAAAAAAAAAAAAAAAAAA)[0]: not found in cache
+```
+
+- https://github.com/confluentinc/confluent-kafka-dotnet/issues/2157 (https://gr-oss.slack.com/archives/CT1CLERMX/p1726822842501039)
+
