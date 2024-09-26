@@ -172,11 +172,11 @@ There is also a known issue with librdkafka (C#/Python/C++), where message dupli
 ## Known librdkafka (C#/Python/C++) issues
 Several issues have been identified with the librdkafka library. Further investigation and solutions for these issues are planned as part of our efforts.
 
-- Idempotent producer can oocassionaly get stuck when acquiring idempotence PID (https://github.com/confluentinc/librdkafka/issues/3848)
+### Idempotent producer can oocassionaly get stuck when acquiring idempotence PID (https://github.com/confluentinc/librdkafka/issues/3848)
 
-- Producer can fail with "Unknown topic or partition" (https://github.com/confluentinc/librdkafka/issues/4401)
+### Producer can fail with "Unknown topic or partition" (https://github.com/confluentinc/librdkafka/issues/4401)
 
-- Exactly once delivery in C#/Python/C++. 
+### Exactly once delivery in C#/Python/C++. 
 
 To our understanding it shouldn't be required to set `max.in.flight.requests.per.connection=1` for the "exactly once delivery", but it seems it is the case for librdkafka:
 ```
@@ -207,7 +207,7 @@ dotnet run -c Release --project KafkaTool.csproj `
 09:47:13 info: Log[0] Elapsed: 320s, 2972422 (+92042) messages produced, 2972230 (+101047) messages consumed, 2 duplicated, 0 out of sequence.
 ```
 
-- Stack overflow in C++/C#/Python (librdkafka v2.4.0 (2.3.0 is ok)):
+### Stack overflow in C++/C#/Python (librdkafka v2.4.0 (2.3.0 is ok)) (https://github.com/confluentinc/librdkafka/issues/4778):
 ```
 dotnet run --project KafkaTool.csproj `
 producer `
@@ -236,7 +236,7 @@ centos8-librdkafka.so!rd_avl_insert_node[localalias] (Unknown Source:0)
 centos8-librdkafka.so!rd_avl_insert_node[localalias] (Unknown Source:0)
 ```
 
-- Java Producer fails with "Error: Local: Inconsistent state" in C++/C#/Python (librdkafka v2.3.0 + rolling restarts):
+### Java Producer fails with "Error: Local: Inconsistent state" in C++/C#/Python (librdkafka v2.3.0 + rolling restarts):
 ```
 dotnet run --project KafkaTool.csproj -- \
 producer-consumer \
@@ -270,7 +270,7 @@ Logs:
 
 ```
 
-- Producer: expiring messages without delivery error report ?
+### Producer: expiring messages without delivery error report ?
 
 ```
 mvn package; mvn exec:java "-Dexec.mainClass=kafka.testing.Main" "$(cat <<EOF | tr '\n' ' ' | sed 's/ *$//'
@@ -304,7 +304,7 @@ EOF
 [16:30:35] kafka-producer-network-thread | client-4e6b400f-e9c7-480d-a326-de6c4b5eeb6c - Expiring 1 record(s) for oss.my-topic-91-5:180000 ms has passed since batch creation
 ```
 
-- Assertions in a debug build 
+### Assertions in a debug build 
 ```
 dotnet run --project KafkaTool.csproj \
 producer \
@@ -330,10 +330,183 @@ KafkaTool: rdkafka_queue.h:509: rd_kafka_q_deq0: Assertion `rkq->rkq_qlen > 0 &&
 ```
 
 
-- Ocasional memory corruption (debug build, ASAN)
+### Ocasional memory corruption (debug build, ASAN)
 ```
  Producer0:[0] kafka-log Facility:METADATAUPDATE, Message[thrd:main]: Partition my-topic-1723(AAAAAAAAAAAAAAAAAAAAAA)[0]: not found in cache
 ```
 
 - https://github.com/confluentinc/confluent-kafka-dotnet/issues/2157 (https://gr-oss.slack.com/archives/CT1CLERMX/p1726822842501039)
 
+
+
+### Poor librdkafka performance on test corporate cluster + rolling restarts (java works better)
+- Relevant parameters:
+```
+--config request.required.acks=-1 
+--config enable.idempotence=false 
+--config max.in.flight.requests.per.connection=1
+--replication-factor=3 
+--min-isr=2 
+--producers=1 
+--messages-per-second=10000
+```
+
+- .NET
+```
+dotnet run --project KafkaTool.csproj producer-consumer --config allow.auto.create.topics=false --config bootstrap.servers=cvvkafka-1.g1.ospr-kas-d.wl.vgis.c3.zone:6669,cvvkafka-1.g2.ospr-kas-d.wl.vgis.c3.zone:6669,cvvkafka-1.g3.ospr-kas-d.wl.vgis.c3.zone:6669,cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669 --config request.timeout.ms=180000 --config message.timeout.ms=180000 --config request.required.acks=-1 --config enable.idempotence=false --config max.in.flight.requests.per.connection=1 --config security.protocol=SASL_SSL --config ssl.ca.location=/etc/ssl/certs/ca-bundle.crt --config sasl.mechanism=GSSAPI --config sasl.kerberos.keytab=foo-bar --config sasl.kerberos.min.time.before.relogin=0 --topics=500 --partitions=6 --replication-factor=3 --min-isr=2 --producers=1 --messages-per-second=10000 --recreate-topics-delay=10000 --recreate-topics-batch-size=500 --topic-stem=oss.my-A-topic
+Using assembly:Confluent.Kafka, Version=2.1.1.0, Culture=neutral, PublicKeyToken=12c514ca49093d1em location:/persist-shared/KafkaPlayground-master/dotnet/bin/Debug/net8.0/Confluent.Kafka.dll
+librdkafka Version: 2.1.1 (20101FF)
+Debug Contexts: all, generic, broker, topic, metadata, feature, queue, msg, protocol, cgrp, security, fetch, interceptor, plugin, consumer, admin, eos, mock, assignor, conf
+10:35:45 info: Log[0] Removing 500 topics
+10:35:55 info: Log[0] Creating 500 topics
+10:36:06 info: Producer0:[0] Starting producer task:
+10:36:06 info: Consumer:[0] Starting consumer task:
+10:36:06 info: Producer0:[0] kafka-log Facility:FAIL, Message[thrd:sasl_ssl://cvvkafka-1.g2.ospr-kas-d.wl.vgis.c3.zone:6669/bootst]: sasl_ssl://cvvkafka-1.g2.ospr-kas-d.wl.vgis.c3.zone:6669/bootstrap: Connect to ipv4#10.4.102.205:6669 failed: Connection refused (after 2ms in state CONNECT)
+10:36:06 fail: Producer0:[0] Producer error: reason=sasl_ssl://cvvkafka-1.g2.ospr-kas-d.wl.vgis.c3.zone:6669/bootstrap: Connect to ipv4#10.4.102.205:6669 failed: Connection refused (after 2ms in state CONNECT), IsLocal=True, IsBroker=False, IsFatal=False, IsCode=Local_Transport
+10:36:06 info: Consumer:[0] Consumer log: message=[thrd:app]: Configuration property enable.idempotence is a producer property and will be ignored by this consumer instance, name=rdkafka#consumer-3, facility=CONFWARN, level=Warning
+10:36:06 info: Consumer:[0] Consumer log: message=[thrd:app]: Configuration property request.required.acks is a producer property and will be ignored by this consumer instance, name=rdkafka#consumer-3, facility=CONFWARN, level=Warning
+10:36:06 info: Consumer:[0] Consumer log: message=[thrd:app]: Configuration property request.timeout.ms is a producer property and will be ignored by this consumer instance, name=rdkafka#consumer-3, facility=CONFWARN, level=Warning
+10:36:06 info: Consumer:[0] Consumer log: message=[thrd:app]: Configuration property message.timeout.ms is a producer property and will be ignored by this consumer instance, name=rdkafka#consumer-3, facility=CONFWARN, level=Warning
+10:36:06 info: Consumer:[0] Consumer log: message=[thrd:sasl_ssl://cvvkafka-1.g2.ospr-kas-d.wl.vgis.c3.zone:6669/bootst]: sasl_ssl://cvvkafka-1.g2.ospr-kas-d.wl.vgis.c3.zone:6669/bootstrap: Connect to ipv4#10.4.102.205:6669 failed: Connection refused (after 10ms in state CONNECT), name=rdkafka#consumer-3, facility=FAIL, level=Error
+10:36:06 fail: Consumer:[0] Consumer error: reason=sasl_ssl://cvvkafka-1.g2.ospr-kas-d.wl.vgis.c3.zone:6669/bootstrap: Connect to ipv4#10.4.102.205:6669 failed: Connection refused (after 10ms in state CONNECT), IsLocal=True, IsBroker=False, IsFatal=False, IsCode=Local_Transport
+10:36:16 info: Log[0] Elapsed: 10s, 98000 (+98000) messages produced, 3686 (+3686) messages consumed, 0 duplicated, 0 out of sequence.
+10:36:26 info: Log[0] Elapsed: 20s, 100000 (+2000) messages produced, 19050 (+15364) messages consumed, 0 duplicated, 0 out of sequence.
+10:36:36 info: Log[0] Elapsed: 30s, 100000 (+0) messages produced, 34363 (+15313) messages consumed, 0 duplicated, 0 out of sequence.
+10:36:46 info: Log[0] Elapsed: 40s, 100000 (+0) messages produced, 48830 (+14467) messages consumed, 0 duplicated, 0 out of sequence.
+10:36:56 info: Log[0] Elapsed: 50s, 100000 (+0) messages produced, 61277 (+12447) messages consumed, 0 duplicated, 0 out of sequence.
+10:37:06 info: Log[0] Elapsed: 60s, 100000 (+0) messages produced, 76520 (+15243) messages consumed, 0 duplicated, 0 out of sequence.
+10:37:16 info: Log[0] Elapsed: 70s, 100000 (+0) messages produced, 87272 (+10752) messages consumed, 0 duplicated, 0 out of sequence.
+10:37:26 info: Log[0] Elapsed: 80s, 100000 (+0) messages produced, 92178 (+4906) messages consumed, 0 duplicated, 0 out of sequence.
+10:37:36 info: Log[0] Elapsed: 90s, 100000 (+0) messages produced, 96557 (+4379) messages consumed, 0 duplicated, 0 out of sequence.
+10:37:46 info: Log[0] Elapsed: 100s, 112000 (+12000) messages produced, 100440 (+3883) messages consumed, 0 duplicated, 0 out of sequence.
+10:37:56 info: Log[0] Elapsed: 110s, 200000 (+88000) messages produced, 110778 (+10338) messages consumed, 0 duplicated, 0 out of sequence.
+10:38:06 info: Log[0] Elapsed: 120s, 200000 (+0) messages produced, 126088 (+15310) messages consumed, 0 duplicated, 0 out of sequence.
+10:38:16 info: Log[0] Elapsed: 130s, 200000 (+0) messages produced, 141683 (+15595) messages consumed, 0 duplicated, 0 out of sequence.
+10:38:26 info: Log[0] Elapsed: 140s, 200000 (+0) messages produced, 157470 (+15787) messages consumed, 0 duplicated, 0 out of sequence.
+10:38:36 info: Log[0] Elapsed: 150s, 200000 (+0) messages produced, 172185 (+14715) messages consumed, 0 duplicated, 0 out of sequence.
+10:38:46 info: Log[0] Elapsed: 160s, 200000 (+0) messages produced, 184233 (+12048) messages consumed, 0 duplicated, 0 out of sequence.
+10:38:56 info: Log[0] Elapsed: 170s, 200000 (+0) messages produced, 188274 (+4041) messages consumed, 0 duplicated, 0 out of sequence.
+10:39:06 info: Log[0] Elapsed: 180s, 200000 (+0) messages produced, 192966 (+4692) messages consumed, 0 duplicated, 0 out of sequence.
+10:39:16 info: Log[0] Elapsed: 190s, 200000 (+0) messages produced, 197568 (+4602) messages consumed, 0 duplicated, 0 out of sequence.
+10:39:26 info: Log[0] Elapsed: 200s, 243000 (+43000) messages produced, 201804 (+4236) messages consumed, 0 duplicated, 0 out of sequence.
+10:39:36 info: Log[0] Elapsed: 210s, 300000 (+57000) messages produced, 215221 (+13417) messages consumed, 0 duplicated, 0 out of sequence.
+10:39:46 info: Log[0] Elapsed: 220s, 300000 (+0) messages produced, 230312 (+15091) messages consumed, 0 duplicated, 0 out of sequence.
+10:39:56 info: Log[0] Elapsed: 230s, 300000 (+0) messages produced, 245048 (+14736) messages consumed, 0 duplicated, 0 out of sequence.
+10:40:06 info: Log[0] Elapsed: 240s, 300000 (+0) messages produced, 259808 (+14760) messages consumed, 0 duplicated, 0 out of sequence.
+10:40:16 info: Log[0] Elapsed: 250s, 300000 (+0) messages produced, 274065 (+14257) messages consumed, 0 duplicated, 0 out of sequence.
+10:40:26 info: Log[0] Elapsed: 260s, 300000 (+0) messages produced, 282557 (+8492) messages consumed, 0 duplicated, 0 out of sequence.
+```
+- Java
+```
+mvn package; mvn exec:java -Djava.security.krb5.conf=/etc/krb5.conf "-Dexec.mainClass=kafka.testing.Main" "$(cat <<EOF | tr '\n' ' ' | sed 's/ *$//'
+"-Dexec.args=producer-consumer
+--config allow.auto.create.topics=false
+--config bootstrap.servers=cvvkafka-1.g1.ospr-kas-d.wl.vgis.c3.zone:6669,cvvkafka-1.g2.ospr-kas-d.wl.vgis.c3.zone:6669,cvvkafka-1.g3.ospr-kas-d.wl.vgis.c3.zone:6669,cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669
+--config request.timeout.ms=180000
+--config message.timeout.ms=180000
+--config request.required.acks=-1
+--config enable.idempotence=false
+--config max.in.flight.requests.per.connection=1
+--config security.protocol=SASL_SSL
+--config sasl.mechanism=GSSAPI
+--config sasl.kerberos.min.time.before.relogin=0
+--config sasl.kerberos.service.name=kafka
+--config sasl.jaas.config="com.sun.security.auth.module.Krb5LoginModule required useTicketCache=true debug=true;"
+--topics=500
+--partitions=6
+--replication-factor=3
+--min-isr=2
+--producers=1
+--messages-per-second=10000
+--recreate-topics-delay=10000
+--recreate-topics-batch-size=500
+--topic-stem=oss.my-C-topic"
+EOF
+)"
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ----------------------< kafka.testing:KafkaTool >-----------------------
+[INFO] Building KafkaTool 1.0-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ KafkaTool ---
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] Copying 2 resources
+[INFO]
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ KafkaTool ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO]
+[INFO] --- maven-resources-plugin:2.6:testResources (default-testResources) @ KafkaTool ---
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] skip non existing resourceDirectory /persist-shared/KafkaPlayground-master/java/KafkaTool/src/test/resources
+[INFO]
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ KafkaTool ---
+[INFO] No sources to compile
+[INFO]
+[INFO] --- maven-surefire-plugin:2.12.4:test (default-test) @ KafkaTool ---
+[INFO] No tests to run.
+[INFO]
+[INFO] --- maven-jar-plugin:2.4:jar (default-jar) @ KafkaTool ---
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  0.811 s
+[INFO] Finished at: 2024-09-26T10:35:49+01:00
+[INFO] ------------------------------------------------------------------------
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ----------------------< kafka.testing:KafkaTool >-----------------------
+[INFO] Building KafkaTool 1.0-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- exec-maven-plugin:3.4.1:java (default-cli) @ KafkaTool ---
+Debug is  true storeKey false useTicketCache true useKeyTab false doNotPrompt false ticketCache is null isInitiator true KeyTab is null refreshKrb5Config is false principal is null tryFirstPass is false useFirstPass is false storePass is false clearPass is false
+Acquire TGT from Cache
+Principal is marcikry320@C3.ZONE
+Commit Succeeded
+
+[2024-09-26 10:35:51,664] WARN [AdminClient clientId=client-a8989e13-8518-41d0-9141-f55ed7501b30] Overriding the default value for default.api.timeout.ms (0) with the explicitly configured request timeout 180000 (org.apache.kafka.clients.admin.KafkaAdminClient)
+[10:35:52] kafka.testing.Main.main() - Deleted topics
+[10:35:52] kafka.testing.Main.main() - Creating 500 topics
+[2024-09-26 10:36:02,669] WARN [Principal=null]: TGT renewal thread has been interrupted and will exit. (org.apache.kafka.common.security.kerberos.KerberosLogin)
+[2024-09-26 10:36:02,728] WARN [Producer clientId=client-99d334f2-1bd0-4018-8c22-1e7f2a3677da] delivery.timeout.ms should be equal to or larger than linger.ms + request.timeout.ms. Setting it to 180000. (org.apache.kafka.clients.producer.KafkaProducer)
+Debug is  true storeKey false useTicketCache true useKeyTab false doNotPrompt false ticketCache is null isInitiator true KeyTab is null refreshKrb5Config is false principal is null tryFirstPass is false useFirstPass is false storePass is false clearPass is false
+Acquire TGT from Cache
+Principal is marcikry320@C3.ZONE
+Commit Succeeded
+
+[2024-09-26 10:36:02,790] WARN [Producer clientId=client-99d334f2-1bd0-4018-8c22-1e7f2a3677da] Connection to node -2 (cvvkafka-1.g2.ospr-kas-d.wl.vgis.c3.zone/10.4.102.205:6669) could not be established. Node may not be available. (org.apache.kafka.clients.NetworkClient)
+[2024-09-26 10:36:02,791] WARN [Producer clientId=client-99d334f2-1bd0-4018-8c22-1e7f2a3677da] Bootstrap broker cvvkafka-1.g2.ospr-kas-d.wl.vgis.c3.zone:6669 (id: -2 rack: null) disconnected (org.apache.kafka.clients.NetworkClient)
+[2024-09-26 10:36:02,902] WARN [Consumer clientId=client-3a1f744b-252a-4023-9a50-669f79cf008f, groupId=group-cbf231c0-8056-4962-a653-1189f3b69abc] Connection to node -2 (cvvkafka-1.g2.ospr-kas-d.wl.vgis.c3.zone/10.4.102.205:6669) could not be established. Node may not be available. (org.apache.kafka.clients.NetworkClient)
+[2024-09-26 10:36:02,902] WARN [Consumer clientId=client-3a1f744b-252a-4023-9a50-669f79cf008f, groupId=group-cbf231c0-8056-4962-a653-1189f3b69abc] Bootstrap broker cvvkafka-1.g2.ospr-kas-d.wl.vgis.c3.zone:6669 (id: -2 rack: null) disconnected (org.apache.kafka.clients.NetworkClient)
+[10:36:03] consumer - Assigned partitions: 3000
+[10:36:12] reporter - Elapsed: 10s, Produced: 15602 (+15602), Consumed: 10549 (+10549), Duplicated: 0, Out of sequence: 0.
+[10:36:22] reporter - Elapsed: 20s, Produced: 75661 (+60059), Consumed: 72719 (+62170), Duplicated: 0, Out of sequence: 0.
+[10:36:32] reporter - Elapsed: 30s, Produced: 152021 (+76360), Consumed: 150133 (+77414), Duplicated: 0, Out of sequence: 0.
+[10:36:42] reporter - Elapsed: 40s, Produced: 202137 (+50116), Consumed: 199706 (+49573), Duplicated: 0, Out of sequence: 0.
+[10:36:52] reporter - Elapsed: 50s, Produced: 256994 (+54857), Consumed: 254946 (+55240), Duplicated: 0, Out of sequence: 0.
+[10:37:02] reporter - Elapsed: 60s, Produced: 333262 (+76268), Consumed: 330883 (+75937), Duplicated: 0, Out of sequence: 0.
+[10:37:12] reporter - Elapsed: 70s, Produced: 402578 (+69316), Consumed: 400742 (+69859), Duplicated: 0, Out of sequence: 0.
+[10:37:22] reporter - Elapsed: 80s, Produced: 480836 (+78258), Consumed: 478382 (+77640), Duplicated: 0, Out of sequence: 0.
+[10:37:32] reporter - Elapsed: 90s, Produced: 561819 (+80983), Consumed: 559601 (+81219), Duplicated: 0, Out of sequence: 0.
+[10:37:42] reporter - Elapsed: 100s, Produced: 645702 (+83883), Consumed: 643709 (+84108), Duplicated: 0, Out of sequence: 0.
+[10:37:52] reporter - Elapsed: 110s, Produced: 728377 (+82675), Consumed: 726806 (+83097), Duplicated: 0, Out of sequence: 0.
+[10:38:02] reporter - Elapsed: 120s, Produced: 815865 (+87488), Consumed: 814103 (+87297), Duplicated: 0, Out of sequence: 0.
+[10:38:12] reporter - Elapsed: 130s, Produced: 894853 (+78988), Consumed: 891557 (+77454), Duplicated: 0, Out of sequence: 0.
+[10:38:22] reporter - Elapsed: 140s, Produced: 983894 (+89041), Consumed: 981350 (+89793), Duplicated: 0, Out of sequence: 0.
+[2024-09-26 10:38:32,534] WARN [Producer clientId=client-99d334f2-1bd0-4018-8c22-1e7f2a3677da] Got error produce response with correlation id 3873 on topic-partition oss.my-C-topic-146-1, retrying (2147483646 attempts left). Error: NOT_LEADER_OR_FOLLOWER (org.apache.kafka.clients.producer.internals.Sender)
+[2024-09-26 10:38:32,536] WARN [Producer clientId=client-99d334f2-1bd0-4018-8c22-1e7f2a3677da] Received invalid metadata error in produce request on partition oss.my-C-topic-146-1 due to org.apache.kafka.common.errors.NotLeaderOrFollowerException: For requests intended only for the leader, this error indicates that the broker is not the current leader. For requests intended for any replica, this error indicates that the broker is not a replica of the topic partition.. Going to request metadata update now (org.apache.kafka.clients.producer.internals.Sender)
+[2024-09-26 10:38:32,543] WARN [Producer clientId=client-99d334f2-1bd0-4018-8c22-1e7f2a3677da] Got error produce response with correlation id 3873 on topic-partition oss.my-C-topic-176-1, retrying (2147483646 attempts left). Error: NOT_LEADER_OR_FOLLOWER (org.apache.kafka.clients.producer.internals.Sender)
+[2024-09-26 10:38:32,544] WARN [Producer clientId=client-99d334f2-1bd0-4018-8c22-1e7f2a3677da] Received invalid metadata error in produce request on partition oss.my-C-topic-176-1 due to org.apache.kafka.common.errors.NotLeaderOrFollowerException: For requests intended only for the leader, this error indicates that the broker is not the current leader. For requests intended for any replica, this error indicates that the broker is not a replica of the topic partition.. Going to request metadata update now (org.apache.kafka.clients.producer.internals.Sender)
+[2024-09-26 10:38:32,714] WARN [Producer clientId=client-99d334f2-1bd0-4018-8c22-1e7f2a3677da] Got error produce response with correlation id 3874 on topic-partition oss.my-C-topic-193-2, retrying (2147483646 attempts left). Error: NOT_LEADER_OR_FOLLOWER (org.apache.kafka.clients.producer.internals.Sender)
+[2024-09-26 10:38:32,714] WARN [Producer clientId=client-99d334f2-1bd0-4018-8c22-1e7f2a3677da] Received invalid metadata error in produce request on partition oss.my-C-topic-193-2 due to org.apache.kafka.common.errors.NotLeaderOrFollowerException: For requests intended only for the leader, this error indicates that the broker is not the current leader. For requests intended for any replica, this error indicates that the broker is not a replica of the topic partition.. Going to request metadata update now (org.apache.kafka.clients.producer.internals.Sender)
+[2024-09-26 10:38:32,722] WARN [Producer clientId=client-99d334f2-1bd0-4018-8c22-1e7f2a3677da] Got error produce response with correlation id 3874 on topic-partition oss.my-C-topic-25-3, retrying (2147483646 attempts left). Error: NOT_LEADER_OR_FOLLOWER (org.apache.kafka.clients.producer.internals.Sender)
+[10:38:42] reporter - Elapsed: 160s, Produced: 1134106 (+69453), Consumed: 1132437 (+69965), Duplicated: 0, Out of sequence: 0.
+[10:38:52] reporter - Elapsed: 170s, Produced: 1203694 (+69588), Consumed: 1201315 (+68878), Duplicated: 0, Out of sequence: 0.
+[10:39:02] reporter - Elapsed: 180s, Produced: 1285000 (+81306), Consumed: 1282449 (+81134), Duplicated: 0, Out of sequence: 0.
+[10:39:12] reporter - Elapsed: 190s, Produced: 1355996 (+70996), Consumed: 1354363 (+71914), Duplicated: 0, Out of sequence: 0.
+[10:39:22] reporter - Elapsed: 200s, Produced: 1430000 (+74004), Consumed: 1427399 (+73036), Duplicated: 0, Out of sequence: 0.
+[10:39:32] reporter - Elapsed: 210s, Produced: 1505062 (+75062), Consumed: 1503215 (+75816), Duplicated: 0, Out of sequence: 0.
+[10:39:42] reporter - Elapsed: 220s, Produced: 1584475 (+79413), Consumed: 1582379 (+79164), Duplicated: 0, Out of sequence: 0.
+[10:39:52] reporter - Elapsed: 230s, Produced: 1665000 (+80525), Consumed: 1662825 (+80446), Duplicated: 0, Out of sequence: 0.
+```
