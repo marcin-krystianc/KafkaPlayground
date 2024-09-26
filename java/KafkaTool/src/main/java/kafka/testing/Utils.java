@@ -64,6 +64,7 @@ public class Utils {
             // delete topics if present
             try {
                 admin.deleteTopics(Arrays.asList(topicNames)).all().get();
+                Thread.sleep(delay);
             } catch (ExecutionException e) {
                 if (!(e.getCause() instanceof UnknownTopicOrPartitionException)) {
                     throw e;
