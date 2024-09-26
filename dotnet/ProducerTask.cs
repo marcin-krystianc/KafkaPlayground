@@ -26,7 +26,6 @@ public static class ProducerTask
         return Task.Run(async () =>
         {
             var cancellationTokenSource = new CancellationTokenSource();
-            var flushCounter = 0;
             IConfiguration configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(settings.ConfigDictionary)
                 .Build();
@@ -94,34 +93,45 @@ public static class ProducerTask
                     m -= 1;
 
                     var msg = new Message<long, long> { Key = k, Value = currentValue };
-                    producer.Produce(topicName, msg,
-                        (deliveryReport) =>
-                        {
-                            if (deliveryReport.Error.Code != ErrorCode.NoError)
-                            {
-                                using var adminClient = Utils.GetAdminClient(settings.ConfigDictionary);
-                                var topicMetadata = adminClient.GetMetadata(deliveryReport.Topic,
-                                    TimeSpan.FromSeconds(30));
-                                var partitionsCount = topicMetadata.Topics.Single().Partitions.Count;
 
-                                if (e == null)
-                                {
-                                    e = new Exception(
-                                        $"DeliveryReport.Error, Code = {deliveryReport.Error.Code}, Reason = {deliveryReport.Error.Reason}" +
-                                        $", IsFatal = {deliveryReport.Error.IsFatal}, IsError = {deliveryReport.Error.IsError}" +
-                                        $", IsLocalError = {deliveryReport.Error.IsLocalError}, IsBrokerError = {deliveryReport.Error.IsBrokerError}" +
-                                        $", topic = {deliveryReport.Topic}, partition = {deliveryReport.Partition.Value}, partitionsCount = {partitionsCount}");
-                                    
-                                    cancellationTokenSource.Cancel();
-                                }
-                            }
-                        });
-
-                    data.IncrementProduced();
-                    if (++flushCounter % 99999 == 0)
+                    bool produced = false;
+                    do
                     {
-                        producer.Flush(cancellationTokenSource.Token);
-                    }
+                        try
+                        {
+                            producer.Produce(topicName, msg,
+                                (deliveryReport) =>
+                                {
+                                    if (deliveryReport.Error.Code != ErrorCode.NoError)
+                                    {
+                                        using var adminClient = Utils.GetAdminClient(settings.ConfigDictionary);
+                                        var topicMetadata = adminClient.GetMetadata(deliveryReport.Topic,
+                                            TimeSpan.FromSeconds(30));
+                                        var partitionsCount = topicMetadata.Topics.Single().Partitions.Count;
+
+                                        if (e == null)
+                                        {
+                                            e = new Exception(
+                                                $"DeliveryReport.Error, Code = {deliveryReport.Error.Code}, Reason = {deliveryReport.Error.Reason}" +
+                                                $", IsFatal = {deliveryReport.Error.IsFatal}, IsError = {deliveryReport.Error.IsError}" +
+                                                $", IsLocalError = {deliveryReport.Error.IsLocalError}, IsBrokerError = {deliveryReport.Error.IsBrokerError}" +
+                                                $", topic = {deliveryReport.Topic}, partition = {deliveryReport.Partition.Value}, partitionsCount = {partitionsCount}");
+                                    
+                                            cancellationTokenSource.Cancel();
+                                        }
+                                    }
+                                });
+                            produced = true;
+                            data.IncrementProduced();
+                        }
+                        catch (ProduceException<long, long> exception)
+                        {
+                            if (exception.Error.Code != ErrorCode.Local_QueueFull)
+                                throw;
+
+                            await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationTokenSource.Token);
+                        }
+                    } while (!produced);
                 }
             }
         });
