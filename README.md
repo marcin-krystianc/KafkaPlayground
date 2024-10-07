@@ -340,7 +340,9 @@ KafkaTool: rdkafka_queue.h:509: rd_kafka_q_deq0: Assertion `rkq->rkq_qlen > 0 &&
 
 
 ### Poor librdkafka performance on test corporate cluster + rolling restarts (java works better)
+- librdkafka with `max.in.flight.requests.per.connection=1` appears to be really slow (occasionally I see msg timeout errors) 
 - Relevant parameters:
+- I think that number of topics plays important role in this problem, with fewer topics that problem dissapeared
 ```
 --config request.required.acks=-1 
 --config enable.idempotence=false 
@@ -509,4 +511,52 @@ Commit Succeeded
 [10:39:32] reporter - Elapsed: 210s, Produced: 1505062 (+75062), Consumed: 1503215 (+75816), Duplicated: 0, Out of sequence: 0.
 [10:39:42] reporter - Elapsed: 220s, Produced: 1584475 (+79413), Consumed: 1582379 (+79164), Duplicated: 0, Out of sequence: 0.
 [10:39:52] reporter - Elapsed: 230s, Produced: 1665000 (+80525), Consumed: 1662825 (+80446), Duplicated: 0, Out of sequence: 0.
+```
+
+### Librdkafka producer-consumer, consumer silently stops consuming
+- veresion
+```
+librdkafka Version: 2.1.1 (20101FF)
+```
+- symptoms
+```
+10:05:23 info: Log[0] Elapsed: 434169s, 433970800 (+10000) messages produced, 212215134 (+0) messages consumed, 4142 duplicated, 112 out of sequence.
+```
+- logs
+```
+23:56:48 info: Log[0] Elapsed: 224854s, 224760700 (+10000) messages produced, 212213110 (+64) messages consumed, 4142 duplicated, 112 out of sequence.
+23:56:54 info: Consumer:[0] Consumer log: message=[thrd:sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/bootst]: sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/14001: Timed out 0 in-flight, 0 retry-queued, 1197 out-queue, 0 partially-sent requests, name=rdkafka#consumer-3, facility=REQTMOUT, level=Warning
+23:56:54 info: Consumer:[0] Consumer log: message=[thrd:sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/bootst]: sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/14001: 1197 request(s) timed out: disconnect (after 60900ms in state UP), name=rdkafka#consumer-3, facility=FAIL, level=Error
+23:56:54 fail: Consumer:[0] Consumer error: reason=sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/14001: 1197 request(s) timed out: disconnect (after 60900ms in state UP), IsLocal=True, IsBroker=False, IsFatal=False, IsCode=Local_TimedOut
+23:56:58 info: Log[0] Elapsed: 224864s, 224770700 (+10000) messages produced, 212213166 (+56) messages consumed, 4142 duplicated, 112 out of sequence.
+23:57:08 info: Log[0] Elapsed: 224874s, 224780700 (+10000) messages produced, 212213206 (+40) messages consumed, 4142 duplicated, 112 out of sequence.
+23:57:18 info: Log[0] Elapsed: 224884s, 224790700 (+10000) messages produced, 212213214 (+8) messages consumed, 4142 duplicated, 112 out of sequence.
+23:57:22 fail: Producer0:[0] Producer error: reason=sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/14001: Disconnected (after 367014ms in state UP, 1 identical error(s) suppressed), IsLocal=True, IsBroker=False, IsFatal=False, IsCode=Local_Transport
+23:57:22 info: Consumer:[0] Consumer log: message=[thrd:sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/bootst]: sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/14001: Disconnected (after 27906ms in state UP), name=rdkafka#consumer-3, facility=FAIL, level=Info
+23:57:22 fail: Consumer:[0] Consumer error: reason=sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/14001: Disconnected (after 27906ms in state UP), IsLocal=True, IsBroker=False, IsFatal=False, IsCode=Local_Transport
+23:57:22 info: Consumer:[0] Consumer log: message=[thrd:sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/bootst]: sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/14001: Connect to ipv4#10.4.102.248:6669 failed: Connection refused (after 2ms in state CONNECT), name=rdkafka#consumer-3, facility=FAIL, level=Error
+23:57:22 fail: Consumer:[0] Consumer error: reason=sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/14001: Connect to ipv4#10.4.102.248:6669 failed: Connection refused (after 2ms in state CONNECT), IsLocal=True, IsBroker=False, IsFatal=False, IsCode=Local_Transport
+23:57:23 info: Consumer:[0] Consumer log: message=[thrd:sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/bootst]: sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/14001: Connect to ipv4#10.4.102.248:6669 failed: Connection refused (after 0ms in state CONNECT, 1 identical error(s) suppressed), name=rdkafka#consumer-3, facility=FAIL, level=Error
+23:57:23 fail: Consumer:[0] Consumer error: reason=sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/14001: Connect to ipv4#10.4.102.248:6669 failed: Connection refused (after 0ms in state CONNECT, 1 identical error(s) suppressed), IsLocal=True, IsBroker=False, IsFatal=False, IsCode=Local_Transport
+23:57:28 info: Log[0] Elapsed: 224894s, 224800700 (+10000) messages produced, 212213214 (+0) messages consumed, 4142 duplicated, 112 out of sequence.
+23:57:38 info: Log[0] Elapsed: 224904s, 224810700 (+10000) messages produced, 212213342 (+128) messages consumed, 4142 duplicated, 112 out of sequence.
+23:57:48 info: Log[0] Elapsed: 224914s, 224820700 (+10000) messages produced, 212213342 (+0) messages consumed, 4142 duplicated, 112 out of sequence.
+23:57:56 info: Consumer:[0] Consumer log: message=[thrd:sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/bootst]: sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/14001: Connect to ipv4#10.4.102.248:6669 failed: Connection refused (after 1ms in state CONNECT, 5 identical error(s) suppressed), name=rdkafka#consumer-3, facility=FAIL, level=Error
+23:57:56 fail: Consumer:[0] Consumer error: reason=sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/14001: Connect to ipv4#10.4.102.248:6669 failed: Connection refused (after 1ms in state CONNECT, 5 identical error(s) suppressed), IsLocal=True, IsBroker=False, IsFatal=False, IsCode=Local_Transport
+23:57:58 info: Log[0] Elapsed: 224924s, 224830700 (+10000) messages produced, 212213342 (+0) messages consumed, 4142 duplicated, 112 out of sequence.
+23:58:08 info: Log[0] Elapsed: 224934s, 224840700 (+10000) messages produced, 212213342 (+0) messages consumed, 4142 duplicated, 112 out of sequence.
+23:58:18 info: Log[0] Elapsed: 224944s, 224850700 (+10000) messages produced, 212213342 (+0) messages consumed, 4142 duplicated, 112 out of sequence.
+23:58:19 info: Consumer:[0] Consumer log: message=[thrd:sasl_ssl://cvvkafka-1.g2.ospr-kas-d.wl.vgis.c3.zone:6669/bootst]: sasl_ssl://cvvkafka-1.g2.ospr-kas-d.wl.vgis.c3.zone:6669/12001: Timed out 0 in-flight, 0 retry-queued, 3746 out-queue, 0 partially-sent requests, name=rdkafka#consumer-3, facility=REQTMOUT, level=Warning
+23:58:19 info: Consumer:[0] Consumer log: message=[thrd:sasl_ssl://cvvkafka-1.g2.ospr-kas-d.wl.vgis.c3.zone:6669/bootst]: sasl_ssl://cvvkafka-1.g2.ospr-kas-d.wl.vgis.c3.zone:6669/12001: 3746 request(s) timed out: disconnect (after 170884ms in state UP), name=rdkafka#consumer-3, facility=FAIL, level=Error
+23:58:19 fail: Consumer:[0] Consumer error: reason=sasl_ssl://cvvkafka-1.g2.ospr-kas-d.wl.vgis.c3.zone:6669/12001: 3746 request(s) timed out: disconnect (after 170884ms in state UP), IsLocal=True, IsBroker=False, IsFatal=False, IsCode=Local_TimedOut
+23:58:22 info: Consumer:[0] Consumer log: message=[thrd:sasl_ssl://cvvkafka-1.g3.ospr-kas-d.wl.vgis.c3.zone:6669/bootst]: sasl_ssl://cvvkafka-1.g3.ospr-kas-d.wl.vgis.c3.zone:6669/13001: Timed out 0 in-flight, 0 retry-queued, 650 out-queue, 0 partially-sent requests, name=rdkafka#consumer-3, facility=REQTMOUT, level=Warning
+23:58:22 info: Consumer:[0] Consumer log: message=[thrd:sasl_ssl://cvvkafka-1.g3.ospr-kas-d.wl.vgis.c3.zone:6669/bootst]: sasl_ssl://cvvkafka-1.g3.ospr-kas-d.wl.vgis.c3.zone:6669/13001: 650 request(s) timed out: disconnect (after 75685ms in state UP), name=rdkafka#consumer-3, facility=FAIL, level=Error
+23:58:22 fail: Consumer:[0] Consumer error: reason=sasl_ssl://cvvkafka-1.g3.ospr-kas-d.wl.vgis.c3.zone:6669/13001: 650 request(s) timed out: disconnect (after 75685ms in state UP), IsLocal=True, IsBroker=False, IsFatal=False, IsCode=Local_TimedOut
+23:58:28 info: Log[0] Elapsed: 224954s, 224860700 (+10000) messages produced, 212213342 (+0) messages consumed, 4142 duplicated, 112 out of sequence.
+23:58:36 info: Consumer:[0] Consumer log: message=[thrd:sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/bootst]: sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/14001: Connect to ipv4#10.4.102.248:6669 failed: Connection refused (after 1ms in state CONNECT, 4 identical error(s) suppressed), name=rdkafka#consumer-3, facility=FAIL, level=Error
+23:58:36 fail: Consumer:[0] Consumer error: reason=sasl_ssl://cvvkafka-1.g4.ospr-kas-d.wl.vgis.c3.zone:6669/14001: Connect to ipv4#10.4.102.248:6669 failed: Connection refused (after 1ms in state CONNECT, 4 identical error(s) suppressed), IsLocal=True, IsBroker=False, IsFatal=False, IsCode=Local_Transport
+23:58:38 info: Log[0] Elapsed: 224964s, 224870700 (+10000) messages produced, 212213342 (+0) messages consumed, 4142 duplicated, 112 out of sequence.
+23:58:48 info: Log[0] Elapsed: 224974s, 224880700 (+10000) messages produced, 212213342 (+0) messages consumed, 4142 duplicated, 112 out of sequence.
+23:58:58 info: Log[0] Elapsed: 224984s, 224890700 (+10000) messages produced, 212213838 (+496) messages consumed, 4142 duplicated, 112 out of sequence.
+23:59:08 info: Log[0] Elapsed: 224994s, 224900700 (+10000) messages produced, 212213838 (+0) messages consumed, 4142 duplicated, 112 out of sequence.
 ```
