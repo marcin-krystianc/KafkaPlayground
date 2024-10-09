@@ -116,8 +116,6 @@ public static class ProducerTask
                                                 $", IsFatal = {deliveryReport.Error.IsFatal}, IsError = {deliveryReport.Error.IsError}" +
                                                 $", IsLocalError = {deliveryReport.Error.IsLocalError}, IsBrokerError = {deliveryReport.Error.IsBrokerError}" +
                                                 $", topic = {deliveryReport.Topic}, partition = {deliveryReport.Partition.Value}, partitionsCount = {partitionsCount}");
-                                    
-                                            cancellationTokenSource.Cancel();
                                         }
                                     }
                                 });
