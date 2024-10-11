@@ -207,7 +207,7 @@ dotnet run -c Release --project KafkaTool.csproj `
 09:47:13 info: Log[0] Elapsed: 320s, 2972422 (+92042) messages produced, 2972230 (+101047) messages consumed, 2 duplicated, 0 out of sequence.
 ```
 
-### Stack overflow in C++/C#/Python (librdkafka v2.4.0 (2.3.0 is ok)) (https://github.com/confluentinc/librdkafka/issues/4778):
+### Stack overflow in C++/C#/Python (librdkafka v2.4.0 (2.3.0 is ok)) (https://github.com/confluentinc/librdkafka/issues/4778, https://github.com/confluentinc/librdkafka/pull/4864):
 ```
 dotnet run --project KafkaTool.csproj `
 producer `
@@ -560,3 +560,9 @@ librdkafka Version: 2.1.1 (20101FF)
 23:58:58 info: Log[0] Elapsed: 224984s, 224890700 (+10000) messages produced, 212213838 (+496) messages consumed, 4142 duplicated, 112 out of sequence.
 23:59:08 info: Log[0] Elapsed: 224994s, 224900700 (+10000) messages produced, 212213838 (+0) messages consumed, 4142 duplicated, 112 out of sequence.
 ```
+
+# another kafka issue
+no kafka parititioning, just manual partitioning
+no keys, payload 100 bytes, up to 500 partitions (10 partions on average)
+replicate latency issues with c#, java
+what is the average latency at 400k msg/s
