@@ -59,7 +59,7 @@ public static class ProducerTask
                 .Build();
 
             var sw = Stopwatch.StartNew();
-            var m = 0;
+            long m = 0;
 
             if (settings.Topics % settings.Producers != 0)
             {
@@ -87,7 +87,7 @@ public static class ProducerTask
                         }
 
                         sw = Stopwatch.StartNew();
-                        m = (int)settings.MessagesPerSecond / 10;
+                        m = settings.MessagesPerSecond / 10;
                     }
 
                     m -= 1;
