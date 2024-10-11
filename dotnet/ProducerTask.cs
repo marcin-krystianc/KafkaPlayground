@@ -130,7 +130,7 @@ public static class ProducerTask
                                 throw;
                             }
 
-                            await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationTokenSource.Token);
+                            await Task.Delay(TimeSpan.FromMilliseconds(1), cancellationTokenSource.Token);
                         }
                     } while (!produced);
                 }
