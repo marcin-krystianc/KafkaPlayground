@@ -133,4 +133,9 @@ public static class Utils
             await Task.Delay(TimeSpan.FromMilliseconds(settings.RecreateTopicsDelayMs));
         }
     }
+
+    public static long UnixMicroseconds(DateTime dt)
+    {
+        return (dt.Ticks - DateTime.UnixEpoch.Ticks) / TimeSpan.TicksPerMicrosecond;
+    }
 }

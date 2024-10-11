@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Confluent.Kafka;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Spectre.Console.Cli;
 
 namespace KafkaTool;
+
 
 public static class ProducerTask
 {
@@ -43,7 +43,7 @@ public static class ProducerTask
             Exception e = null;
             var producerConfig = new ProducerConfig(settings.ConfigDictionary);
 
-            var producer = new ProducerBuilder<long, long>(
+            var producer = new ProducerBuilder<long, string>(
                     producerConfig.AsEnumerable().Concat(configuration.AsEnumerable()))
                 .SetLogHandler(
                     (a, b) =>
@@ -91,8 +91,8 @@ public static class ProducerTask
                     }
 
                     m -= 1;
-
-                    var msg = new Message<long, long> { Key = k, Value = currentValue };
+                    var unixMicroseconds = Utils.UnixMicroseconds(DateTime.UtcNow);
+                    var msg = new Message<long, string> { Key = k, Value = $"{currentValue} {unixMicroseconds}"};
 
                     bool produced = false;
                     do
@@ -122,10 +122,13 @@ public static class ProducerTask
                             produced = true;
                             data.IncrementProduced();
                         }
-                        catch (ProduceException<long, long> exception)
+                        catch (ProduceException<long, string> exception)
                         {
                             if (exception.Error.Code != ErrorCode.Local_QueueFull)
+                            {
+                                logger.LogInformation($"Handling exception");
                                 throw;
+                            }
 
                             await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationTokenSource.Token);
                         }

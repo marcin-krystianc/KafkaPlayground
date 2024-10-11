@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Spectre.Console.Cli;
 
 namespace KafkaTool;
 
@@ -20,7 +17,13 @@ public static class ConsumerTask
             options.TimestampFormat = "HH:mm:ss ";
         }))
         .CreateLogger("Log");
-    
+
+    private static (long sequence, long unixMiroseconds) ParseResult(string result)
+    {
+        var nums = result.Split(" ").Select(long.Parse).ToArray();
+        return (nums[0], nums[1]);
+    }
+
     public static Task GetTask(ProducerConsumerSettings settings, ProducerConsumerData data)
     {
         return Task.Run(async () =>
@@ -52,7 +55,7 @@ public static class ConsumerTask
                 .Build();
 
             create_consumer:
-            using (var consumer = new ConsumerBuilder<long, long>(
+            using (var consumer = new ConsumerBuilder<long, string>(
                            consumerConfiguration.AsEnumerable())
                        .SetErrorHandler((_, e) =>
                        {
@@ -98,7 +101,7 @@ public static class ConsumerTask
                     throw;
                 }
 
-                Dictionary<(string Topic, long Key), ConsumeResult<long, long>> valueDictionary = new();
+                Dictionary<(string Topic, long Key), ConsumeResult<long, string>> valueDictionary = new();
 
                 while (true)
                 {
@@ -114,18 +117,21 @@ public static class ConsumerTask
                         }
 
                         var key = (consumeResult.Topic, consumeResult.Message.Key);
-                        if (valueDictionary.TryGetValue(key, out var previousResult))
+                        var currentResult = ParseResult(consumeResult.Message.Value);
+
+                        if (valueDictionary.TryGetValue(key, out var previousConsumeResult))
                         {
-                            if (consumeResult.Message.Value != previousResult.Message.Value + 1)
+                            var previousResult = ParseResult(previousConsumeResult.Message.Value);
+                            if (currentResult.sequence != previousResult.sequence + 1)
                             {
                                 logger.Log(LogLevel.Error,
-                                    $"Unexpected message value, topic/k [p]={consumeResult.Topic}/{consumeResult.Message.Key} {consumeResult.Partition}, Offset={previousResult.Offset}/{consumeResult.Offset}, " +
-                                    $"LeaderEpoch={previousResult.LeaderEpoch}/{consumeResult.LeaderEpoch},  previous value={previousResult.Message.Value}, messageValue={consumeResult.Message.Value}!");
+                                    $"Unexpected message value, topic/k [p]={consumeResult.Topic}/{consumeResult.Message.Key} {consumeResult.Partition}, Offset={previousConsumeResult.Offset}/{consumeResult.Offset}, " +
+                                    $"LeaderEpoch={previousConsumeResult.LeaderEpoch}/{consumeResult.LeaderEpoch},  previous value={previousConsumeResult.Message.Value}, messageValue={consumeResult.Message.Value}!");
 
-                                if (consumeResult.Message.Value < previousResult.Message.Value + 1)
+                                if (currentResult.sequence < previousResult.sequence + 1)
                                     data.IncrementDuplicated();
 
-                                if (consumeResult.Message.Value > previousResult.Message.Value + 1)
+                                if (currentResult.sequence > previousResult.sequence + 1)
                                     data.IncrementOutOfOrder();
                             }
 

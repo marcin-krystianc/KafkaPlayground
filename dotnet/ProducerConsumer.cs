@@ -1,10 +1,7 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Spectre.Console.Cli;
 using Microsoft.Extensions.Logging;
-using MoreLinq;
-
 namespace KafkaTool;
 
 public sealed class ProducerConsumer : AsyncCommand<ProducerConsumerSettings>
