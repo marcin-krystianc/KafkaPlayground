@@ -566,3 +566,39 @@ no kafka parititioning, just manual partitioning
 no keys, payload 100 bytes, up to 500 partitions (10 partions on average)
 replicate latency issues with c#, java
 what is the average latency at 400k msg/s
+
+- Throughput=700k/s, latency = 3ms (Local docker):
+```
+dotnet run -c Release --project KafkaTool.csproj \
+producer-consumer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 \
+--topics=1 \
+--partitions=1 \
+--replication-factor=3 \
+--min-isr=2 \
+--messages-per-second=2000000 \
+--config request.timeout.ms=180000 \
+--config message.timeout.ms=180000 \
+--config request.required.acks=-1 \
+--config enable.idempotence=true \
+--config max.in.flight.requests.per.connection=1 \
+--config topic.metadata.propagation.max.ms=60000 \
+\
+--config group.protocol=consumer \
+--config enable.auto.offset.store=false \
+--config enable.auto.commit=false \
+--config fetch.wait.max.ms=1 \
+--config fetch.queue.backoff.ms=1 \
+--config fetch.error.backoff.ms=1 \
+--config fetch.max.bytes=1000000 \
+--config fetch.message.max.bytes=1000000 \
+\
+--config queue.buffering.max.ms=1 \
+--config queue.buffering.max.messages=10000000 \
+--config queue.buffering.max.kbytes=1048576 \
+\
+--producers=1 \
+--recreate-topics-delay=500 \
+--recreate-topics-batch-size=500
+```
