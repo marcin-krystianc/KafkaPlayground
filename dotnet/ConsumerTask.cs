@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Confluent.Kafka;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using StatsLib;
 
 namespace KafkaTool;
 
@@ -17,12 +18,6 @@ public static class ConsumerTask
             options.TimestampFormat = "HH:mm:ss ";
         }))
         .CreateLogger("Log");
-
-    private static (long sequence, long unixMiroseconds) ParseResult(string result)
-    {
-        var nums = result.Split(" ").Select(long.Parse).ToArray();
-        return (nums[0], nums[1]);
-    }
 
     public static Task GetTask(ProducerConsumerSettings settings, ProducerConsumerData data)
     {
@@ -55,7 +50,7 @@ public static class ConsumerTask
                 .Build();
 
             create_consumer:
-            using (var consumer = new ConsumerBuilder<long, string>(
+            using (var consumer = new ConsumerBuilder<long, long>(
                            consumerConfiguration.AsEnumerable())
                        .SetErrorHandler((_, e) =>
                        {
@@ -101,7 +96,7 @@ public static class ConsumerTask
                     throw;
                 }
 
-                Dictionary<(string Topic, long Key), ConsumeResult<long, string>> valueDictionary = new();
+                Dictionary<(string Topic, long Key), ConsumeResult<long, long>> valueDictionary = new();
 
                 while (true)
                 {
@@ -109,7 +104,7 @@ public static class ConsumerTask
                     {
                         var consumeResult = consumer.Consume();
                         consumedAnyRecords = true;
-
+            
                         if (consumeResult.IsPartitionEOF)
                         {
                             throw new Exception(
@@ -117,21 +112,19 @@ public static class ConsumerTask
                         }
 
                         var key = (consumeResult.Topic, consumeResult.Message.Key);
-                        var currentResult = ParseResult(consumeResult.Message.Value);
-
+ 
                         if (valueDictionary.TryGetValue(key, out var previousConsumeResult))
                         {
-                            var previousResult = ParseResult(previousConsumeResult.Message.Value);
-                            if (currentResult.sequence != previousResult.sequence + 1)
+                            if (consumeResult.Message.Value != previousConsumeResult.Message.Value + 1)
                             {
                                 logger.Log(LogLevel.Error,
                                     $"Unexpected message value, topic/k [p]={consumeResult.Topic}/{consumeResult.Message.Key} {consumeResult.Partition}, Offset={previousConsumeResult.Offset}/{consumeResult.Offset}, " +
                                     $"LeaderEpoch={previousConsumeResult.LeaderEpoch}/{consumeResult.LeaderEpoch},  previous value={previousConsumeResult.Message.Value}, messageValue={consumeResult.Message.Value}!");
 
-                                if (currentResult.sequence < previousResult.sequence + 1)
-                                    data.IncrementDuplicated();
+                                if (consumeResult.Message.Value < previousConsumeResult.Message.Value + 1)
+                                    data.IncrementDuplicated();   
 
-                                if (currentResult.sequence > previousResult.sequence + 1)
+                                if (consumeResult.Message.Value > previousConsumeResult.Message.Value + 1)
                                     data.IncrementOutOfOrder();
                             }
 
@@ -142,6 +135,8 @@ public static class ConsumerTask
                             valueDictionary[key] = consumeResult;
                         }
 
+                        var latency = DateTime.UtcNow - consumeResult.Message.Timestamp.UtcDateTime;
+                        data.DigestConsumerLatency(latency.TotalSeconds);
                         data.IncrementConsumed();
                     }
                     catch (ConsumeException e)

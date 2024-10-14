@@ -43,7 +43,7 @@ public static class ProducerTask
             Exception e = null;
             var producerConfig = new ProducerConfig(settings.ConfigDictionary);
 
-            var producer = new ProducerBuilder<long, string>(
+            var producer = new ProducerBuilder<long, long>(
                     producerConfig.AsEnumerable().Concat(configuration.AsEnumerable()))
                 .SetLogHandler(
                     (a, b) =>
@@ -91,9 +91,9 @@ public static class ProducerTask
                     }
 
                     m -= 1;
-                    var unixMicroseconds = Utils.UnixMicroseconds(DateTime.UtcNow);
-                    var msg = new Message<long, string> { Key = k, Value = $"{currentValue} {unixMicroseconds}"};
-
+                    
+                    var msg = new Message<long, long> { Key = k, Value = currentValue, Timestamp = new Timestamp(DateTime.UtcNow)};
+                    
                     bool produced = false;
                     do
                     {
@@ -118,11 +118,16 @@ public static class ProducerTask
                                                 $", topic = {deliveryReport.Topic}, partition = {deliveryReport.Partition.Value}, partitionsCount = {partitionsCount}");
                                         }
                                     }
+                                    else
+                                    {
+                                        data.IncrementProduced();
+                                        var latency = DateTime.UtcNow - deliveryReport.Message.Timestamp.UtcDateTime;
+                                        data.DigestProducerLatency(latency.TotalSeconds);
+                                    }
                                 });
                             produced = true;
-                            data.IncrementProduced();
                         }
-                        catch (ProduceException<long, string> exception)
+                        catch (ProduceException<long, long> exception)
                         {
                             if (exception.Error.Code != ErrorCode.Local_QueueFull)
                             {

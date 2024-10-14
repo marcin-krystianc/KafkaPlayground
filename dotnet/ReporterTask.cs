@@ -29,13 +29,15 @@ public static class ReporterTask
                 var totalConsumed = data.GetConsumed();
                 var outOfSequence = data.GetOutOfOrder();
                 var duplicated =  data.GetDuplicated();
+                var consumerLatency =  data.GetConsumerLatency();
+                var producerLatency =  data.GetProducerLatency();
                 var newlyProduced = totalProduced - prevProduced;
                 var newlyConsumed = totalConsumed - prevConsumed;
                 prevProduced = totalProduced;
                 prevConsumed = totalConsumed;
 
                 Log.Log(LogLevel.Information,
-                    $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}) messages produced, {totalConsumed} (+{newlyConsumed}) messages consumed, {duplicated} duplicated, {outOfSequence} out of sequence.");
+                    $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}, p95={producerLatency.Quantile(0.95):0.000}s) messages produced, {totalConsumed} (+{newlyConsumed}, p95={consumerLatency.Quantile(0.95):0.000}s) messages consumed, {duplicated} duplicated, {outOfSequence} out of sequence.");
             }
         });
     }
