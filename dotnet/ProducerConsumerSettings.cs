@@ -51,7 +51,22 @@ public class ProducerConsumerSettings : KafkaSettings
     public int RecreateTopicsBatchSize { get; set; }
 
     [CommandOption("--recreate-topics")]
-    [Description("Recreate topics")]
+    [Description("Recreate topics?")]
     [DefaultValue(true)]
     public bool RecreateTopics { get; set; }
+
+    [CommandOption("--burst-messages-per-second")]
+    [Description("Number of messages per second (burst)")]
+    [DefaultValue((long)0)]
+    public long BurstMessagesPerSecond { get; set; }
+
+    [CommandOption("--burst-cycle-duration")]
+    [Description("Burst cycle duration(ms)")]
+    [DefaultValue((long)0)]
+    public long BurstCycleDuration { get; set; }
+
+    [CommandOption("--burst-cycle-fraction")]
+    [Description("Burst cycle fraction(0-1)")]
+    [DefaultValue((double)0)]
+    public long BurstCycleFraction { get; set; }
 }
