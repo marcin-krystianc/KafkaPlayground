@@ -1,8 +1,6 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using MoreLinq.Extensions;
 using Spectre.Console.Cli;
 
 namespace KafkaTool;
@@ -19,7 +17,11 @@ public class Producer : AsyncCommand<ProducerConsumerSettings>
     
     public override async Task<int> ExecuteAsync(CommandContext context, ProducerConsumerSettings settings)
     {
-        await Utils.RecreateTopics(settings);
+        if (settings.RecreateTopics)
+        {
+            await Utils.RecreateTopics(settings);
+        }
+
         var data = new ProducerConsumerData();
         var producerTasks = Enumerable.Range(0, settings.Producers)
             .Select(producerIndex => ProducerTask.GetTask(settings, data, producerIndex));

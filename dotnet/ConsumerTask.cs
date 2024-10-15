@@ -41,7 +41,7 @@ public static class ConsumerTask
                 GroupId = Guid.NewGuid().ToString(),
                 EnableAutoOffsetStore = false,
                 EnableAutoCommit = false,
-                AutoOffsetReset = AutoOffsetReset.Error,
+                AutoOffsetReset = AutoOffsetReset.Earliest,
             };
 
             IConfiguration consumerConfiguration = new ConfigurationBuilder()
@@ -76,26 +76,8 @@ public static class ConsumerTask
                     .Select(x => Utils.GetTopicName(settings.TopicStem, x))
                     .ToArray();
 
-                var topicPartitions = new List<TopicPartitionOffset>();
-                foreach (var topic in topics)
-                {
-                    foreach (var partition in Enumerable.Range(0, settings.Partitions))
-                    {
-                        topicPartitions.Add(
-                            new TopicPartitionOffset(new TopicPartition(topic, new Partition(partition)), Offset.Beginning));
-                    }
-                }
-
-                try
-                {
-                    consumer.Assign(topicPartitions);
-                }
-                catch (Exception e)
-                {
-                    logger.Log(LogLevel.Error,"consumer.Assign:" + e);
-                    throw;
-                }
-
+                consumer.Subscribe(topics);
+                
                 Dictionary<(string Topic, long Key), ConsumeResult<long, long>> valueDictionary = new();
 
                 while (true)

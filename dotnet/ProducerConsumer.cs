@@ -16,7 +16,11 @@ public sealed class ProducerConsumer : AsyncCommand<ProducerConsumerSettings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, ProducerConsumerSettings settings)
     {
-        await Utils.RecreateTopics(settings);
+        if (settings.RecreateTopics)
+        {
+            await Utils.RecreateTopics(settings);
+        }
+
         var data = new ProducerConsumerData();
         var producerTasks = Enumerable.Range(0, settings.Producers)
             .Select(producerIndex => ProducerTask.GetTask(settings, data, producerIndex));
