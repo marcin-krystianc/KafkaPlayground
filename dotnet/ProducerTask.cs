@@ -67,12 +67,17 @@ public static class ProducerTask
             }
 
             var topicsPerProducer = settings.Topics / settings.Producers;
+            var topicPartitions = new List<TopicPartition>(
+                from topic in Enumerable.Range(0, settings.Topics)
+                from partition in Enumerable.Range(0, settings.Partitions)
+                select new TopicPartition(Utils.GetTopicName(settings.TopicStem, topic), new Partition(partition)));
+
             for (var currentValue = 0L;; currentValue++)
             for (var topicIndex = 0; topicIndex < topicsPerProducer; topicIndex++)
             {
-                var topicName = Utils.GetTopicName(settings.TopicStem, topicIndex + producerIndex * topicsPerProducer);
-                for (var k = 0; k < settings.Partitions * 7; k++)
+                for (var partition = 0; partition < settings.Partitions; partition++)
                 {
+                    var topicPartition = topicPartitions[(topicIndex + producerIndex * topicsPerProducer) * settings.Partitions + partition];
                     if (e != null)
                     {
                         throw e;
@@ -92,14 +97,14 @@ public static class ProducerTask
 
                     m -= 1;
                     
-                    var msg = new Message<long, long> { Key = k, Value = currentValue, Timestamp = new Timestamp(DateTime.UtcNow)};
+                    var msg = new Message<long, long> { Key = partition, Value = currentValue, Timestamp = new Timestamp(DateTime.UtcNow)};
                     
                     bool produced = false;
                     do
                     {
                         try
                         {
-                            producer.Produce(topicName, msg,
+                            producer.Produce(topicPartition, msg,
                                 (deliveryReport) =>
                                 {
                                     if (deliveryReport.Error.Code != ErrorCode.NoError)

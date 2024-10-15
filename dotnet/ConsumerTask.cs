@@ -77,7 +77,7 @@ public static class ConsumerTask
                     .ToArray();
 
                 consumer.Subscribe(topics);
-                
+
                 Dictionary<(string Topic, long Key), ConsumeResult<long, long>> valueDictionary = new();
 
                 while (true)
