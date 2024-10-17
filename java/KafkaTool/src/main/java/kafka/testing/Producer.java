@@ -21,23 +21,14 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.kafka.common.KafkaException;
-import org.apache.kafka.common.errors.AuthorizationException;
-import org.apache.kafka.common.errors.FencedInstanceIdException;
-import org.apache.kafka.common.errors.OutOfOrderSequenceException;
-import org.apache.kafka.common.errors.ProducerFencedException;
 import org.apache.kafka.common.errors.RetriableException;
-import org.apache.kafka.common.errors.SerializationException;
-import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.apache.kafka.common.serialization.IntegerSerializer;
-import org.apache.kafka.common.serialization.StringSerializer;
+import com.tdunning.math.stats.TDigest;
+import com.tdunning.math.stats.MergingDigest;
 
-import javax.swing.plaf.ColorUIResource;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -48,19 +39,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Producer extends Thread {
     private final String[] topics;
     private final KafkaProperties kafkaProperties;
+    private final KafkaData kafkaData;
     private volatile boolean closed;
-    private final AtomicInteger sentRecords = new AtomicInteger(0);
 
     public Producer(KafkaProperties kafkaProperties,
+                    KafkaData kafkaData,
                     String[] topics
     ) {
         super("producer");
         this.kafkaProperties = kafkaProperties;
+        this.kafkaData = kafkaData;
         this.topics = topics;
-    }
-
-    public long GetSentRecords() {
-        return this.sentRecords.get();
     }
 
     @Override
@@ -128,7 +117,7 @@ public class Producer extends Thread {
                         messagesToSend -= 1.0;
 
                         asyncSend(producer, topic, key, value);
-                        sentRecords.incrementAndGet();
+                        kafkaData.incrementProduced();
                     }
         } catch (Throwable e) {
             Utils.printErr("Unhandled exception");
@@ -196,8 +185,6 @@ public class Producer extends Thread {
                 }
             }
             else {
-                long elapsed = System.currentTimeMillis() - metadata.timestamp();
-                Utils.printErr("elapsed %dms", elapsed);
             }
         }
     }

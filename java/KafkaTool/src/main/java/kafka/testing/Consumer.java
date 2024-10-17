@@ -44,27 +44,16 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
     private volatile boolean closed;
     private KafkaConsumer<Integer, Integer> consumer;
     private final Map<TopicPartition, Long> partitionOffsets;
-    private final AtomicInteger receivedRecords = new AtomicInteger(0);
-    private final AtomicInteger duplicatedRecords = new AtomicInteger(0);
-    private final AtomicInteger outOfSequence = new AtomicInteger(0);
+    private final KafkaData kafkaData;
 
     public Consumer(KafkaProperties kafkaProperties,
+                    KafkaData kafkaData,
                     String[] topics) {
         super("consumer");
         this.kafkaProperties = kafkaProperties; 
+        this.kafkaData = kafkaData;
         this.topics = topics;
         this.partitionOffsets = new HashMap<>(); 
-    }
-    public long GetReceivedRecords() {
-        return this.receivedRecords.get();
-    }
-    
-    public long GetDuplicatedRecords() {
-        return this.duplicatedRecords.get();
-    }
-
-    public long GetOutOfSequenceRecords() {
-        return this.outOfSequence.get();
     }
 
     @Override
@@ -89,7 +78,7 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
                     ConsumerRecords<Integer, Integer> records = consumer.poll(Duration.ofSeconds(1));
                     for (ConsumerRecord<Integer, Integer> record : records) {
 
-                        receivedRecords.incrementAndGet();
+                        kafkaData.incrementConsumed();
 
                         synchronized (partitionOffsets) {
                             partitionOffsets.put(new TopicPartition(record.topic().toString(), record.partition()), record.offset());
@@ -110,13 +99,13 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
                                         , previousResult.leaderEpoch().orElse(-1), record.leaderEpoch().orElse(-1)
                                         , previousResult.value(), record.value()
                                 );
-                                
+
                                 if (record.value() < previousResult.value() + 1) {
-                                    duplicatedRecords.incrementAndGet();
+                                    kafkaData.incrementDuplicated();
                                 }
 
                                 if (record.value() > previousResult.value() + 1) {
-                                    outOfSequence.incrementAndGet();
+                                    kafkaData.incrementOutOfOrder();
                                 }                                        
                             }
                         }

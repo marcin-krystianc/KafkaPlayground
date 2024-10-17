@@ -32,18 +32,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  * - Sync mode: each send operation blocks waiting for the response.
  */
 public class Reporter extends Thread {
-    private final Producer[] producers;
-    private final Consumer consumer;
     private final KafkaProperties kafkaProperties;
+    private final KafkaData kafkaData;
 
-    public Reporter(KafkaProperties kafkaProperties,
-                    Producer[] producers,
-                    Consumer consumer
+    public Reporter(KafkaProperties kafkaProperties, KafkaData kafkaData
     ) {
         super("reporter");
         this.kafkaProperties = kafkaProperties;
-        this.producers = producers;
-        this.consumer = consumer;
+        this.kafkaData = kafkaData;
     }
 
     @Override
@@ -57,21 +53,11 @@ public class Reporter extends Thread {
         while (true) {
             var currentTime = System.currentTimeMillis();
             if (currentTime - logTime > kafkaProperties.getReportingCycle()) {
-                long produced = 0;
-                for (var producer : producers) {
-                    produced += producer.GetSentRecords();
-                }
+                long produced = kafkaData.getProduced();
 
-                long consumed = 0;
-                long duplicated = 0;
-                long outOfSequence = 0;
-
-                if (consumer != null)
-                {
-                    consumed = consumer.GetReceivedRecords();
-                    duplicated = consumer.GetDuplicatedRecords();
-                    outOfSequence = consumer.GetOutOfSequenceRecords();
-                }
+                long consumed = kafkaData.getConsumed();
+                long duplicated = kafkaData.getDuplicated();
+                long outOfSequence = kafkaData.getOutOfOrder();
 
                 var elapsed = (currentTime - startTime) / 1000;
                 Utils.printOut("Elapsed: %ds, Produced: %d (+%d), Consumed: %d (+%d), Duplicated: %d, Out of sequence: %d."

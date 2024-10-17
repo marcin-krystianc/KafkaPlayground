@@ -8,7 +8,8 @@ public class ProducerConsumerMain {
     public static void main(String[] args) {
         try {
             var kafkaProperties = new KafkaProperties(args);
-
+            var kafkaData = new KafkaData();
+            
             String[] topicNames = new String[kafkaProperties.getNumberOfTopics()];
             for (int i = 0; i < kafkaProperties.getNumberOfTopics(); i++) {
                 topicNames[i] = kafkaProperties.getTopicStem() + "-" + i;
@@ -36,7 +37,7 @@ public class ProducerConsumerMain {
             Consumer consumer = new Consumer(kafkaProperties, topicNames);
             consumer.start();
             
-            Reporter reporter = new Reporter(kafkaProperties, producers, consumer);
+            Reporter reporter = new Reporter(kafkaProperties, kafkaData);
             reporter.start();
 
             var allThreadsAreAlive = true;
