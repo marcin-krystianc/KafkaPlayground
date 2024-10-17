@@ -57,12 +57,13 @@ public class Producer extends Thread {
         final long burstCycle = kafkaProperties.getBurstCycle();
         final long burstDuration = kafkaProperties.getBurstDuration();
         final long burstMessagesPerSecond = kafkaProperties.getBurstMessagesPerSecond();
-        
+        final long messagesPerSecond = kafkaProperties.getMessagesPerSecond();
+
         double messagesToSend = 0;
         long startTime = System.currentTimeMillis();
         long burstTime = System.currentTimeMillis();
         boolean resetMessagesToSend = false;
-        double messagesRate = (double)kafkaProperties.getMessagesPerSecond() / 1000;
+        double messagesRate = (double)messagesPerSecond / 1000;
         
         // the producer instance is thread safe
         try (KafkaProducer<Integer, Integer> producer = createKafkaProducer(kafkaProperties.getConfigs())) {
@@ -74,18 +75,18 @@ public class Producer extends Thread {
                         if (closed)
                             return;
 
-                        var currentTime = System.currentTimeMillis();
                         do
                         {
+                            var currentTime = System.currentTimeMillis();
                             if (burstCycle > 0)
                             {
-                                if (burstTime - currentTime > burstCycle)
+                                if (currentTime - burstTime >= burstCycle)
                                 {
                                     burstTime = currentTime;
                                     resetMessagesToSend = true;
                                 }
 
-                                if (burstTime - currentTime < burstDuration)
+                                if (currentTime - burstTime < burstDuration)
                                 {
                                     messagesRate = (double)burstMessagesPerSecond / 1000;
                                 }
@@ -97,7 +98,7 @@ public class Producer extends Thread {
                                         resetMessagesToSend = false;
                                     }
 
-                                    messagesRate = (double)burstMessagesPerSecond / 1000;
+                                    messagesRate = (double)messagesPerSecond / 1000;
                                 }
                             }
 
@@ -155,16 +156,13 @@ public class Producer extends Thread {
         // note that, even if you set a small batch.size with linger.ms=0, the send operation
         // will still be blocked when buffer.memory is full or metadata are not available
         int partition = key;
-        producer.send(new ProducerRecord<>(topic, partition, System.currentTimeMillis(), key, value), new ProducerCallback(key, value));
+        producer.send(new ProducerRecord<>(topic, partition, System.currentTimeMillis(), key, value), new ProducerCallback(this.kafkaData));
     }
 
     class ProducerCallback implements Callback {
-        private final int key;
-        private final int value;
-
-        public ProducerCallback(int key, Integer value) {
-            this.key = key;
-            this.value = value;
+        private final KafkaData kafkaData;
+        public ProducerCallback(KafkaData kafkaData) {
+            this.kafkaData = kafkaData;
         }
 
         /**
@@ -185,6 +183,8 @@ public class Producer extends Thread {
                 }
             }
             else {
+                double latency = (double)(System.currentTimeMillis() - metadata.timestamp()) / 1000;
+                kafkaData.digestProducerLatency(latency);
             }
         }
     }

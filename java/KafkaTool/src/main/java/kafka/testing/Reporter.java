@@ -52,17 +52,18 @@ public class Reporter extends Thread {
 
         while (true) {
             var currentTime = System.currentTimeMillis();
-            if (currentTime - logTime > kafkaProperties.getReportingCycle()) {
+            if (currentTime - logTime >= kafkaProperties.getReportingCycle()) {
                 long produced = kafkaData.getProduced();
-
                 long consumed = kafkaData.getConsumed();
                 long duplicated = kafkaData.getDuplicated();
                 long outOfSequence = kafkaData.getOutOfOrder();
+                var producerLatencyStats = kafkaData.getProducerLatency();
+                var consumerLatencyStats = kafkaData.getConsumerLatency();
 
                 var elapsed = (currentTime - startTime) / 1000;
-                Utils.printOut("Elapsed: %ds, Produced: %d (+%d), Consumed: %d (+%d), Duplicated: %d, Out of sequence: %d."
-                        , elapsed, produced, (produced - loggedProduced)
-                        , consumed, (consumed - loggedConsumed)
+                Utils.printOut("Elapsed: %ds, Produced: %d (+%d, p95=%.3fs), Consumed: %d (+%d, p95=%.3fs)), Duplicated: %d, Out of sequence: %d."
+                        , elapsed, produced, (produced - loggedProduced), producerLatencyStats.quantile(0.95)
+                        , consumed, (consumed - loggedConsumed), consumerLatencyStats.quantile(0.95)
                         , duplicated, outOfSequence);
     
                 logTime = currentTime;

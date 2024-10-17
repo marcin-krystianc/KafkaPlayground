@@ -15,7 +15,7 @@ public class ConsumerMain {
             }
 
             // stage 3: consume records from topic1
-            Consumer consumer = new Consumer(kafkaProperties, topicNames);
+            Consumer consumer = new Consumer(kafkaProperties, kafkaData, topicNames);
             consumer.start();
             
             Reporter reporter = new Reporter(kafkaProperties, kafkaData);

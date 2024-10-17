@@ -90,7 +90,7 @@ public static class ProducerTask
                     {
                         if (settings.BurstCycle > 0)
                         {
-                            if (burstCycleSw.ElapsedMilliseconds > settings.BurstCycle)
+                            if (burstCycleSw.ElapsedMilliseconds >= settings.BurstCycle)
                             {
                                 burstCycleSw = Stopwatch.StartNew();
                                 resetMessagesToSend = true;

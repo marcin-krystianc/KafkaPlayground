@@ -29,12 +29,12 @@ public class ProducerConsumerMain {
             var topicsPerProducer = kafkaProperties.getNumberOfTopics() / kafkaProperties.getNumberOfProducers();
             Producer[] producers = new Producer[kafkaProperties.getNumberOfProducers()];
             for (int i = 0; i < kafkaProperties.getNumberOfProducers(); i++) {
-                producers[i] = new Producer(kafkaProperties, Arrays.copyOfRange(topicNames, i * topicsPerProducer, (i+1) * topicsPerProducer));
+                producers[i] = new Producer(kafkaProperties, kafkaData, Arrays.copyOfRange(topicNames, i * topicsPerProducer, (i+1) * topicsPerProducer));
                 producers[i].start();
             }
 
             // stage 3: consume records from topic1
-            Consumer consumer = new Consumer(kafkaProperties, topicNames);
+            Consumer consumer = new Consumer(kafkaProperties, kafkaData, topicNames);
             consumer.start();
             
             Reporter reporter = new Reporter(kafkaProperties, kafkaData);
