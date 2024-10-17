@@ -14,11 +14,14 @@ public class ProducerMain {
                 topicNames[i] = kafkaProperties.getTopicStem() + "-" + i;
             }
 
-            // stage 1: clean any topics left from previous runs
-            Utils.recreateTopics(kafkaProperties.getConfigs(), kafkaProperties.getNumberOfPartitions()
-                , kafkaProperties.getReplicationFactor(), kafkaProperties.getMinIsr()
-                , kafkaProperties.getRecreateTopicsDelay(), kafkaProperties.getRecreateTopicsBatchSize()
-                , topicNames);
+            if (kafkaProperties.getRecreateTopics())
+            {
+                // stage 1: clean any topics left from previous runs
+                Utils.recreateTopics(kafkaProperties.getConfigs(), kafkaProperties.getNumberOfPartitions()
+                        , kafkaProperties.getReplicationFactor(), kafkaProperties.getMinIsr()
+                        , kafkaProperties.getRecreateTopicsDelay(), kafkaProperties.getRecreateTopicsBatchSize()
+                        , topicNames);                
+            }
 
             if (kafkaProperties.getNumberOfTopics() % kafkaProperties.getNumberOfProducers() != 0) {
                 throw new Exception(String.format("Cannot evenly schedule %d topics on a %d producers!", kafkaProperties.getNumberOfTopics(), kafkaProperties.getNumberOfProducers()));
@@ -31,7 +34,7 @@ public class ProducerMain {
                 producers[i].start();
             }
             
-            Reporter reporter = new Reporter(producers, null);
+            Reporter reporter = new Reporter(kafkaProperties, producers, null);
             reporter.start();
 
             var allThreadsAreAlive = true;

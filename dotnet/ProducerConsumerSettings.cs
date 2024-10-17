@@ -63,12 +63,12 @@ public class ProducerConsumerSettings : KafkaSettings
     [CommandOption("--burst-cycle")]
     [Description("Burst cycle in ms")]
     [DefaultValue((long)0)]
-    public long BurstCycleDuration { get; set; }
+    public long BurstCycle { get; set; }
 
     [CommandOption("--burst-duration")]
     [Description("Burst duration in ms")]
     [DefaultValue((long)0)]
-    public long BurstWidth { get; set; }
+    public long BurstDuration { get; set; }
 
     [CommandOption("--reporting-cycle")]
     [Description("Reporting cycle in ms")]

@@ -32,6 +32,7 @@ import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
+import javax.swing.plaf.ColorUIResource;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -64,30 +65,67 @@ public class Producer extends Thread {
 
     @Override
     public void run() {
-        int messagesToSend = 0;
+        final long burstCycle = kafkaProperties.getBurstCycle();
+        final long burstDuration = kafkaProperties.getBurstDuration();
+        final long burstMessagesPerSecond = kafkaProperties.getBurstMessagesPerSecond();
+        
+        double messagesToSend = 0;
         long startTime = System.currentTimeMillis();
-
+        long burstTime = System.currentTimeMillis();
+        boolean resetMessagesToSend = false;
+        double messagesRate = (double)kafkaProperties.getMessagesPerSecond() / 1000;
+        
         // the producer instance is thread safe
         try (KafkaProducer<Integer, Integer> producer = createKafkaProducer(kafkaProperties.getConfigs())) {
 
-            var numberOfKeys = kafkaProperties.getNumberOfPartitions() * 7;
+            var numberOfPartitions = kafkaProperties.getNumberOfPartitions();
             for (var value = 0; ; value++)
-                for (var key = 0; key < numberOfKeys; key++)
+                for (var key = 0; key < numberOfPartitions; key++)
                     for (var topic : this.topics) {
                         if (closed)
                             return;
 
                         var currentTime = System.currentTimeMillis();
-                        if (messagesToSend == 0) {
-                            var elapsedTime = currentTime - startTime;
-                            if (elapsedTime < 100) {
-                                Thread.sleep(100 - elapsedTime); // Sleep for 1/10 second
+                        do
+                        {
+                            if (burstCycle > 0)
+                            {
+                                if (burstTime - currentTime > burstCycle)
+                                {
+                                    burstTime = currentTime;
+                                    resetMessagesToSend = true;
+                                }
+
+                                if (burstTime - currentTime < burstDuration)
+                                {
+                                    messagesRate = (double)burstMessagesPerSecond / 1000;
+                                }
+                                else
+                                {
+                                    if (resetMessagesToSend)
+                                    {
+                                        messagesToSend = 0;
+                                        resetMessagesToSend = false;
+                                    }
+
+                                    messagesRate = (double)burstMessagesPerSecond / 1000;
+                                }
                             }
 
-                            startTime = System.currentTimeMillis();
-                            messagesToSend = kafkaProperties.getMessagesPerSecond() / 10;
-                        }
-                        messagesToSend--;
+                            var elapsed = currentTime - startTime;
+                            if (elapsed >= 1)
+                            {
+                                startTime = currentTime;
+                                messagesToSend += messagesRate * elapsed;
+                            }
+
+                            if (messagesToSend < 1)
+                            {
+                                Thread.sleep(1); 
+                            }
+                        } while (messagesToSend < 1);
+
+                        messagesToSend -= 1.0;
 
                         asyncSend(producer, topic, key, value);
                         sentRecords.incrementAndGet();
@@ -127,7 +165,8 @@ public class Producer extends Thread {
         // send the record asynchronously, setting a callback to be notified of the result
         // note that, even if you set a small batch.size with linger.ms=0, the send operation
         // will still be blocked when buffer.memory is full or metadata are not available
-        producer.send(new ProducerRecord<>(topic, key, value), new ProducerCallback(key, value));
+        int partition = key;
+        producer.send(new ProducerRecord<>(topic, partition, System.currentTimeMillis(), key, value), new ProducerCallback(key, value));
     }
 
     class ProducerCallback implements Callback {
@@ -155,6 +194,10 @@ public class Producer extends Thread {
                     // we can't recover from these exceptions
                     shutdown();
                 }
+            }
+            else {
+                long elapsed = System.currentTimeMillis() - metadata.timestamp();
+                Utils.printErr("elapsed %dms", elapsed);
             }
         }
     }

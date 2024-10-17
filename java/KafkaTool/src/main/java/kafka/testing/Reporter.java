@@ -34,11 +34,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Reporter extends Thread {
     private final Producer[] producers;
     private final Consumer consumer;
+    private final KafkaProperties kafkaProperties;
 
-    public Reporter(Producer[] producers,
+    public Reporter(KafkaProperties kafkaProperties,
+                    Producer[] producers,
                     Consumer consumer
     ) {
         super("reporter");
+        this.kafkaProperties = kafkaProperties;
         this.producers = producers;
         this.consumer = consumer;
     }
@@ -53,7 +56,7 @@ public class Reporter extends Thread {
 
         while (true) {
             var currentTime = System.currentTimeMillis();
-            if (currentTime - logTime > 10000) {
+            if (currentTime - logTime > kafkaProperties.getReportingCycle()) {
                 long produced = 0;
                 for (var producer : producers) {
                     produced += producer.GetSentRecords();

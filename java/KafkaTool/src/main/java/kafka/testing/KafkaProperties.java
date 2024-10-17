@@ -79,6 +79,46 @@ public class KafkaProperties {
         
         return commandLine.getOptionValue("topic-stem");
     }
+    
+    public boolean getRecreateTopics()
+    {
+        if (!commandLine.hasOption("recreate-topics"))
+            return true;
+
+        return Boolean.parseBoolean(commandLine.getOptionValue("recreate-topics"));
+    }
+
+    public int getBurstMessagesPerSecond()
+    {
+        if (!commandLine.hasOption("burst-messages-per-second"))
+            return 0;
+
+        return Integer.parseInt(commandLine.getOptionValue("burst-messages-per-second"));
+    }
+
+    public int getBurstCycle()
+    {
+        if (!commandLine.hasOption("burst-cycle"))
+            return 0;
+
+        return Integer.parseInt(commandLine.getOptionValue("burst-cycle"));
+    }
+
+    public int getBurstDuration()
+    {
+        if (!commandLine.hasOption("burst-duration"))
+            return 0;
+
+        return Integer.parseInt(commandLine.getOptionValue("burst-duration"));
+    }
+
+    public int getReportingCycle()
+    {
+        if (!commandLine.hasOption("reporting-cycle"))
+            return 0;
+
+        return Integer.parseInt(commandLine.getOptionValue("reporting-cycle"));
+    }
 
     public String[] getArgs()
     {
@@ -109,44 +149,63 @@ public class KafkaProperties {
         var config = new Option("c", "config", true, "Additional configuration");
         config.setRequired(false);
         config.setArgs(Option.UNLIMITED_VALUES);
+        options.addOption(config);
 
         var topics = new Option(null, "topics", true, "Number of topics");
         topics.setRequired(true);
+        options.addOption(topics);
 
         var partitions = new Option(null, "partitions", true, "Number of partitions");
         partitions.setRequired(true);
+        options.addOption(partitions);
         
         var replicationFactor = new Option(null, "replication-factor", true, "Number of replicas");
         replicationFactor.setRequired(true);
+        options.addOption(replicationFactor);
         
         var minIsr = new Option(null, "min-isr", true, "Minimum in-sync replicas");
         minIsr.setRequired(true);
+        options.addOption(minIsr);
 
         var messagesPerSecond = new Option(null, "messages-per-second", true, "Messages per second");
         messagesPerSecond.setRequired(true);
+        options.addOption(messagesPerSecond);
         
         var producers = new Option(null, "producers", true, "Number of producers (default 1)");
         producers.setRequired(false);
+        options.addOption(producers);
        
         var recreateTopicsDelay = new Option(null, "recreate-topics-delay", true, "Delay after crating a batch of topics (default 1ms)");
         recreateTopicsDelay.setRequired(false);
+        options.addOption(recreateTopicsDelay);
           
         var recreateTopicsBatch = new Option(null, "recreate-topics-batch-size", true, "Size of the batch of topics to create (default 500)");
         recreateTopicsBatch.setRequired(false);
-       
+        options.addOption(recreateTopicsBatch);
+
         var topicStem = new Option(null, "topic-stem", true, "Topic stem");
         topicStem.setRequired(false);
-      
-        options.addOption(config);
-        options.addOption(topics);
-        options.addOption(partitions);
-        options.addOption(replicationFactor);
-        options.addOption(minIsr);
-        options.addOption(messagesPerSecond);
-        options.addOption(producers);
-        options.addOption(recreateTopicsDelay);
-        options.addOption(recreateTopicsBatch);
         options.addOption(topicStem);
+        
+        var recreateTopics = new Option(null, "recreate-topics", true, "Recreate topics?");
+        recreateTopics.setRequired(false);
+        options.addOption(recreateTopics);
+        
+        var burstMessagesPerSecond = new Option(null, "burst-messages-per-second", true, "Number of messages per second (burst)");
+        burstMessagesPerSecond.setRequired(false);
+        options.addOption(burstMessagesPerSecond);
+        
+        var burstCycle = new Option(null, "burst-cycle", true, "Burst cycle in ms");
+        burstCycle.setRequired(false);
+        options.addOption(burstCycle);
+
+        var burstDuration = new Option(null, "burst-duration", true, "Burst duration in ms");
+        burstDuration.setRequired(false);
+        options.addOption(burstDuration);
+        
+        var reportingCycle = new Option(null, "reporting-cycle", true, "Reporting cycle in ms");
+        reportingCycle.setRequired(false);
+        options.addOption(reportingCycle);
         
         CommandLineParser parser = new DefaultParser();
         commandLine = parser.parse(options, args);

@@ -88,15 +88,15 @@ public static class ProducerTask
 
                     do
                     {
-                        if (settings.BurstCycleDuration > 0)
+                        if (settings.BurstCycle > 0)
                         {
-                            if (burstCycleSw.ElapsedMilliseconds > settings.BurstCycleDuration)
+                            if (burstCycleSw.ElapsedMilliseconds > settings.BurstCycle)
                             {
                                 burstCycleSw = Stopwatch.StartNew();
                                 resetMessagesToSend = true;
                             }
 
-                            if (burstCycleSw.ElapsedMilliseconds < settings.BurstWidth)
+                            if (burstCycleSw.ElapsedMilliseconds < settings.BurstDuration)
                             {
                                 messagesRate = (double)settings.BurstMessagesPerSecond / 1000;
                             }
