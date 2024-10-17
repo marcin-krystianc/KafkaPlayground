@@ -26,7 +26,7 @@ public sealed class ProducerConsumer : AsyncCommand<ProducerConsumerSettings>
             .Select(producerIndex => ProducerTask.GetTask(settings, data, producerIndex));
 
         var consumerTask = ConsumerTask.GetTask(settings, data);
-        var reporterTask = ReporterTask.GetTask(data);
+        var reporterTask = ReporterTask.GetTask(settings, data);
         var task = await Task.WhenAny(producerTasks.Concat([consumerTask, reporterTask]));
         await task;
         return 0;

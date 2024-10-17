@@ -18,7 +18,7 @@ public class Consumer : AsyncCommand<ProducerConsumerSettings>
     {
         var data = new ProducerConsumerData();
         var consumerTask = ConsumerTask.GetTask(settings, data);
-        var reporterTask = ReporterTask.GetTask(data);
+        var reporterTask = ReporterTask.GetTask(settings, data);
         var task = await Task.WhenAny([consumerTask, reporterTask]);
         await task;
         return 0;

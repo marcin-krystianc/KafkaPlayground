@@ -40,6 +40,11 @@ public class ProducerConsumerSettings : KafkaSettings
     [DefaultValue((long)1000)]
     public long MessagesPerSecond { get; set; }
 
+    [CommandOption("--recreate-topics")]
+    [Description("Recreate topics?")]
+    [DefaultValue(true)]
+    public bool RecreateTopics { get; set; }
+
     [CommandOption("--recreate-topics-delay")]
     [Description("Recreate topics delay in ms")]
     [DefaultValue((long)1000)]
@@ -50,23 +55,23 @@ public class ProducerConsumerSettings : KafkaSettings
     [DefaultValue(500)]
     public int RecreateTopicsBatchSize { get; set; }
 
-    [CommandOption("--recreate-topics")]
-    [Description("Recreate topics?")]
-    [DefaultValue(true)]
-    public bool RecreateTopics { get; set; }
-
     [CommandOption("--burst-messages-per-second")]
     [Description("Number of messages per second (burst)")]
     [DefaultValue((long)0)]
     public long BurstMessagesPerSecond { get; set; }
 
-    [CommandOption("--burst-cycle-duration")]
-    [Description("Burst cycle duration(ms)")]
+    [CommandOption("--burst-cycle")]
+    [Description("Burst cycle in ms")]
     [DefaultValue((long)0)]
     public long BurstCycleDuration { get; set; }
 
-    [CommandOption("--burst-cycle-fraction")]
-    [Description("Burst cycle fraction(0-1)")]
-    [DefaultValue((double)0)]
-    public long BurstCycleFraction { get; set; }
+    [CommandOption("--burst-duration")]
+    [Description("Burst duration in ms")]
+    [DefaultValue((long)0)]
+    public long BurstWidth { get; set; }
+
+    [CommandOption("--reporting-cycle")]
+    [Description("Reporting cycle in ms")]
+    [DefaultValue((long)10000)]
+    public long ReportingCycle { get; set; }
 }

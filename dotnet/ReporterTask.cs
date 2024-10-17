@@ -15,7 +15,7 @@ public static class ReporterTask
         }))
         .CreateLogger("Log");
     
-    public static Task GetTask(ProducerConsumerData data)
+    public static Task GetTask(ProducerConsumerSettings settings, ProducerConsumerData data)
     {
         return Task.Run(async () =>
         {
@@ -24,7 +24,7 @@ public static class ReporterTask
             var prevConsumed = 0L;
             for (;;)
             {
-                await Task.Delay(TimeSpan.FromSeconds(10));
+                await Task.Delay(TimeSpan.FromMilliseconds(settings.ReportingCycle));
                 var totalProduced = data.GetProduced();
                 var totalConsumed = data.GetConsumed();
                 var outOfSequence = data.GetOutOfOrder();

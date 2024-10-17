@@ -58,9 +58,12 @@ public static class ProducerTask
                     $"Producer error: reason={e.Reason}, IsLocal={e.IsLocalError}, IsBroker={e.IsBrokerError}, IsFatal={e.IsFatal}, IsCode={e.Code}"))
                 .Build();
 
-            var sw = Stopwatch.StartNew();
-            long m = 0;
-
+            var oneMillisecond = TimeSpan.FromMilliseconds(1);
+            var swTimestamp = Stopwatch.GetTimestamp();
+            double messagesToSend = 0;
+            double messagesRate = (double)settings.MessagesPerSecond / 1000;
+            var burstCycleSw = Stopwatch.StartNew();
+            var resetMessagesToSend = false;
             if (settings.Topics % settings.Producers != 0)
             {
                 throw new Exception($"Cannot evenly schedule {settings.Topics} on a {settings.Producers} producers!");
@@ -83,20 +86,48 @@ public static class ProducerTask
                         throw e;
                     }
 
-                    if (m <= 0)
+                    do
                     {
-                        var elapsed = sw.Elapsed;
-                        if (elapsed < TimeSpan.FromMilliseconds(100))
+                        if (settings.BurstCycleDuration > 0)
                         {
-                            await Task.Delay(TimeSpan.FromMilliseconds(100) - elapsed);
+                            if (burstCycleSw.ElapsedMilliseconds > settings.BurstCycleDuration)
+                            {
+                                burstCycleSw = Stopwatch.StartNew();
+                                resetMessagesToSend = true;
+                            }
+
+                            if (burstCycleSw.ElapsedMilliseconds < settings.BurstWidth)
+                            {
+                                messagesRate = (double)settings.BurstMessagesPerSecond / 1000;
+                            }
+                            else
+                            {
+                                if (resetMessagesToSend)
+                                {
+                                    messagesToSend = 0;
+                                    resetMessagesToSend = false;
+                                }
+
+                                messagesRate = (double)settings.MessagesPerSecond / 1000;
+                            }
                         }
 
-                        sw = Stopwatch.StartNew();
-                        m = settings.MessagesPerSecond / 10;
-                    }
+                        var currentTimestamp = Stopwatch.GetTimestamp();
+                        var elapsed = Stopwatch.GetElapsedTime(swTimestamp, currentTimestamp);
+                        if (elapsed > oneMillisecond)
+                        {
+                            swTimestamp = currentTimestamp;
+                            messagesToSend += messagesRate * elapsed.TotalMilliseconds;
+                        }
 
-                    m -= 1;
-                    
+                        if (messagesToSend < 1)
+                        {
+                            await Task.Delay(TimeSpan.FromMilliseconds(1));
+                        }
+                    } while (messagesToSend < 1);
+ 
+                    messagesToSend -= 1.0;
+
                     var msg = new Message<long, long> { Key = partition, Value = currentValue, Timestamp = new Timestamp(DateTime.UtcNow)};
                     
                     bool produced = false;
