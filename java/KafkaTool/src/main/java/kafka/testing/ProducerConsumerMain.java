@@ -14,6 +14,7 @@ public class ProducerConsumerMain {
             for (int i = 0; i < kafkaProperties.getNumberOfTopics(); i++) {
                 topicNames[i] = kafkaProperties.getTopicStem() + "-" + i;
             }
+
             if (kafkaProperties.getRecreateTopics()) {
                 // stage 1: clean any topics left from previous runs
                 Utils.recreateTopics(kafkaProperties.getConfigs(), kafkaProperties.getNumberOfPartitions()
