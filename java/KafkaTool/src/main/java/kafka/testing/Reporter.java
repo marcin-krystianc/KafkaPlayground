@@ -61,7 +61,7 @@ public class Reporter extends Thread {
                 var consumerLatencyStats = kafkaData.getConsumerLatency();
 
                 var elapsed = (currentTime - startTime) / 1000;
-                Utils.printOut("Elapsed: %ds, Produced: %d (+%d, p95=%.3fs), Consumed: %d (+%d, p95=%.3fs)), Duplicated: %d, Out of sequence: %d."
+                Utils.printOut("Elapsed: %ds, Produced: %d (+%d, p95=%.0fms), Consumed: %d (+%d, p95=%.0fms)), Duplicated: %d, Out of sequence: %d."
                         , elapsed, produced, (produced - loggedProduced), producerLatencyStats.quantile(0.95)
                         , consumed, (consumed - loggedConsumed), consumerLatencyStats.quantile(0.95)
                         , duplicated, outOfSequence);

@@ -29,6 +29,7 @@ import org.apache.kafka.common.errors.AuthorizationException;
 import org.apache.kafka.common.errors.RecordDeserializationException;
 import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
+import org.apache.kafka.common.serialization.LongDeserializer;
 
 import java.time.Duration;
 import java.util.*;
@@ -42,7 +43,7 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
     private final String[] topics;
     private final KafkaProperties kafkaProperties;
     private volatile boolean closed;
-    private KafkaConsumer<Integer, Integer> consumer;
+    private KafkaConsumer<Long, Long> consumer;
     private final Map<TopicPartition, Long> partitionOffsets;
     private final KafkaData kafkaData;
 
@@ -60,10 +61,10 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
     public void run() {
 
         // the consumer instance is NOT thread safe
-        try (KafkaConsumer<Integer, Integer> consumer = createKafkaConsumer(kafkaProperties.getConfigs())) {
+        try (KafkaConsumer<Long, Long> consumer = createKafkaConsumer(kafkaProperties.getConfigs())) {
             this.consumer = consumer;
 
-            Map<String, Map<Integer, ConsumerRecord<Integer, Integer>>> consumeResults = new HashMap<>();
+            Map<String, Map<Long, ConsumerRecord<Long, Long>>> consumeResults = new HashMap<>();
             // subscribes to a list of topics to get dynamically assigned partitions
             // this class implements the rebalance listener that we pass here to be notified of such events
             consumer.subscribe(Arrays.asList(topics), this);
@@ -75,8 +76,8 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
                     // then tries to fetch records sequentially using the last committed offset or auto.offset.reset policy
                     // returns immediately if there are records or times out returning an empty record set
                     // the next poll must be called within session.timeout.ms to avoid group rebalance
-                    ConsumerRecords<Integer, Integer> records = consumer.poll(Duration.ofSeconds(1));
-                    for (ConsumerRecord<Integer, Integer> record : records) {
+                    ConsumerRecords<Long, Long> records = consumer.poll(Duration.ofSeconds(1));
+                    for (ConsumerRecord<Long, Long> record : records) {
 
                         double latency = (double)(System.currentTimeMillis() - record.timestamp());
                         kafkaData.digestConsumerLatency(latency);
@@ -143,7 +144,7 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
         }
     }
 
-    public KafkaConsumer<Integer, Integer> createKafkaConsumer(Map<String, String> configs) {
+    public KafkaConsumer<Long, Long> createKafkaConsumer(Map<String, String> configs) {
         Properties props = new Properties();
 
         // client id is not required, but it's good to track the source of requests beyond just ip/port
@@ -154,8 +155,8 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "group-" + UUID.randomUUID());
         
         // key and value are just byte arrays, so we need to set appropriate deserializers
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, IntegerDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, IntegerDeserializer.class);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
 
         // sets the reset offset policy in case of invalid or no offset
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
