@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Confluent.Kafka;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using StatsLib;
 
 namespace KafkaTool;
 
@@ -50,7 +49,7 @@ public static class ConsumerTask
                 .Build();
 
             create_consumer:
-            using (var consumer = new ConsumerBuilder<long, long>(
+            using (var consumer = new ConsumerBuilder<int, long>(
                            consumerConfiguration.AsEnumerable())
                        .SetErrorHandler((_, e) =>
                        {
@@ -78,7 +77,7 @@ public static class ConsumerTask
 
                 consumer.Subscribe(topics);
 
-                Dictionary<(string Topic, long Key), ConsumeResult<long, long>> valueDictionary = new();
+                Dictionary<(string Topic, int Key), ConsumeResult<int, long>> valueDictionary = new();
 
                 while (true)
                 {

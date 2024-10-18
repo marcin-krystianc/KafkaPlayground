@@ -22,6 +22,7 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.errors.RetriableException;
+import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import com.tdunning.math.stats.TDigest;
 import com.tdunning.math.stats.MergingDigest;
@@ -67,11 +68,11 @@ public class Producer extends Thread {
         double messagesRate = (double)messagesPerSecond / 1000;
 
         // the producer instance is thread safe
-        try (KafkaProducer<Long, Long> producer = createKafkaProducer(kafkaProperties.getConfigs())) {
+        try (KafkaProducer<Integer, Long> producer = createKafkaProducer(kafkaProperties.getConfigs())) {
 
             var numberOfPartitions = kafkaProperties.getNumberOfPartitions();
-            for (var value = 0; ; value++)
-                for (var key = 0; key < numberOfPartitions; key++)
+            for (long value = 0; ; value++)
+                for (int key = 0; key < numberOfPartitions; key++)
                     for (var topic : this.topics) {
                         if (closed)
                             return;
@@ -135,13 +136,13 @@ public class Producer extends Thread {
         }
     }
 
-    public KafkaProducer<Long, Long> createKafkaProducer(Map<String, String> configs) {
+    public KafkaProducer<Integer, Long> createKafkaProducer(Map<String, String> configs) {
         Properties props = new Properties();
         // client id is not required, but it's good to track the source of requests beyond just ip/port
         // by allowing a logical application name to be included in server-side request logging
         props.put(ProducerConfig.CLIENT_ID_CONFIG, "client-" + UUID.randomUUID());
         // key and value are just byte arrays, so we need to set appropriate serializers
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class);
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, LongSerializer.class);
         props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 180000);
 
@@ -152,12 +153,12 @@ public class Producer extends Thread {
         return new KafkaProducer<>(props);
     }
 
-    private void asyncSend(KafkaProducer<Long, Long> producer, String topic, long key, long value) {
+    private void asyncSend(KafkaProducer<Integer, Long> producer, String topic, int key, long value) {
         // send the record asynchronously, setting a callback to be notified of the result
         // note that, even if you set a small batch.size with linger.ms=0, the send operation
         // will still be blocked when buffer.memory is full or metadata are not available
         int partition = (int)key;
-        producer.send(new ProducerRecord<Long, Long>(topic, partition, System.currentTimeMillis(), key, value), new ProducerCallback(this.kafkaData));
+        producer.send(new ProducerRecord<Integer, Long>(topic, partition, System.currentTimeMillis(), key, value), new ProducerCallback(this.kafkaData));
     }
 
     class ProducerCallback implements Callback {

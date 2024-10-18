@@ -43,7 +43,7 @@ public static class ProducerTask
             Exception e = null;
             var producerConfig = new ProducerConfig(settings.ConfigDictionary);
 
-            var producer = new ProducerBuilder<long, long>(
+            var producer = new ProducerBuilder<int, long>(
                     producerConfig.AsEnumerable().Concat(configuration.AsEnumerable()))
                 .SetLogHandler(
                     (a, b) =>
@@ -128,7 +128,7 @@ public static class ProducerTask
  
                     messagesToSend -= 1.0;
 
-                    var msg = new Message<long, long> { Key = partition, Value = currentValue, Timestamp = new Timestamp(DateTime.UtcNow)};
+                    var msg = new Message<int, long> { Key = partition, Value = currentValue, Timestamp = new Timestamp(DateTime.UtcNow)};
                     
                     bool produced = false;
                     do
@@ -164,7 +164,7 @@ public static class ProducerTask
                             produced = true;
                             data.IncrementProduced();
                         }
-                        catch (ProduceException<long, long> exception)
+                        catch (ProduceException<int, long> exception)
                         {
                             if (exception.Error.Code != ErrorCode.Local_QueueFull)
                             {

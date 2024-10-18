@@ -1,7 +1,8 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using StatsLib;
+using TDigest;
 
 namespace KafkaTool;
 
@@ -12,8 +13,8 @@ public class ProducerConsumerData
     private long _numProduced;
     private long _numDuplicated;
     private long _numOutOfOrder;
-    private TDigest _consumerLatencyStats = new ();
-    private TDigest _producerLatencyStats = new ();
+    private MergingDigest _consumerLatencyStats = new (100);
+    private MergingDigest _producerLatencyStats = new (100);
     ConcurrentQueue<double> _consumerLatencyQueue = new ();
     ConcurrentQueue<double> _producerLatencyQueue = new ();
     private Task _backgroundProcessingTask;
@@ -29,24 +30,24 @@ public class ProducerConsumerData
     public long GetProduced() => Interlocked.Read(ref _numProduced);
     public long GetDuplicated() => Interlocked.Read(ref _numDuplicated);
     public long GetOutOfOrder() => Interlocked.Read(ref _numOutOfOrder);
-    public TDigest GetConsumerLatency()
+    public MergingDigest GetConsumerLatency()
     {
         lock (_lockObject)
         {
             var result = _consumerLatencyStats;
-            _consumerLatencyStats = new TDigest();
-            if (result.Count == 0) result.Add(-100);
+            _consumerLatencyStats = new MergingDigest(100);
+            if (result.CentroidCount() == 0) result.Add(-100);
             return result;
         }
     }
     
-    public TDigest GetProducerLatency()
+    public MergingDigest GetProducerLatency()
     {
         lock (_lockObject)
         {
             var result = _producerLatencyStats;
-            _producerLatencyStats = new TDigest();
-            if (result.Count == 0) result.Add(-100);
+            _producerLatencyStats = new MergingDigest(100);
+            if (result.CentroidCount() == 0) result.Add(-100);
             return result;
         }
     }
@@ -61,7 +62,7 @@ public class ProducerConsumerData
                     {
                         lock (_lockObject)
                         {
-                            _consumerLatencyStats.Add(consumerLatency);
+                           _consumerLatencyStats.Add(consumerLatency);
                         }
                     }
                     
