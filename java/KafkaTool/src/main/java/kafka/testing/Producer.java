@@ -183,7 +183,7 @@ public class Producer extends Thread {
                 }
             }
             else {
-                double latency = (double)(System.currentTimeMillis() - metadata.timestamp()) / 1000;
+                double latency = (double)(System.currentTimeMillis() - metadata.timestamp());
                 kafkaData.digestProducerLatency(latency);
             }
         }

@@ -118,7 +118,7 @@ public static class ConsumerTask
                         }
 
                         var latency = DateTime.UtcNow - consumeResult.Message.Timestamp.UtcDateTime;
-                        data.DigestConsumerLatency(latency.TotalSeconds);
+                        data.DigestConsumerLatency(latency.TotalMilliseconds);
                         data.IncrementConsumed();
                     }
                     catch (ConsumeException e)

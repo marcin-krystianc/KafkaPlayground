@@ -156,12 +156,13 @@ public static class ProducerTask
                                     }
                                     else
                                     {
-                                        data.IncrementProduced();
                                         var latency = DateTime.UtcNow - deliveryReport.Message.Timestamp.UtcDateTime;
-                                        data.DigestProducerLatency(latency.TotalSeconds);
+                                        data.DigestProducerLatency(latency.TotalMilliseconds);
                                     }
                                 });
+
                             produced = true;
+                            data.IncrementProduced();
                         }
                         catch (ProduceException<long, long> exception)
                         {

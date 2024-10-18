@@ -37,7 +37,7 @@ public static class ReporterTask
                 prevConsumed = totalConsumed;
 
                 Log.Log(LogLevel.Information,
-                    $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}, p95={producerLatency.Quantile(0.95):0.000}s) messages produced, {totalConsumed} (+{newlyConsumed}, p95={consumerLatency.Quantile(0.95):0.000}s) messages consumed, {duplicated} duplicated, {outOfSequence} out of sequence.");
+                    $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}, p95={producerLatency.Quantile(0.95):0.}ms) messages produced, {totalConsumed} (+{newlyConsumed}, p95={consumerLatency.Quantile(0.95):0.}ms) messages consumed, {duplicated} duplicated, {outOfSequence} out of sequence.");
             }
         });
     }

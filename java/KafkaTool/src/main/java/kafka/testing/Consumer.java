@@ -78,7 +78,7 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
                     ConsumerRecords<Integer, Integer> records = consumer.poll(Duration.ofSeconds(1));
                     for (ConsumerRecord<Integer, Integer> record : records) {
 
-                        double latency = (double)(System.currentTimeMillis() - record.timestamp()) / 1000;
+                        double latency = (double)(System.currentTimeMillis() - record.timestamp());
                         kafkaData.digestConsumerLatency(latency);
                         kafkaData.incrementConsumed();
                         
