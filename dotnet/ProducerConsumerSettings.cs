@@ -74,4 +74,9 @@ public class ProducerConsumerSettings : KafkaSettings
     [Description("Reporting cycle in ms")]
     [DefaultValue((long)10000)]
     public long ReportingCycle { get; set; }
+
+    [CommandOption("--statistics-path")]
+    [Description("Where to rite statistics json")]
+    [DefaultValue("statistics.txt")]
+    public string StatisticsPath { get; set; }
 }

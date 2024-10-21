@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,6 +57,11 @@ public static class ProducerTask
                     })
                 .SetErrorHandler((_, e) => logger.Log(LogLevel.Error,
                     $"Producer error: reason={e.Reason}, IsLocal={e.IsLocalError}, IsBroker={e.IsBrokerError}, IsFatal={e.IsFatal}, IsCode={e.Code}"))
+                .SetStatisticsHandler( (_, json) =>
+                {
+                    string formattedJson = System.Text.Json.Nodes.JsonNode.Parse(json).ToString();
+                    File.WriteAllText(settings.StatisticsPath, formattedJson);
+                })
                 .Build();
 
             var oneMillisecond = TimeSpan.FromMilliseconds(1);
