@@ -22,18 +22,13 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.errors.RetriableException;
-import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
-import com.tdunning.math.stats.TDigest;
-import com.tdunning.math.stats.MergingDigest;
 import org.apache.kafka.common.serialization.LongSerializer;
 
 import java.time.Instant;
-import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A simple producer thread supporting two send modes:
@@ -66,7 +61,7 @@ public class Producer extends Thread {
         double messagesToSend = 0;
         long startTime = System.currentTimeMillis();
         long burstTime = System.currentTimeMillis();
-        boolean resetMessagesToSend = false;
+        boolean resetMessagesToSend = true;
         double messagesRate = (double)messagesPerSecond / 1000;
 
         // the producer instance is thread safe

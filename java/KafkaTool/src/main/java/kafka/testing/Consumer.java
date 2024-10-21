@@ -33,7 +33,6 @@ import org.apache.kafka.common.serialization.LongDeserializer;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A simple consumer thread that subscribes to a topic, fetches new records and prints them.
@@ -43,8 +42,6 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
     private final String[] topics;
     private final KafkaProperties kafkaProperties;
     private volatile boolean closed;
-    private KafkaConsumer<Integer, Long> consumer;
-    private final Map<TopicPartition, Long> partitionOffsets;
     private final KafkaData kafkaData;
 
     public Consumer(KafkaProperties kafkaProperties,
@@ -54,7 +51,6 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
         this.kafkaProperties = kafkaProperties; 
         this.kafkaData = kafkaData;
         this.topics = topics;
-        this.partitionOffsets = new HashMap<>(); 
     }
 
     @Override
@@ -62,7 +58,6 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
 
         // the consumer instance is NOT thread safe
         try (KafkaConsumer<Integer, Long> consumer = createKafkaConsumer(kafkaProperties.getConfigs())) {
-            this.consumer = consumer;
 
             Map<String, Map<Integer, ConsumerRecord<Integer, Long>>> consumeResults = new HashMap<>();
             // subscribes to a list of topics to get dynamically assigned partitions
@@ -82,11 +77,7 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
                         double latency = (double)(System.currentTimeMillis() - record.timestamp());
                         kafkaData.digestConsumerLatency(latency);
                         kafkaData.incrementConsumed();
-                        
-                        synchronized (partitionOffsets) {
-                            partitionOffsets.put(new TopicPartition(record.topic().toString(), record.partition()), record.offset());
-                        }
-
+   
                         if (!consumeResults.containsKey(record.topic())) {
                             consumeResults.put(record.topic(), new HashMap<>());
                         }
@@ -124,7 +115,6 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
                     // invalid or no offset found without auto.reset.policy
                     Utils.printOut("Invalid or no offset found, using latest");
                     consumer.seekToEnd(e.partitions());
-                    consumer.commitSync();
                 } catch (KafkaException e) {
                     // log the exception and try to continue
                     Utils.printErr(e.getMessage());
@@ -159,7 +149,7 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
 
         // sets the reset offset policy in case of invalid or no offset
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         for (var entry : configs.entrySet())
         {
             props.put(entry.getKey(), entry.getValue());
@@ -178,17 +168,6 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
     public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
         Utils.printOut("Assigned partitions: %d", partitions.size());
         // this can be used to read the offsets from an external store or some other initialization
-
-        synchronized (partitionOffsets) {
-            for (var partition : partitions) {
-                if (partitionOffsets.containsKey(partition)) {
-                    consumer.seek(partition, partitionOffsets.get(partition) + 1);
-                }
-                else {
-                    consumer.seekToBeginning(Collections.singleton(partition));
-                }
-            }
-        }
     }
 
     @Override
@@ -197,6 +176,5 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
         // this is called when partitions are reassigned before we had a chance to revoke them gracefully
         // we can't commit pending offsets because these partitions are probably owned by other consumers already
         // nevertheless, we may need to do some other cleanup
-
     }
 }

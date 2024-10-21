@@ -63,7 +63,7 @@ public static class ProducerTask
             double messagesToSend = 0;
             double messagesRate = (double)settings.MessagesPerSecond / 1000;
             var burstCycleSw = Stopwatch.StartNew();
-            var resetMessagesToSend = false;
+            var resetMessagesToSend = true;
             if (settings.Topics % settings.Producers != 0)
             {
                 throw new Exception($"Cannot evenly schedule {settings.Topics} on a {settings.Producers} producers!");
