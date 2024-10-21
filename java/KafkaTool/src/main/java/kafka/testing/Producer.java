@@ -28,6 +28,8 @@ import com.tdunning.math.stats.TDigest;
 import com.tdunning.math.stats.MergingDigest;
 import org.apache.kafka.common.serialization.LongSerializer;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -158,7 +160,7 @@ public class Producer extends Thread {
         // note that, even if you set a small batch.size with linger.ms=0, the send operation
         // will still be blocked when buffer.memory is full or metadata are not available
         int partition = (int)key;
-        producer.send(new ProducerRecord<Integer, Long>(topic, partition, System.currentTimeMillis(), key, value), new ProducerCallback(this.kafkaData));
+        producer.send(new ProducerRecord<Integer, Long>(topic, partition, Instant.now().toEpochMilli(), key, value), new ProducerCallback(this.kafkaData));
     }
 
     class ProducerCallback implements Callback {
@@ -185,7 +187,7 @@ public class Producer extends Thread {
                 }
             }
             else {
-                double latency = (double)(System.currentTimeMillis() - metadata.timestamp());
+                double latency = (double)(Instant.now().toEpochMilli() - metadata.timestamp());
                 kafkaData.digestProducerLatency(latency);
             }
         }
