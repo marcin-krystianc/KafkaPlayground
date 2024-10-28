@@ -567,38 +567,45 @@ no keys, payload 100 bytes, up to 500 partitions (10 partions on average)
 replicate latency issues with c#, java
 what is the average latency at 400k msg/s
 
-- Throughput=700k/s, latency = 3ms (Local docker):
+I think it is caused by low conumption rate in librdkafka:
+java:
 ```
-dotnet run -c Release --project KafkaTool.csproj \
-producer-consumer \
---config allow.auto.create.topics=false \
---config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 \
---topics=1 \
---partitions=1 \
---replication-factor=3 \
---min-isr=2 \
---messages-per-second=2000000 \
---config request.timeout.ms=180000 \
---config message.timeout.ms=180000 \
---config request.required.acks=-1 \
---config enable.idempotence=true \
---config max.in.flight.requests.per.connection=1 \
---config topic.metadata.propagation.max.ms=60000 \
-\
---config group.protocol=consumer \
---config enable.auto.offset.store=false \
---config enable.auto.commit=false \
---config fetch.wait.max.ms=1 \
---config fetch.queue.backoff.ms=1 \
---config fetch.error.backoff.ms=1 \
---config fetch.max.bytes=1000000 \
---config fetch.message.max.bytes=1000000 \
-\
---config queue.buffering.max.ms=1 \
---config queue.buffering.max.messages=10000000 \
---config queue.buffering.max.kbytes=1048576 \
-\
---producers=1 \
---recreate-topics-delay=500 \
---recreate-topics-batch-size=500
+[08:55:33] reporter - Elapsed: 2s, Produced: 0 (+0, p95=-100ms), Consumed: 149379 (+149379, p95=912197ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:34] reporter - Elapsed: 3s, Produced: 0 (+0, p95=-100ms), Consumed: 1198953 (+1049574, p95=911855ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:35] reporter - Elapsed: 4s, Produced: 0 (+0, p95=-100ms), Consumed: 2547815 (+1348862, p95=910575ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:36] reporter - Elapsed: 5s, Produced: 0 (+0, p95=-100ms), Consumed: 3696804 (+1148989, p95=909665ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:37] reporter - Elapsed: 6s, Produced: 0 (+0, p95=-100ms), Consumed: 5545188 (+1848384, p95=906255ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:38] reporter - Elapsed: 7s, Produced: 0 (+0, p95=-100ms), Consumed: 7570472 (+2025284, p95=900835ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:39] reporter - Elapsed: 8s, Produced: 0 (+0, p95=-100ms), Consumed: 9692847 (+2122375, p95=894687ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:40] reporter - Elapsed: 9s, Produced: 0 (+0, p95=-100ms), Consumed: 11940705 (+2247858, p95=888493ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:41] reporter - Elapsed: 10s, Produced: 0 (+0, p95=-100ms), Consumed: 13947004 (+2006299, p95=881882ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:42] reporter - Elapsed: 11s, Produced: 0 (+0, p95=-100ms), Consumed: 16500729 (+2553725, p95=876317ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:43] reporter - Elapsed: 12s, Produced: 0 (+0, p95=-100ms), Consumed: 18924809 (+2424080, p95=868967ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:44] reporter - Elapsed: 13s, Produced: 0 (+0, p95=-100ms), Consumed: 21498265 (+2573456, p95=861946ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:45] reporter - Elapsed: 14s, Produced: 0 (+0, p95=-100ms), Consumed: 23902543 (+2404278, p95=854746ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:46] reporter - Elapsed: 15s, Produced: 0 (+0, p95=-100ms), Consumed: 26006798 (+2104255, p95=847899ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:47] reporter - Elapsed: 16s, Produced: 0 (+0, p95=-100ms), Consumed: 28275893 (+2269095, p95=841959ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:48] reporter - Elapsed: 17s, Produced: 0 (+0, p95=-100ms), Consumed: 30973630 (+2697737, p95=835651ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:49] reporter - Elapsed: 18s, Produced: 0 (+0, p95=-100ms), Consumed: 33369606 (+2395976, p95=827498ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:50] reporter - Elapsed: 19s, Produced: 0 (+0, p95=-100ms), Consumed: 35907891 (+2538285, p95=820334ms)), Duplicated: 0, Out of sequence: 0.
+[08:55:51] reporter - Elapsed: 20s, Produced: 0 (+0, p95=-100ms), Consumed: 38225378 (+2317487, p95=813052ms)), Duplicated: 0, Out of sequence: 0.
+```
+
+librdkafka:
+```
+08:57:33 info: Consumer:[0] Consumer log: PartitionsAssignedHandler: count=1
+08:57:34 info: Log[0] Elapsed: 1s, 0 (+0, p95=-100ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+08:57:35 info: Log[0] Elapsed: 2s, 0 (+0, p95=-100ms) messages produced, 114445 (+114445, p95=1033678ms) messages consumed, 0 duplicated, 0 out of sequence.
+08:57:36 info: Log[0] Elapsed: 3s, 0 (+0, p95=-100ms) messages produced, 405369 (+290924, p95=1033840ms) messages consumed, 0 duplicated, 0 out of sequence.
+08:57:37 info: Log[0] Elapsed: 4s, 0 (+0, p95=-100ms) messages produced, 720853 (+315484, p95=1034127ms) messages consumed, 0 duplicated, 0 out of sequence.
+08:57:38 info: Log[0] Elapsed: 5s, 0 (+0, p95=-100ms) messages produced, 1046138 (+325285, p95=1034436ms) messages consumed, 0 duplicated, 0 out of sequence.
+08:57:39 info: Log[0] Elapsed: 6s, 0 (+0, p95=-100ms) messages produced, 1371575 (+325437, p95=1034933ms) messages consumed, 0 duplicated, 0 out of sequence.
+08:57:40 info: Log[0] Elapsed: 7s, 0 (+0, p95=-100ms) messages produced, 1691479 (+319904, p95=1035523ms) messages consumed, 0 duplicated, 0 out of sequence.
+08:57:41 info: Log[0] Elapsed: 8s, 0 (+0, p95=-100ms) messages produced, 1994893 (+303414, p95=1036197ms) messages consumed, 0 duplicated, 0 out of sequence.
+08:57:42 info: Log[0] Elapsed: 9s, 0 (+0, p95=-100ms) messages produced, 2295146 (+300253, p95=1036867ms) messages consumed, 0 duplicated, 0 out of sequence.
+08:57:43 info: Log[0] Elapsed: 10s, 0 (+0, p95=-100ms) messages produced, 2576475 (+281329, p95=1037289ms) messages consumed, 0 duplicated, 0 out of sequence.
+08:57:44 info: Log[0] Elapsed: 11s, 0 (+0, p95=-100ms) messages produced, 2883601 (+307126, p95=1037274ms) messages consumed, 0 duplicated, 0 out of sequence.
+08:57:45 info: Log[0] Elapsed: 12s, 0 (+0, p95=-100ms) messages produced, 2987229 (+103628, p95=1037840ms) messages consumed, 0 duplicated, 0 out of sequence.
+08:57:46 info: Log[0] Elapsed: 13s, 0 (+0, p95=-100ms) messages produced, 3323026 (+335797, p95=1037820ms) messages consumed, 0 duplicated, 0 out of sequence.
+08:57:47 info: Log[0] Elapsed: 14s, 0 (+0, p95=-100ms) messages produced, 3653956 (+330930, p95=1037611ms) messages consumed, 0 duplicated, 0 out of sequence.
 ```
