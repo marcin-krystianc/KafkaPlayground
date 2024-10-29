@@ -591,7 +591,7 @@ java:
 [08:55:51] reporter - Elapsed: 20s, Produced: 0 (+0, p95=-100ms), Consumed: 38225378 (+2317487, p95=813052ms)), Duplicated: 0, Out of sequence: 0.
 ```
 
-librdkafka:
+librdkafka,.NET:
 ```
 08:57:33 info: Consumer:[0] Consumer log: PartitionsAssignedHandler: count=1
 08:57:34 info: Log[0] Elapsed: 1s, 0 (+0, p95=-100ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
@@ -609,3 +609,64 @@ librdkafka:
 08:57:46 info: Log[0] Elapsed: 13s, 0 (+0, p95=-100ms) messages produced, 3323026 (+335797, p95=1037820ms) messages consumed, 0 duplicated, 0 out of sequence.
 08:57:47 info: Log[0] Elapsed: 14s, 0 (+0, p95=-100ms) messages produced, 3653956 (+330930, p95=1037611ms) messages consumed, 0 duplicated, 0 out of sequence.
 ```
+
+##############################
+on docker
+
+java: 13 mln/s (no message processing, just counting):
+```
+[14:39:22] reporter - Elapsed: 5s, Produced: 0 (+0, p95=-100ms), Consumed: 3577976 (+3577976, p95=-100ms)), Duplicated: 0, Out of sequence: 0.
+[14:39:23] reporter - Elapsed: 6s, Produced: 0 (+0, p95=-100ms), Consumed: 13941848 (+10363872, p95=-100ms)), Duplicated: 0, Out of sequence: 0.
+[14:39:24] reporter - Elapsed: 7s, Produced: 0 (+0, p95=-100ms), Consumed: 25623316 (+11681468, p95=-100ms)), Duplicated: 0, Out of sequence: 0.
+[14:39:25] reporter - Elapsed: 8s, Produced: 0 (+0, p95=-100ms), Consumed: 38278461 (+12655145, p95=-100ms)), Duplicated: 0, Out of sequence: 0.
+[14:39:26] reporter - Elapsed: 9s, Produced: 0 (+0, p95=-100ms), Consumed: 51357652 (+13079191, p95=-100ms)), Duplicated: 0, Out of sequence: 0.
+[14:39:27] reporter - Elapsed: 10s, Produced: 0 (+0, p95=-100ms), Consumed: 64317585 (+12959933, p95=-100ms)), Duplicated: 0, Out of sequence: 0.
+[14:39:28] reporter - Elapsed: 11s, Produced: 0 (+0, p95=-100ms), Consumed: 77861476 (+13543891, p95=-100ms)), Duplicated: 0, Out of sequence: 0.
+[14:39:29] reporter - Elapsed: 12s, Produced: 0 (+0, p95=-100ms), Consumed: 91546915 (+13685439, p95=-100ms)), Duplicated: 0, Out of sequence: 0.
+[14:39:30] reporter - Elapsed: 13s, Produced: 0 (+0, p95=-100ms), Consumed: 95456768 (+3909853, p95=-100ms)), Duplicated: 0, Out of sequence: 0.
+```
+
+C, librdkafka 3.2 mln/s (no message processing, just counting):
+```
+elapsed:0.000000, messages: 1
+elapsed:1.000000, messages: 2877193
+elapsed:2.000000, messages: 5758859
+elapsed:3.000000, messages: 8995258
+elapsed:4.000000, messages: 12603137
+elapsed:5.000000, messages: 16128581
+elapsed:6.000000, messages: 19753112
+elapsed:7.000000, messages: 23049087
+elapsed:8.000000, messages: 25932432
+elapsed:9.000000, messages: 29261262
+elapsed:10.000000, messages: 32839102
+elapsed:11.000000, messages: 36441181
+elapsed:12.000000, messages: 39938383
+elapsed:13.000000, messages: 43218524
+elapsed:14.000000, messages: 46101861
+elapsed:15.000000, messages: 49315054
+elapsed:16.000000, messages: 53211926
+elapsed:17.000000, messages: 56548876
+elapsed:18.000000, messages: 59432236
+elapsed:19.000000, messages: 62873943
+elapsed:20.000000, messages: 66496882
+```
+
+C#, librdkafka 1.5 mln/s (no message processing, just counting):
+```
+:34:40 info: Log[0] Elapsed: 6s, 0 (+0, p95=-100ms) messages produced, 1277309 (+1277309, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:34:41 info: Log[0] Elapsed: 7s, 0 (+0, p95=-100ms) messages produced, 2877192 (+1599883, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:34:42 info: Log[0] Elapsed: 8s, 0 (+0, p95=-100ms) messages produced, 4352845 (+1475653, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:34:43 info: Log[0] Elapsed: 9s, 0 (+0, p95=-100ms) messages produced, 5758858 (+1406013, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:34:44 info: Log[0] Elapsed: 10s, 0 (+0, p95=-100ms) messages produced, 7401472 (+1642614, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:34:45 info: Log[0] Elapsed: 11s, 0 (+0, p95=-100ms) messages produced, 8669456 (+1267984, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:34:46 info: Log[0] Elapsed: 12s, 0 (+0, p95=-100ms) messages produced, 10474059 (+1804603, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:34:47 info: Log[0] Elapsed: 13s, 0 (+0, p95=-100ms) messages produced, 11720197 (+1246138, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:34:48 info: Log[0] Elapsed: 14s, 0 (+0, p95=-100ms) messages produced, 13535318 (+1815121, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:34:49 info: Log[0] Elapsed: 15s, 0 (+0, p95=-100ms) messages produced, 14784051 (+1248733, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:34:50 info: Log[0] Elapsed: 16s, 0 (+0, p95=-100ms) messages produced, 16604449 (+1820398, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:34:51 info: Log[0] Elapsed: 17s, 0 (+0, p95=-100ms) messages produced, 17920827 (+1316378, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:34:52 info: Log[0] Elapsed: 18s, 0 (+0, p95=-100ms) messages produced, 19718113 (+1797286, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:34:53 info: Log[0] Elapsed: 19s, 0 (+0, p95=-100ms) messages produced, 21106490 (+1388377, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence
+```
+
+
