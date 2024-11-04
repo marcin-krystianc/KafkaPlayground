@@ -670,3 +670,125 @@ C#, librdkafka 1.5 mln/s (no message processing, just counting):
 ```
 
 
+# canot produce to newly created topics
+
+Using assembly:Confluent.Kafka, Version=2.6.0.0, Culture=neutral, PublicKeyToken=12c514ca49093d1em location:/workspace/KafkaPlayground/dotnet/bin/Debug/net8.0/Confluent.Kafka.dll
+librdkafka Version: 2.6.0-RC1-7-g6e1f62-dirty-devel-O0 (20600FF)
+Debug Contexts: all, generic, broker, topic, metadata, feature, queue, msg, protocol, cgrp, security, fetch, interceptor, plugin, consumer, admin, eos, mock, assignor, conf
+13:57:58 info: Log[0] Admin log: message=[thrd:localhost:40003/bootstrap]: localhost:40003/bootstrap: Connect to ipv6#[::1]:40003 failed: Connection refused (after 0ms in state CONNECT), name=rdkafka#producer-1, facility=FAIL, level=Error
+13:57:58 info: Log[0] Admin log: message=[thrd:app]: Configuration property enable.auto.commit is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-1, facility=CONFWARN, level=Warning
+13:57:58 info: Log[0] Admin log: message=[thrd:app]: Configuration property enable.auto.offset.store is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-1, facility=CONFWARN, level=Warning
+13:57:58 info: Log[0] Admin log: message=[thrd:app]: Configuration property fetch.wait.max.ms is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-1, facility=CONFWARN, level=Warning
+13:57:58 info: Log[0] Admin log: message=[thrd:app]: Configuration property fetch.queue.backoff.ms is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-1, facility=CONFWARN, level=Warning
+13:57:58 info: Log[0] Admin log: message=[thrd:app]: Configuration property fetch.message.max.bytes is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-1, facility=CONFWARN, level=Warning
+13:57:58 info: Log[0] Admin log: message=[thrd:app]: Configuration property fetch.max.bytes is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-1, facility=CONFWARN, level=Warning
+13:57:58 info: Log[0] Admin log: message=[thrd:app]: Configuration property fetch.error.backoff.ms is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-1, facility=CONFWARN, level=Warning
+13:57:58 info: Log[0] Admin log: message=[thrd:app]: Configuration property auto.offset.reset is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-1, facility=CONFWARN, level=Warning
+13:57:58 fail: Log[0] Admin error: reason=localhost:40003/bootstrap: Connect to ipv6#[::1]:40003 failed: Connection refused (after 0ms in state CONNECT), IsLocal=True, IsBroker=False, IsFatal=False, IsCode=Local_Transport
+13:57:58 info: Log[0] Admin log: message=[thrd:main]: Failed to acquire idempotence PID from broker localhost:40002/2: Broker: Coordinator load in progress: retrying, name=rdkafka#producer-1, facility=GETPID, level=Warning
+13:57:58 info: Log[0] Creating 500 topics
+13:57:59 info: Log[0] Creating 500 topics
+13:57:59 info: Log[0] Creating 500 topics
+13:57:59 info: Log[0] Creating 500 topics
+13:57:59 info: Log[0] Creating 500 topics
+13:57:59 info: Log[0] Creating 500 topics
+13:58:00 info: Producer0:[0] Starting producer task:
+13:58:00 info: Producer0:[0] kafka-log Facility:CONFWARN, Message[thrd:app]: Configuration property enable.auto.commit is a consumer property and will be ignored by this producer instance
+13:58:00 info: Producer0:[0] kafka-log Facility:CONFWARN, Message[thrd:app]: Configuration property enable.auto.offset.store is a consumer property and will be ignored by this producer instance
+13:58:00 info: Producer0:[0] kafka-log Facility:CONFWARN, Message[thrd:app]: Configuration property fetch.wait.max.ms is a consumer property and will be ignored by this producer instance
+13:58:00 info: Producer0:[0] kafka-log Facility:CONFWARN, Message[thrd:app]: Configuration property fetch.queue.backoff.ms is a consumer property and will be ignored by this producer instance
+13:58:00 info: Producer0:[0] kafka-log Facility:CONFWARN, Message[thrd:app]: Configuration property fetch.message.max.bytes is a consumer property and will be ignored by this producer instance
+13:58:00 info: Producer0:[0] kafka-log Facility:CONFWARN, Message[thrd:app]: Configuration property fetch.max.bytes is a consumer property and will be ignored by this producer instance
+13:58:00 info: Producer0:[0] kafka-log Facility:CONFWARN, Message[thrd:app]: Configuration property fetch.error.backoff.ms is a consumer property and will be ignored by this producer instance
+13:58:00 info: Producer0:[0] kafka-log Facility:CONFWARN, Message[thrd:app]: Configuration property auto.offset.reset is a consumer property and will be ignored by this producer instance
+13:58:00 info: Producer0:[0] kafka-log Facility:GETPID, Message[thrd:main]: Failed to acquire idempotence PID from broker localhost:40003/3: Broker: Coordinator load in progress: retrying
+13:58:01 info: Log[0] Elapsed: 1s, 9829 (+9829, p95=-100ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+13:58:01 info: Producer0:[0] kafka-log Facility:FAIL, Message[thrd:localhost:40002/bootstrap]: localhost:40002/2: Connect to ipv6#[::1]:40002 failed: Connection refused (after 0ms in state CONNECT)
+13:58:01 fail: Producer0:[0] Producer error: reason=localhost:40002/2: Connect to ipv6#[::1]:40002 failed: Connection refused (after 0ms in state CONNECT), IsLocal=True, IsBroker=False, IsFatal=False, IsCode=Local_Transport
+13:58:02 info: Log[0] Elapsed: 2s, 19886 (+10057, p95=-100ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+13:58:03 info: Log[0] Elapsed: 3s, 29870 (+9984, p95=-100ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+13:58:04 info: Log[0] Elapsed: 4s, 39884 (+10014, p95=-100ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+13:58:05 info: Log[0] Elapsed: 5s, 49868 (+9984, p95=-100ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+13:58:06 info: Log[0] Elapsed: 6s, 59762 (+9894, p95=5680ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1987 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1403 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2791 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2311 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1608 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2806 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1276 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2219 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1585 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1196 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1067 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2328 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1215 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1323 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2190 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1959 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1499 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1037 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1666 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2209 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2689 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2068 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1041 partition count changed from 1 to 0
+13:58:07 info: Log[0] Admin log: message=[thrd:app]: Configuration property enable.auto.commit is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-3, facility=CONFWARN, level=Warning
+13:58:07 info: Log[0] Admin log: message=[thrd:app]: Configuration property enable.auto.offset.store is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-3, facility=CONFWARN, level=Warning
+13:58:07 info: Log[0] Admin log: message=[thrd:app]: Configuration property fetch.wait.max.ms is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-3, facility=CONFWARN, level=Warning
+13:58:07 info: Log[0] Admin log: message=[thrd:app]: Configuration property fetch.queue.backoff.ms is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-3, facility=CONFWARN, level=Warning
+13:58:07 info: Log[0] Admin log: message=[thrd:app]: Configuration property fetch.message.max.bytes is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-3, facility=CONFWARN, level=Warning
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2822 partition count changed from 1 to 0
+13:58:07 info: Log[0] Admin log: message=[thrd:app]: Configuration property fetch.max.bytes is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-3, facility=CONFWARN, level=Warning
+13:58:07 info: Log[0] Admin log: message=[thrd:app]: Configuration property fetch.error.backoff.ms is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-3, facility=CONFWARN, level=Warning
+13:58:07 info: Log[0] Admin log: message=[thrd:app]: Configuration property auto.offset.reset is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-3, facility=CONFWARN, level=Warning
+13:58:07 info: Log[0] Admin log: message=[thrd:localhost:40001/bootstrap]: localhost:40001/bootstrap: Connect to ipv6#[::1]:40001 failed: Connection refused (after 0ms in state CONNECT), name=rdkafka#producer-3, facility=FAIL, level=Error
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1619 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2519 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1011 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2169 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2587 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1655 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2381 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2300 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1976 partition count changed from 1 to 0
+13:58:07 fail: Log[0] Admin error: reason=localhost:40001/bootstrap: Connect to ipv6#[::1]:40001 failed: Connection refused (after 0ms in state CONNECT), IsLocal=True, IsBroker=False, IsFatal=False, IsCode=Local_Transport
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2508 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1022 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2429 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2780 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1435 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1366 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1153 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1716 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2959 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2392 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1886 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1812 partition count changed from 1 to 0
+13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2908 partition count changed from 1 to 0
+^A^C
+
+# Consumption rate vs message size 
+
+size=10, 73MiB:
+12:14:09 info: Log[0] Elapsed: 30s, 0 (+0, p95=-100ms) messages produced, 35932262 (+1592044, p95=107031ms) messages consumed, 0 duplicated, 0 out of sequence.
+12:14:10 info: Log[0] Elapsed: 31s, 0 (+0, p95=-100ms) messages produced, 37160522 (+1228260, p95=104864ms) messages consumed, 0 duplicated, 0 out of sequence.
+12:14:11 info: Log[0] Elapsed: 32s, 0 (+0, p95=-100ms) messages produced, 38736377 (+1575855, p95=103374ms) messages consumed, 0 duplicated, 0 out of sequence.
+12:14:12 info: Log[0] Elapsed: 33s, 0 (+0, p95=-100ms) messages produced, 39974989 (+1238612, p95=101252ms) messages consumed, 0 duplicated, 0 out of sequence.
+
+size=100, 300MiB:
+12:10:00 info: Log[0] Elapsed: 14s, 0 (+0, p95=-100ms) messages produced, 13044331 (+1215957, p95=48946ms) messages consumed, 0 duplicated, 0 out of sequence.
+12:10:01 info: Log[0] Elapsed: 15s, 0 (+0, p95=-100ms) messages produced, 14388488 (+1344157, p95=47111ms) messages consumed, 0 duplicated, 0 out of sequence.
+12:10:02 info: Log[0] Elapsed: 16s, 0 (+0, p95=-100ms) messages produced, 15711604 (+1323116, p95=44752ms) messages consumed, 0 duplicated, 0 out of sequence.
+12:10:03 info: Log[0] Elapsed: 17s, 0 (+0, p95=-100ms) messages produced, 17060528 (+1348924, p95=42366ms) messages consumed, 0 duplicated, 0 out of sequence.
+
+size=1000, 1.2 GiB:
+12:06:47 info: Log[0] Elapsed: 14s, 0 (+0, p95=-100ms) messages produced, 6910319 (+664462, p95=243851ms) messages consumed, 0 duplicated, 0 out of sequence.
+12:06:48 info: Log[0] Elapsed: 15s, 0 (+0, p95=-100ms) messages produced, 7574858 (+664539, p95=221939ms) messages consumed, 0 duplicated, 0 out of sequence.
+12:06:49 info: Log[0] Elapsed: 16s, 0 (+0, p95=-100ms) messages produced, 8249267 (+674409, p95=207326ms) messages consumed, 0 duplicated, 0 out of sequence.
+12:06:50 info: Log[0] Elapsed: 17s, 0 (+0, p95=-100ms) messages produced, 8835914 (+586647, p95=199292ms) messages consumed, 0 duplicated, 0 out of sequence.
+
+size=10000, 1.2 GiB:
+12:20:39 info: Log[0] Elapsed: 7s, 0 (+0, p95=-100ms) messages produced, 248688 (+66924, p95=296904ms) messages consumed, 0 duplicated, 0 out of sequence.
+12:20:40 info: Log[0] Elapsed: 8s, 0 (+0, p95=-100ms) messages produced, 317592 (+68904, p95=284632ms) messages consumed, 0 duplicated, 0 out of sequence.
+12:20:41 info: Log[0] Elapsed: 9s, 0 (+0, p95=-100ms) messages produced, 388911 (+71319, p95=262088ms) messages consumed, 0 duplicated, 0 out of sequence.
