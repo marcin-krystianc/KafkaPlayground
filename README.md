@@ -669,6 +669,15 @@ C#, librdkafka 1.5 mln/s (no message processing, just counting):
 14:34:53 info: Log[0] Elapsed: 19s, 0 (+0, p95=-100ms) messages produced, 21106490 (+1388377, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence
 ```
 
+libkafka-asio, not much faster:
+```
+root@docker-desktop:/workspace/libkafka-asio/examples/build# ./fetch_cxx11
+ hello
+elapsed:1.000000, messages: 413925
+elapsed:2.000000, messages: 1131395
+elapsed:3.000000, messages: 1848865
+elapsed:4.000000, messages: 2538740
+```
 
 # canot produce to newly created topics
 
