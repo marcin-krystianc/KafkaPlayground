@@ -21,7 +21,7 @@ public static class Utils
     
     public static string GetTopicName(string topicStem, int i)
     {
-        return $"{topicStem}-{i}";
+        return $"{topicStem}-{i:0000}";
     }
     
     public static bool TopicExists(IAdminClient adminClient, string topic)

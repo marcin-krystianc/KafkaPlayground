@@ -88,4 +88,10 @@ public class Utils {
             throw new RuntimeException("Topics creation error", e);
         }
     }
+
+    public static String GetTopicName(String topicStem, int i)
+    {
+        return topicStem + "-" + String.format("%04d", i);
+    }
+
 }

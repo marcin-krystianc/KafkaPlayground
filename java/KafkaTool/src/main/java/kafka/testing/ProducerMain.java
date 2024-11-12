@@ -12,7 +12,7 @@ public class ProducerMain {
             
             String[] topicNames = new String[kafkaProperties.getNumberOfTopics()];
             for (int i = 0; i < kafkaProperties.getNumberOfTopics(); i++) {
-                topicNames[i] = kafkaProperties.getTopicStem() + "-" + i;
+                topicNames[i] = Utils.GetTopicName(kafkaProperties.getTopicStem(), i);
             }
 
             if (kafkaProperties.getRecreateTopics())

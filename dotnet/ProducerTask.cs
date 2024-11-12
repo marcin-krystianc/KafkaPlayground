@@ -146,18 +146,13 @@ public static class ProducerTask
                                 {
                                     if (deliveryReport.Error.Code != ErrorCode.NoError)
                                     {
-                                        using var adminClient = Utils.GetAdminClient(settings.ConfigDictionary);
-                                        var topicMetadata = adminClient.GetMetadata(deliveryReport.Topic,
-                                            TimeSpan.FromSeconds(30));
-                                        var partitionsCount = topicMetadata.Topics.Single().Partitions.Count;
-
                                         if (e == null)
                                         {
                                             e = new Exception(
                                                 $"DeliveryReport.Error, Code = {deliveryReport.Error.Code}, Reason = {deliveryReport.Error.Reason}" +
                                                 $", IsFatal = {deliveryReport.Error.IsFatal}, IsError = {deliveryReport.Error.IsError}" +
                                                 $", IsLocalError = {deliveryReport.Error.IsLocalError}, IsBrokerError = {deliveryReport.Error.IsBrokerError}" +
-                                                $", topic = {deliveryReport.Topic}, partition = {deliveryReport.Partition.Value}, partitionsCount = {partitionsCount}");
+                                                $", topic = {deliveryReport.Topic}, partition = {deliveryReport.Partition.Value}");
                                         }
                                     }
                                     else
