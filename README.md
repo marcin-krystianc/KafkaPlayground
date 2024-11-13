@@ -669,14 +669,17 @@ C#, librdkafka 1.5 mln/s (no message processing, just counting):
 14:34:53 info: Log[0] Elapsed: 19s, 0 (+0, p95=-100ms) messages produced, 21106490 (+1388377, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence
 ```
 
-libkafka-asio, not much faster:
+libkafka-asio, (compiled with 03):
 ```
 root@docker-desktop:/workspace/libkafka-asio/examples/build# ./fetch_cxx11
  hello
-elapsed:1.000000, messages: 413925
-elapsed:2.000000, messages: 1131395
-elapsed:3.000000, messages: 1848865
-elapsed:4.000000, messages: 2538740
+elapsed:1.000000, messages: 496710
+elapsed:2.000000, messages: 1821270
+elapsed:3.000000, messages: 3063045
+elapsed:4.000000, messages: 4304820
+elapsed:5.000000, messages: 5519000
+elapsed:6.000000, messages: 6733180
+elapsed:7.000000, messages: 7947360
 ```
 
 # canot produce to newly created topics
@@ -801,3 +804,6 @@ size=10000, 1.2 GiB:
 12:20:39 info: Log[0] Elapsed: 7s, 0 (+0, p95=-100ms) messages produced, 248688 (+66924, p95=296904ms) messages consumed, 0 duplicated, 0 out of sequence.
 12:20:40 info: Log[0] Elapsed: 8s, 0 (+0, p95=-100ms) messages produced, 317592 (+68904, p95=284632ms) messages consumed, 0 duplicated, 0 out of sequence.
 12:20:41 info: Log[0] Elapsed: 9s, 0 (+0, p95=-100ms) messages produced, 388911 (+71319, p95=262088ms) messages consumed, 0 duplicated, 0 out of sequence.
+
+# Producer fails to update its metadata when topic id changes (https://github.com/confluentinc/librdkafka/issues/4898)
+

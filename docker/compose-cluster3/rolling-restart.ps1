@@ -1,4 +1,5 @@
 
+$removeStoppedContainers=$false
 $delayContainerStart=67
 $delayClusterRebalance=61
 $clusterIteration = 0
@@ -24,23 +25,33 @@ for($i=1; $i -le 3; $i++)
 	# Loop to continuously execute the command, wait for the container to stop, and then start it again
 	# Run the command inside the container	
 	docker exec -it $containerName kill -s TERM 1
-	
+
 	# Wait for the container to stop
 	Write-Host (Get-Date).ToString() " Waiting for $containerName to stop..."
-	
+
 	do {
 		$containerStatus = docker inspect --format '{{.State.Status}}' $containerName
-		Start-Sleep -Seconds 1
+		Start-Sleep -Seconds 1 
 	} while ($containerStatus -eq "running") 
 
 	Write-Host (Get-Date).ToString() " Container $containerName has stopped."
+
+	if ($removeStoppedContainers) {	
+		docker compose rm -f kafka-1 | Out-Null
+		Write-Host (Get-Date).ToString() " Container $containerName has been removed."
+	}
 
     Write-Host (Get-Date).ToString() " Waiting ${delayContainerStart}s before starting the $containerName "
 	Start-Sleep -Seconds $delayContainerStart
 	
 	# Start the container again
 	Write-Host (Get-Date).ToString() " Starting $containerName"
-	docker start $containerName | Out-Null
+	if ($removeStoppedContainers) {
+		docker compose up -d $containerName | Out-Null
+	}
+	else {
+		docker start $containerName | Out-Null
+	}
 
 	do {
 		$containerStatus = docker inspect --format '{{.State.Status}}' $containerName
