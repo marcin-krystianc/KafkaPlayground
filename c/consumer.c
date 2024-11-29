@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
         size_t errstr_size = sizeof(errstr);
 
         kafka_config_t configs[] = {
-        {"bootstrap.servers", "localhost:40001,localhost:40002,localhost:40003"},
+        {"bootstrap.servers", "localhost:40001"},
         {"group.id", "test-group1"},
         {"auto.offset.reset", "earliest"},
         {"enable.auto.commit", "false"},
@@ -152,7 +152,7 @@ int main(int argc, char **argv) {
 
         /* Convert the list of topics to a format suitable for librdkafka */
         subscription = rd_kafka_topic_partition_list_new(topic_cnt);
-                rd_kafka_topic_partition_list_add(subscription, "my-topic-0",
+                rd_kafka_topic_partition_list_add(subscription, "my-topic-0000",
                                                   /* the partition is ignored
                                                    * by subscribe() */
                                                   RD_KAFKA_PARTITION_UA);
@@ -237,3 +237,6 @@ int main(int argc, char **argv) {
 
         return 0;
 }
+
+
+

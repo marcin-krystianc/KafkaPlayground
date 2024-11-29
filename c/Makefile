@@ -8,7 +8,9 @@ RDKAFKA_BUILD_PATH = $(RDKAFKA_PATH)
 # Include and library paths
 CFLAGS += -I$(RDKAFKA_PATH)/src
 CFLAGS += -I$(RDKAFKA_BUILD_PATH)/src
-CFLAGS += -O2
+#CFLAGS += -O2
+#CFLAGS += -Og
+CFLAGS += -g -O0
 
 # Link flags
 LDFLAGS = -L$(RDKAFKA_BUILD_PATH)/src
