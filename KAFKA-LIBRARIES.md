@@ -1,7 +1,6 @@
 ## Feature Comparison Matrix
 
-| Feature                   | librdkafka | morganstanley/modern-cpp-kafka | libkafka-asio        | kafka-rust | samsa       | RSKafka     |
-|                           |           |  (librdkafka)                   | (c++ header only)    |            |             |             |   
+| Feature                  | librdkafka | modern-cpp-kafka (librdkafka)   | libkafka-asio        | kafka-rust | samsa       | RSKafka     |
 |--------------------------|------------|---------------------------------|----------------------|------------|-------------|-------------|
 | Admin API                | ✅         | ✅                               | ❌                   | ❌         | ✅          |  ✅          | 
 | SSL/SASL                 | ✅         | ✅                               | ❌                   | ❌         | ✅          |  ✅          | 
@@ -16,7 +15,7 @@
 ### C/C++
 - librdkafka - https://github.com/confluentinc/librdkafka
 - modern-cpp-kafka - https://github.com/morganstanley/modern-cpp-kafka
-- libkafka-asio - https://github.com/danieljoos/libkafka-asio
+- libkafka-asio - https://github.com/danieljoos/libkafka-asio (c++ header only)
 
 ### Rust
 - kafka-rust - https://github.com/kafka-rust/kafka-rust
