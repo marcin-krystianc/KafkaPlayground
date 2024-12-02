@@ -1,6 +1,6 @@
 ## Feature Comparison Matrix
 
-| Feature                  | librdkafka | modern-cpp-kafka (librdkafka)   | libkafka-asio        | kafka-rust | samsa       | RSKafka     |
+| Feature \ Library        | librdkafka | modern-cpp-kafka (librdkafka)   | libkafka-asio        | kafka-rust | samsa       | RSKafka     |
 |--------------------------|------------|---------------------------------|----------------------|------------|-------------|-------------|
 | Admin API                | ✅         | ✅                               | ❌                   | ❌         | ✅          |  ✅          | 
 | SSL/SASL                 | ✅         | ✅                               | ❌                   | ❌         | ✅          |  ✅          | 
