@@ -1,4 +1,3 @@
-
 ## Feature Comparison Matrix
 
 | Feature                   | librdkafka | morganstanley/modern-cpp-kafka | libkafka-asio        | kafka-rust | samsa       | RSKafka     |
@@ -14,11 +13,12 @@
 | Contributors             | 238        | 14                               | 4                   | 24         | 4           | 17            |
 | Last-commit              | 2 weeks ago| 5 months ago                     | 7 years ago         | last month | 4 months ago| 4 days ago |   
 
-
+### C/C++
 - librdkafka - https://github.com/confluentinc/librdkafka
 - modern-cpp-kafka - https://github.com/morganstanley/modern-cpp-kafka
 - libkafka-asio - https://github.com/danieljoos/libkafka-asio
 
+### Rust
 - kafka-rust - https://github.com/kafka-rust/kafka-rust
 -- https://github.com/kafka-rust/kafka-rust/issues/51
 - samsa - https://github.com/CallistoLabsNYC/samsa
