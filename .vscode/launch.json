@@ -11,6 +11,22 @@
             "mainClass": "${file}"
         },
         {
+            "name": "(gdb) fetch_cxx11",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/workspace/KafkaPlayground/cpp(libkafka-asio)/fetch_cxx11",
+            "cwd": "${workspaceFolder}",
+            "MIMode": "gdb"
+            // ,
+            // "setupCommands": [
+            //    {
+            //        "description": "Enable pretty-printing for gdb",
+            //        "text": "-enable-pretty-printing",
+            //        "ignoreFailures": true
+            //    }
+            //]
+        },
+        {
             "type": "java",
             "name": "Main",
             "request": "launch",
