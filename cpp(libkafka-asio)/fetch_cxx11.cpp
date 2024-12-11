@@ -38,19 +38,27 @@ void handle_fetch_response(const boost::system::error_code& error, const FetchRe
         if (error) {
             std::cerr << "Error fetching messages: " << error.message() << std::endl;
             return;
+        }  
+
+        // Process messages from the response
+        // C++11 range-based for loop
+        for (const auto &message : *response)
+        {
+            // Update offset to next message to fetch
+            if (current_offset > message.offset() + 1)
+            {
+              current_offset = current_offset;
+            }
+            else
+            {              
+              current_offset = message.offset() + 1;
+            }
+			      message_count++;
         }
 
+        // std::cout << message_count << std::endl;
         // Continue fetching messages
         fetch_messages();
-		
-        // Process messages from the response
-		std::for_each(response->begin(), response->end(),
-		[&](const MessageAndOffset& message)
-		{
-            // Update offset to next message to fetch
-            current_offset = message.offset() + 1;
-			message_count++;
-        });
     }
 
 
@@ -59,14 +67,14 @@ void fetch_messages() {
   // Create a 'Fetch' request and try to get data for partition 0 of topic
   // 'mytopic', starting with offset 1
   FetchRequest request;
-  request.FetchTopic("my-topic-0", 0, current_offset, 1 * 1024 * 1024 );
+  request.FetchTopic("my-topic-0000", 0, current_offset, 100000000 );
 
   time(&current_time);
   if (difftime(current_time, last_log_time) >= 1) {
-			printf("elapsed:%f, messages: %lu\n", difftime(current_time, start_time), message_count);
+			printf("elapsed:%f, messages: %.2fM, current_offset:%ul \n", difftime(current_time, start_time), (float)message_count / 1000000, current_offset);
 			last_log_time = current_time;
 	}
-				
+
   // Send the prepared fetch request.
   // The client will attempt to automatically connect to the broker, specified
   // in the configuration.
@@ -79,9 +87,10 @@ int main(int argc, char **argv)
   time(&start_time);
   Client::Configuration configuration;
   configuration.auto_connect = true;
-  configuration.client_id = "libkafka_asio_example";
+  configuration.client_id = "libkafka_asio_example2";
   configuration.socket_timeout = 10000;
   configuration.AddBrokerFromString("localhost:40002");
+  configuration.message_max_bytes = 100000000;
 
   boost::asio::io_service ios;
   Client client(ios, configuration);
@@ -89,16 +98,6 @@ int main(int argc, char **argv)
 
   std::cout << " hello" << std::endl;
 
-  // Helper to interpret the received bytes as string
-  auto BytesToString = [](const libkafka_asio::Bytes& bytes) -> std::string
-  {
-    if (!bytes || bytes->empty())
-    {
-      return "";
-    }
-    return std::string((const char*) &(*bytes)[0], bytes->size());
-  };
-	
   fetch_messages();
 
   // Let's go!
