@@ -115,7 +115,7 @@ public class KafkaProperties {
     public int getReportingCycle()
     {
         if (!commandLine.hasOption("reporting-cycle"))
-            return 0;
+            return 10000;
 
         return Integer.parseInt(commandLine.getOptionValue("reporting-cycle"));
     }
