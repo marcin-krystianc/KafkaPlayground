@@ -69,7 +69,7 @@
                 "consumer", 
                 "--config", "allow.auto.create.topics=false", 
                 "--config", "bootstrap.servers=localhost:40001,localhost:40002,localhost:40003", 
-                "--topics=7000", 
+                "--topics=1", 
                 "--partitions=1", 
                 "--replication-factor=3", 
                 "--min-isr=2", 
