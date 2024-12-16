@@ -8,7 +8,29 @@ using Microsoft.Extensions.Logging;
 
 namespace KafkaTool;
 
-public static class ConsumerTask 
+class MyInt64Deserializer : IDeserializer<long>
+{
+    public long Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
+    {
+        if (isNull)
+        {
+            throw new ArgumentNullException($"Null data encountered deserializing Int64 value.");
+        }
+
+        // network byte order -> big endian -> most significant byte in the smallest address.
+        long result = ((long)data[0]) << 56 |
+                      ((long)(data[1])) << 48 |
+                      ((long)(data[2])) << 40 |
+                      ((long)(data[3])) << 32 |
+                      ((long)(data[4])) << 24 |
+                      ((long)(data[5])) << 16 |
+                      ((long)(data[6])) << 8 |
+                      (data[7]);
+        return result;
+    }
+}
+
+public static class ConsumerTask
 {
     private static readonly ILogger Log = LoggerFactory
         .Create(builder => builder.AddSimpleConsole(options =>
@@ -34,7 +56,7 @@ public static class ConsumerTask
                 .CreateLogger($"Consumer:");
 
             logger.Log(LogLevel.Information, "Starting consumer task:");
-            
+
             var config = new ConsumerConfig
             {
                 GroupId = Guid.NewGuid().ToString(),
@@ -69,6 +91,7 @@ public static class ConsumerTask
                            $"Consumer log: PartitionsRevokedHandler: count={l.Count}"))
                        .SetPartitionsLostHandler((_, l) => logger.Log(LogLevel.Information,
                            $"Consumer log: PartitionsLostHandler: count={l.Count}"))
+                       .SetValueDeserializer(new MyInt64Deserializer())
                        .Build())
             {
                 var topics = Enumerable.Range(0, settings.Topics)
@@ -85,7 +108,7 @@ public static class ConsumerTask
                     {
                         var consumeResult = consumer.Consume();
                         consumedAnyRecords = true;
-            
+
                         if (consumeResult.IsPartitionEOF)
                         {
                             throw new Exception(
@@ -93,7 +116,7 @@ public static class ConsumerTask
                         }
 
                         var key = (consumeResult.Topic, consumeResult.Message.Key);
- 
+
                         if (valueDictionary.TryGetValue(key, out var previousConsumeResult))
                         {
                             if (consumeResult.Message.Value != previousConsumeResult.Message.Value + 1)
@@ -103,7 +126,7 @@ public static class ConsumerTask
                                     $"LeaderEpoch=?,  previous value={previousConsumeResult.Message.Value}, messageValue={consumeResult.Message.Value}!");
 
                                 if (consumeResult.Message.Value < previousConsumeResult.Message.Value + 1)
-                                    data.IncrementDuplicated();   
+                                    data.IncrementDuplicated();
 
                                 if (consumeResult.Message.Value > previousConsumeResult.Message.Value + 1)
                                     data.IncrementOutOfOrder();
@@ -122,11 +145,11 @@ public static class ConsumerTask
                     }
                     catch (ConsumeException e)
                     {
-                        logger.Log(LogLevel.Error,"Consumer.Consume:" + e);
+                        logger.Log(LogLevel.Error, "Consumer.Consume:" + e);
                         if (e.Error.Code == ErrorCode.UnknownTopicOrPart && !consumedAnyRecords)
                         {
                             await Task.Delay(TimeSpan.FromMilliseconds(1000));
-                            logger.Log(LogLevel.Warning,"Recreating consumer.");
+                            logger.Log(LogLevel.Warning, "Recreating consumer.");
                             goto create_consumer;
                         }
                     }

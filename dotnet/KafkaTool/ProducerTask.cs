@@ -44,7 +44,7 @@ public static class ProducerTask
             Exception e = null;
             var producerConfig = new ProducerConfig(settings.ConfigDictionary);
 
-            var producer = new ProducerBuilder<int, long>(
+            var producer = new ProducerBuilder<int, byte[]>(
                     producerConfig.AsEnumerable().Concat(configuration.AsEnumerable()))
                 .SetLogHandler(
                     (a, b) =>
@@ -63,6 +63,9 @@ public static class ProducerTask
                     File.WriteAllText(settings.StatisticsPath, formattedJson);
                 })
                 .Build();
+
+            var payload = new byte[sizeof(long) + settings.ExtraPayloadBytes];
+            new Random().NextBytes(payload);
 
             var oneMillisecond = TimeSpan.FromMilliseconds(1);
             var swTimestamp = Stopwatch.GetTimestamp();
@@ -134,7 +137,16 @@ public static class ProducerTask
  
                     messagesToSend -= 1.0;
 
-                    var msg = new Message<int, long> { Key = partition, Value = currentValue, Timestamp = new Timestamp(DateTime.UtcNow)};
+                    payload[7] = (byte)(currentValue >> 0);
+                    payload[6] = (byte)(currentValue >> 8);
+                    payload[5] = (byte)(currentValue >> 16);
+                    payload[4] = (byte)(currentValue >> 24);
+                    payload[3] = (byte)(currentValue >> 32);
+                    payload[2] = (byte)(currentValue >> 40);
+                    payload[1] = (byte)(currentValue >> 48);
+                    payload[0] = (byte)(currentValue >> 56);
+
+                    var msg = new Message<int, byte[]> { Key = partition, Value = payload, Timestamp = new Timestamp(DateTime.UtcNow)};
                     
                     bool produced = false;
                     do
@@ -165,7 +177,7 @@ public static class ProducerTask
                             produced = true;
                             data.IncrementProduced();
                         }
-                        catch (ProduceException<int, long> exception)
+                        catch (ProduceException<int, byte[]> exception)
                         {
                             if (exception.Error.Code != ErrorCode.Local_QueueFull)
                             {

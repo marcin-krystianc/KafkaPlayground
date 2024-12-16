@@ -79,4 +79,9 @@ public class ProducerConsumerSettings : KafkaSettings
     [Description("Where to rite statistics json")]
     [DefaultValue("statistics.txt")]
     public string StatisticsPath { get; set; }
+
+    [CommandOption("--extra-payload-bytes")]
+    [Description("Additional payload in bytes")]
+    [DefaultValue((long)0)]
+    public long ExtraPayloadBytes { get; set; }
 }
