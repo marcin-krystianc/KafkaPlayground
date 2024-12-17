@@ -22,12 +22,13 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.errors.RetriableException;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
-import org.apache.kafka.common.serialization.LongSerializer;
 
 import java.time.Instant;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -40,7 +41,8 @@ public class Producer extends Thread {
     private final KafkaProperties kafkaProperties;
     private final KafkaData kafkaData;
     private volatile boolean closed;
-
+    private final byte[] dataBytes;
+    
     public Producer(KafkaProperties kafkaProperties,
                     KafkaData kafkaData,
                     String[] topics
@@ -49,6 +51,8 @@ public class Producer extends Thread {
         this.kafkaProperties = kafkaProperties;
         this.kafkaData = kafkaData;
         this.topics = topics;
+        this.dataBytes = new byte[Long.BYTES + kafkaProperties.getExtraPayloadBytes()];
+        new Random().nextBytes(this.dataBytes);
     }
 
     @Override
@@ -65,7 +69,7 @@ public class Producer extends Thread {
         double messagesRate = (double)messagesPerSecond / 1000;
 
         // the producer instance is thread safe
-        try (KafkaProducer<Integer, Long> producer = createKafkaProducer(kafkaProperties.getConfigs())) {
+        try (KafkaProducer<Integer, byte[]> producer = createKafkaProducer(kafkaProperties.getConfigs())) {
 
             var numberOfPartitions = kafkaProperties.getNumberOfPartitions();
             for (long value = 0; ; value++)
@@ -133,14 +137,14 @@ public class Producer extends Thread {
         }
     }
 
-    public KafkaProducer<Integer, Long> createKafkaProducer(Map<String, String> configs) {
+    public KafkaProducer<Integer, byte[]> createKafkaProducer(Map<String, String> configs) {
         Properties props = new Properties();
         // client id is not required, but it's good to track the source of requests beyond just ip/port
         // by allowing a logical application name to be included in server-side request logging
         props.put(ProducerConfig.CLIENT_ID_CONFIG, "client-" + UUID.randomUUID());
         // key and value are just byte arrays, so we need to set appropriate serializers
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, LongSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
         props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 180000);
 
         for (var entry : configs.entrySet()) {
@@ -150,12 +154,21 @@ public class Producer extends Thread {
         return new KafkaProducer<>(props);
     }
 
-    private void asyncSend(KafkaProducer<Integer, Long> producer, String topic, int key, long value) {
+    private void asyncSend(KafkaProducer<Integer, byte[]> producer, String topic, int key, long value) {
         // send the record asynchronously, setting a callback to be notified of the result
         // note that, even if you set a small batch.size with linger.ms=0, the send operation
         // will still be blocked when buffer.memory is full or metadata are not available
         int partition = (int)key;
-        producer.send(new ProducerRecord<Integer, Long>(topic, partition, Instant.now().toEpochMilli(), key, value), new ProducerCallback(this.kafkaData));
+        this.dataBytes[7] = (byte)(value >> 0);
+        this.dataBytes[6] = (byte)(value >> 8);
+        this.dataBytes[5] = (byte)(value >> 16);
+        this.dataBytes[4] = (byte)(value >> 24);
+        this.dataBytes[3] = (byte)(value >> 32);
+        this.dataBytes[2] = (byte)(value >> 40);
+        this.dataBytes[1] = (byte)(value >> 48);
+        this.dataBytes[0] = (byte)(value >> 56);
+        
+        producer.send(new ProducerRecord<Integer, byte[]>(topic, partition, Instant.now().toEpochMilli(), key, this.dataBytes), new ProducerCallback(this.kafkaData));
     }
 
     class ProducerCallback implements Callback {

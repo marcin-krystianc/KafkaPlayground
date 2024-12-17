@@ -120,6 +120,14 @@ public class KafkaProperties {
         return Integer.parseInt(commandLine.getOptionValue("reporting-cycle"));
     }
 
+    public int getExtraPayloadBytes()
+    {
+        if (!commandLine.hasOption("extra-payload-bytes"))
+            return 0;
+
+        return Integer.parseInt(commandLine.getOptionValue("extra-payload-bytes"));
+    }
+    
     public String[] getArgs()
     {
         return commandLine.getArgs();
@@ -206,7 +214,11 @@ public class KafkaProperties {
         var reportingCycle = new Option(null, "reporting-cycle", true, "Reporting cycle in ms");
         reportingCycle.setRequired(false);
         options.addOption(reportingCycle);
-        
+
+        var extraPayloadBytes = new Option(null, "extra-payload-bytes", true, "Additional payload in bytes");
+        reportingCycle.setRequired(false);
+        options.addOption(extraPayloadBytes);
+
         CommandLineParser parser = new DefaultParser();
         commandLine = parser.parse(options, args);
     }
