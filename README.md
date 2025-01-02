@@ -330,15 +330,6 @@ KafkaTool: rdkafka_queue.h:509: rd_kafka_q_deq0: Assertion `rkq->rkq_qlen > 0 &&
 ```
 
 
-### Ocasional memory corruption (debug build, ASAN)
-```
- Producer0:[0] kafka-log Facility:METADATAUPDATE, Message[thrd:main]: Partition my-topic-1723(AAAAAAAAAAAAAAAAAAAAAA)[0]: not found in cache
-```
-
-- https://github.com/confluentinc/confluent-kafka-dotnet/issues/2157 (https://gr-oss.slack.com/archives/CT1CLERMX/p1726822842501039)
-
-
-
 ### Poor librdkafka performance on test corporate cluster + rolling restarts (java works better)
 - librdkafka with `max.in.flight.requests.per.connection=1` appears to be really slow (occasionally I see msg timeout errors) 
 - Relevant parameters:
@@ -682,7 +673,7 @@ elapsed:6.000000, messages: 6733180
 elapsed:7.000000, messages: 7947360
 ```
 
-# canot produce to newly created topics
+# cannot produce to newly created topics
 
 Using assembly:Confluent.Kafka, Version=2.6.0.0, Culture=neutral, PublicKeyToken=12c514ca49093d1em location:/workspace/KafkaPlayground/dotnet/bin/Debug/net8.0/Confluent.Kafka.dll
 librdkafka Version: 2.6.0-RC1-7-g6e1f62-dirty-devel-O0 (20600FF)

@@ -123,7 +123,7 @@ public static class ConsumerTask
                             {
                                 logger.Log(LogLevel.Error,
                                     $"Unexpected message value, topic/k [p]={consumeResult.Topic}/{consumeResult.Message.Key} {consumeResult.Partition}, Offset={previousConsumeResult.Offset}/{consumeResult.Offset}, " +
-                                    $"LeaderEpoch=?,  previous value={previousConsumeResult.Message.Value}, messageValue={consumeResult.Message.Value}!");
+                                    $"LeaderEpoch={previousConsumeResult.LeaderEpoch}/{consumeResult.LeaderEpoch},  previous value={previousConsumeResult.Message.Value}, messageValue={consumeResult.Message.Value}!");
 
                                 if (consumeResult.Message.Value < previousConsumeResult.Message.Value + 1)
                                     data.IncrementDuplicated();
