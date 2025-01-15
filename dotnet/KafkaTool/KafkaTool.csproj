@@ -17,8 +17,4 @@
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
     </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\Library1\Library1.csproj" />
-    </ItemGroup>
-
 </Project>
