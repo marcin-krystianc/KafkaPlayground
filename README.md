@@ -798,3 +798,12 @@ size=10000, 1.2 GiB:
 
 # Producer fails to update its metadata when topic id changes (https://github.com/confluentinc/librdkafka/issues/4898)
 
+
+# Unecessary delay of messages in librdkafka
+>  ping 52.59.208.196 (kafka cluster on AWS using docker containers)
+64 bytes from 52.59.208.196: icmp_seq=1 ttl=64 time=26.9 ms
+64 bytes from 52.59.208.196: icmp_seq=2 ttl=64 time=28.3 ms
+64 bytes from 52.59.208.196: icmp_seq=3 ttl=64 time=26.7 ms
+64 bytes from 52.59.208.196: icmp_seq=4 ttl=64 time=35.2 ms
+
+
