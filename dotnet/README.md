@@ -140,4 +140,5 @@ Debug Contexts: all, generic, broker, topic, metadata, feature, queue, msg, prot
 16:02:12 info: Log[0] Elapsed: 30s, 30001 (+10000, p95=6ms) messages produced, 29998 (+10001, p95=6ms) messages consumed, 0 duplicated, 0 out of sequence.
 16:02:22 info: Log[0] Elapsed: 40s, 40001 (+10000, p95=6ms) messages produced, 39999 (+10001, p95=6ms) messages consumed, 0 duplicated, 0 out of sequence.
 16:02:32 info: Log[0] Elapsed: 50s, 50002 (+10001, p95=6ms) messages produced, 49995 (+9996, p95=6ms) messages consumed, 0 duplicated, 0 out of sequence.
+...
 ```
