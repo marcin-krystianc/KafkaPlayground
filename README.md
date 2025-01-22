@@ -674,7 +674,7 @@ elapsed:7.000000, messages: 7947360
 ```
 
 # cannot produce to newly created topics
-
+```
 Using assembly:Confluent.Kafka, Version=2.6.0.0, Culture=neutral, PublicKeyToken=12c514ca49093d1em location:/workspace/KafkaPlayground/dotnet/bin/Debug/net8.0/Confluent.Kafka.dll
 librdkafka Version: 2.6.0-RC1-7-g6e1f62-dirty-devel-O0 (20600FF)
 Debug Contexts: all, generic, broker, topic, metadata, feature, queue, msg, protocol, cgrp, security, fetch, interceptor, plugin, consumer, admin, eos, mock, assignor, conf
@@ -769,41 +769,105 @@ Debug Contexts: all, generic, broker, topic, metadata, feature, queue, msg, prot
 13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1886 partition count changed from 1 to 0
 13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-1812 partition count changed from 1 to 0
 13:58:07 info: Producer0:[0] kafka-log Facility:PARTCNT, Message[thrd:main]: Topic my-topic-2908 partition count changed from 1 to 0
-^A^C
+```
 
 # Consumption rate vs message size 
 
-size=10, 73MiB:
+- size=10, 73MiB:
+```
 12:14:09 info: Log[0] Elapsed: 30s, 0 (+0, p95=-100ms) messages produced, 35932262 (+1592044, p95=107031ms) messages consumed, 0 duplicated, 0 out of sequence.
 12:14:10 info: Log[0] Elapsed: 31s, 0 (+0, p95=-100ms) messages produced, 37160522 (+1228260, p95=104864ms) messages consumed, 0 duplicated, 0 out of sequence.
 12:14:11 info: Log[0] Elapsed: 32s, 0 (+0, p95=-100ms) messages produced, 38736377 (+1575855, p95=103374ms) messages consumed, 0 duplicated, 0 out of sequence.
 12:14:12 info: Log[0] Elapsed: 33s, 0 (+0, p95=-100ms) messages produced, 39974989 (+1238612, p95=101252ms) messages consumed, 0 duplicated, 0 out of sequence.
-
-size=100, 300MiB:
+```
+- size=100, 300MiB:
+```
 12:10:00 info: Log[0] Elapsed: 14s, 0 (+0, p95=-100ms) messages produced, 13044331 (+1215957, p95=48946ms) messages consumed, 0 duplicated, 0 out of sequence.
 12:10:01 info: Log[0] Elapsed: 15s, 0 (+0, p95=-100ms) messages produced, 14388488 (+1344157, p95=47111ms) messages consumed, 0 duplicated, 0 out of sequence.
 12:10:02 info: Log[0] Elapsed: 16s, 0 (+0, p95=-100ms) messages produced, 15711604 (+1323116, p95=44752ms) messages consumed, 0 duplicated, 0 out of sequence.
 12:10:03 info: Log[0] Elapsed: 17s, 0 (+0, p95=-100ms) messages produced, 17060528 (+1348924, p95=42366ms) messages consumed, 0 duplicated, 0 out of sequence.
+```
 
-size=1000, 1.2 GiB:
+- size=1000, 1.2 GiB:
+```
 12:06:47 info: Log[0] Elapsed: 14s, 0 (+0, p95=-100ms) messages produced, 6910319 (+664462, p95=243851ms) messages consumed, 0 duplicated, 0 out of sequence.
 12:06:48 info: Log[0] Elapsed: 15s, 0 (+0, p95=-100ms) messages produced, 7574858 (+664539, p95=221939ms) messages consumed, 0 duplicated, 0 out of sequence.
 12:06:49 info: Log[0] Elapsed: 16s, 0 (+0, p95=-100ms) messages produced, 8249267 (+674409, p95=207326ms) messages consumed, 0 duplicated, 0 out of sequence.
 12:06:50 info: Log[0] Elapsed: 17s, 0 (+0, p95=-100ms) messages produced, 8835914 (+586647, p95=199292ms) messages consumed, 0 duplicated, 0 out of sequence.
+```
 
-size=10000, 1.2 GiB:
+- size=10000, 1.2 GiB:
+```
 12:20:39 info: Log[0] Elapsed: 7s, 0 (+0, p95=-100ms) messages produced, 248688 (+66924, p95=296904ms) messages consumed, 0 duplicated, 0 out of sequence.
 12:20:40 info: Log[0] Elapsed: 8s, 0 (+0, p95=-100ms) messages produced, 317592 (+68904, p95=284632ms) messages consumed, 0 duplicated, 0 out of sequence.
 12:20:41 info: Log[0] Elapsed: 9s, 0 (+0, p95=-100ms) messages produced, 388911 (+71319, p95=262088ms) messages consumed, 0 duplicated, 0 out of sequence.
+```
 
 # Producer fails to update its metadata when topic id changes (https://github.com/confluentinc/librdkafka/issues/4898)
 
 
 # Unecessary delay of messages in librdkafka
+
+Roundtrip time is ~30ms, but librdkafka delays messages so the measured producer latency is 2.5 * RTT (should be 1.5 * RTT)
+```
 >  ping 52.59.208.196 (kafka cluster on AWS using docker containers)
 64 bytes from 52.59.208.196: icmp_seq=1 ttl=64 time=26.9 ms
 64 bytes from 52.59.208.196: icmp_seq=2 ttl=64 time=28.3 ms
 64 bytes from 52.59.208.196: icmp_seq=3 ttl=64 time=26.7 ms
 64 bytes from 52.59.208.196: icmp_seq=4 ttl=64 time=35.2 ms
+```
 
+```
+dotnet run -c Release --project /workspace/KafkaPlayground/dotnet/KafkaTool/KafkaTool.csproj \
+producer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=52.59.208.196:40001 \
+--topics=1 \
+--partitions=1 \
+--replication-factor=3 \
+--min-isr=2 \
+--topic-stem=my-topic \
+--messages-per-second=50 \
+--burst-messages-per-second=1500000 \
+--burst-cycle=0 \
+--burst-duration=5000 \
+\
+--config request.required.acks=-1 \
+--config enable.idempotence=true \
+--config max.in.flight.requests.per.connection=1 \
+\
+--config queue.buffering.max.ms=3 \
+--config queue.buffering.max.messages=10000000 \
+--config queue.buffering.max.kbytes=10000000 \
+\
+--reporting-cycle=1000 \
+--producers=1 \
+--recreate-topics=true \
+--recreate-topics-delay=5000 \
+--recreate-topics-batch-size=500
+```
+
+```
+Using assembly:Confluent.Kafka, Version=2.6.1.0, Culture=neutral, PublicKeyToken=12c514ca49093d1em location:/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Release/net8.0/Confluent.Kafka.dll
+librdkafka Version: 2.6.1 (20601FF)
+Debug Contexts: all, generic, broker, topic, metadata, feature, queue, msg, protocol, cgrp, security, fetch, interceptor, plugin, consumer, admin, eos, mock, assignor, conf
+14:28:00 info: Log[0] Removing 1 topics
+14:28:06 info: Log[0] Creating 1 topics
+14:28:11 info: Producer0:[0] Starting producer task:
+14:28:12 info: Log[0] Elapsed: 1s, 49 (+49, p95=79ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:28:13 info: Log[0] Elapsed: 2s, 99 (+50, p95=77ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:28:14 info: Log[0] Elapsed: 3s, 149 (+50, p95=78ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:28:15 info: Log[0] Elapsed: 4s, 199 (+50, p95=78ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:28:16 info: Log[0] Elapsed: 5s, 249 (+50, p95=78ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:28:17 info: Log[0] Elapsed: 6s, 299 (+50, p95=78ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:28:18 info: Log[0] Elapsed: 7s, 349 (+50, p95=78ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:28:19 info: Log[0] Elapsed: 8s, 399 (+50, p95=212ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:28:20 info: Log[0] Elapsed: 9s, 449 (+50, p95=82ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:28:21 info: Log[0] Elapsed: 10s, 499 (+50, p95=77ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:28:22 info: Log[0] Elapsed: 11s, 549 (+50, p95=78ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:28:23 info: Log[0] Elapsed: 12s, 599 (+50, p95=78ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:28:24 info: Log[0] Elapsed: 13s, 649 (+50, p95=80ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:28:25 info: Log[0] Elapsed: 14s, 699 (+50, p95=80ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+14:28:26 info: Log[0] Elapsed: 15s, 749 (+50, p95=79ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+```
 
