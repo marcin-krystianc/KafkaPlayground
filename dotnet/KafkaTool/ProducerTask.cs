@@ -42,7 +42,7 @@ public static class ProducerTask
             logger.Log(LogLevel.Information, "Starting producer task:");
 
             Exception e = null;
-            var producerConfig = new ProducerConfig(settings.ConfigDictionary);
+            var producerConfig = new ProducerConfig(new Dictionary<string, string>{{"client.id", $"rdkafka-producer-{producerIndex}"}});
 
             var producer = new ProducerBuilder<int, byte[]>(
                     producerConfig.AsEnumerable().Concat(configuration.AsEnumerable()))

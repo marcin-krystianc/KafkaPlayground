@@ -63,6 +63,7 @@ public static class ConsumerTask
                 EnableAutoOffsetStore = false,
                 EnableAutoCommit = false,
                 AutoOffsetReset = AutoOffsetReset.Earliest,
+                ClientId = "rdkafka-consumer-1",
             };
 
             IConfiguration consumerConfiguration = new ConfigurationBuilder()

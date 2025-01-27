@@ -1,7 +1,7 @@
 
 $removeStoppedContainers=$false
-$delayContainerStart=67
-$delayClusterRebalance=61
+$delayContainerStart=23
+$delayClusterRebalance=67
 $clusterIteration = 0
 while ($true) {
 
