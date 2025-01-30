@@ -60,7 +60,6 @@ public static class ConsumerTask
             var config = new ConsumerConfig
             {
                 GroupId = Guid.NewGuid().ToString(),
-                EnableAutoOffsetStore = false,
                 EnableAutoCommit = false,
                 AutoOffsetReset = AutoOffsetReset.Earliest,
                 ClientId = "rdkafka-consumer-1",
