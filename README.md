@@ -199,6 +199,31 @@ dotnet run -c Release --project KafkaTool.csproj `
 >> --recreate-topics-batch-size=100 `
 >>
 ```
+
+```
+/dotnet/dotnet /workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/KafkaTool.dll \
+producer-consumer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=localhost:19092 \
+--topics=20 \
+--partitions=20 \
+--replication-factor=3 \
+--min-isr=2 \
+--messages-per-second=150 \
+--config request.required.acks=-1 \
+--config enable.idempotence=true \
+--config max.in.flight.requests.per.connection=5 \
+--config auto.offset.reset=latest \
+--config queue.buffering.max.ms=7 \
+--config debug=EOS \
+--producers=20 \
+--recreate-topics=true \
+--config security.protocol=sasl_plaintext \
+--config sasl.username=superuser \
+--config sasl.password=secretpassword \
+--config sasl.mechanism=SCRAM-SHA-256 \
+```
+
 ```
 ...
 09:46:57 fail: Consumer:[0] Unexpected message value, topic/k [p]=my-topic-163/16 [9], Offset=2004/2005, LeaderEpoch=1/2,  previous value=182, messageValue=182!
@@ -871,3 +896,5 @@ Debug Contexts: all, generic, broker, topic, metadata, feature, queue, msg, prot
 14:28:26 info: Log[0] Elapsed: 15s, 749 (+50, p95=79ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
 ```
 
+### Extra 100ms delay on docker
+- docker exec client tc qdisc add dev eth0 root netem delay 100ms

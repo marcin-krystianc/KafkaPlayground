@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -70,6 +71,8 @@ public static class ConsumerTask
                 .AddInMemoryCollection(settings.ConfigDictionary)
                 .Build();
 
+            var offsetDictionary = new ConcurrentDictionary<TopicPartition, Offset>();
+                
             create_consumer:
             using (var consumer = new ConsumerBuilder<int, long>(
                            consumerConfiguration.AsEnumerable())
@@ -85,8 +88,30 @@ public static class ConsumerTask
                        })
                        .SetLogHandler((_, m) => logger.Log(LogLevel.Information,
                            $"Consumer log: message={m.Message}, name={m.Name}, facility={m.Facility}, level={m.Level}"))
-                       .SetPartitionsAssignedHandler((_, l) => logger.Log(LogLevel.Information,
-                           $"Consumer log: PartitionsAssignedHandler: count={l.Count}"))
+                       .SetPartitionsAssignedHandler((c, topicPartitions) =>
+                       {
+                           logger.Log(LogLevel.Information,
+                               $"Consumer log: PartitionsAssignedHandler: count={topicPartitions.Count}");
+                
+                           
+                           // Example: Set all partitions to start from the beginning
+                           var offsets = new List<TopicPartitionOffset>();
+                           foreach (var topicPartition in topicPartitions)
+                           {
+                               if (offsetDictionary.TryGetValue(topicPartition, out var offset))
+                               {
+                                   offsets.Add(new TopicPartitionOffset(topicPartition, offset + 1));
+                               }
+                               else
+                               {                            
+                                   offsets.Add(new TopicPartitionOffset(topicPartition, Offset.Unset));
+                               }
+                           }
+
+                           // Assign the partitions with the specified offsets
+                           return offsets;
+                           
+                       })
                        .SetPartitionsRevokedHandler((_, l) => logger.Log(LogLevel.Information,
                            $"Consumer log: PartitionsRevokedHandler: count={l.Count}"))
                        .SetPartitionsLostHandler((_, l) => logger.Log(LogLevel.Information,
@@ -116,7 +141,8 @@ public static class ConsumerTask
                         }
 
                         var key = (consumeResult.Topic, consumeResult.Message.Key);
-
+                        offsetDictionary.AddOrUpdate(consumeResult.TopicPartition, consumeResult.Offset, (_, _) => consumeResult.Offset);
+                        
                         if (valueDictionary.TryGetValue(key, out var previousConsumeResult))
                         {
                             if (consumeResult.Message.Value != previousConsumeResult.Message.Value + 1)
