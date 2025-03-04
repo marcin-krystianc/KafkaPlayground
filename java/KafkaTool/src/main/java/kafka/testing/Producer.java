@@ -121,7 +121,6 @@ public class Producer extends Thread {
                         messagesToSend -= 1.0;
 
                         asyncSend(producer, topic, key, value);
-                        kafkaData.incrementProduced();
                     }
         } catch (Throwable e) {
             Utils.printErr("Unhandled exception");
@@ -196,6 +195,7 @@ public class Producer extends Thread {
             }
             else {
                 double latency = (double)(Instant.now().toEpochMilli() - metadata.timestamp());
+                kafkaData.incrementProduced();
                 kafkaData.digestProducerLatency(latency);
             }
         }

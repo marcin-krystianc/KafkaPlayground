@@ -171,11 +171,11 @@ public static class ProducerTask
                                     {
                                         var latency = DateTime.UtcNow - deliveryReport.Message.Timestamp.UtcDateTime;
                                         data.DigestProducerLatency(latency.TotalMilliseconds);
+                                        data.IncrementProduced();
                                     }
                                 });
 
                             produced = true;
-                            data.IncrementProduced();
                         }
                         catch (ProduceException<int, byte[]> exception)
                         {
