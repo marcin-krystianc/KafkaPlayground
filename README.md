@@ -898,3 +898,136 @@ Debug Contexts: all, generic, broker, topic, metadata, feature, queue, msg, prot
 
 ### Extra 100ms delay on docker
 - docker exec client tc qdisc add dev eth0 root netem delay 100ms
+
+# max.in.flight.requests.per.connection=5 has no effect
+Confirmed with wireshark - there is single request at a time ?!
+
+```
+dotnet run -c Release --project /workspace/KafkaPlayground/dotnet/KafkaTool/KafkaTool.csproj \ \
+producer-consumer \
+--config bootstrap.servers=kafka-1:19092 \
+--config allow.auto.create.topics=false \
+--topics=1 \
+--partitions=1 \
+--replication-factor=3 \
+--min-isr=2 \
+--messages-per-second=1000 \
+--config request.required.acks=-1 \
+--config enable.idempotence=true \
+--config max.in.flight.requests.per.connection=5 \
+--config auto.offset.reset=latest \
+--config linger.ms=20 \
+--producers=1 \
+--recreate-topics=true
+Using assembly:Confluent.Kafka, Version=2.6.1.0, Culture=neutral, PublicKeyToken=12c514ca49093d1em location:/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Release/net8.0/Confluent.Kafka.dll
+librdkafka Version: 2.6.1 (20601FF)
+16:31:23 info: Log[0] Elapsed: 20s, 19872 (+9980, p95=197ms) messages produced, 15427 (+10081, p95=243ms) messages consumed, 0 duplicated, 0 out of sequence.
+16:31:33 info: Log[0] Elapsed: 30s, 29857 (+9985, p95=197ms) messages produced, 25412 (+9985, p95=199ms) messages consumed, 0 duplicated, 0 out of sequence.
+16:31:43 info: Log[0] Elapsed: 40s, 39841 (+9984, p95=197ms) messages produced, 35396 (+9984, p95=197ms) messages consumed, 0 duplicated, 0 out of sequence.
+
+366	11:28:20.323362	192.168.16.2	192.168.16.5	54196,19092	Kafka Produce v10 Request
+375	11:28:20.345829	192.168.16.5	192.168.16.2	19092,54196	Kafka Produce v10 Response
+389	11:28:20.445936	192.168.16.2	192.168.16.5	54196,19092	Kafka Produce v10 Request
+391	11:28:20.446990	192.168.16.5	192.168.16.2	19092,54196	Kafka Produce v10 Response
+401	11:28:20.547095	192.168.16.2	192.168.16.5	54196,19092	Kafka Produce v10 Request
+403	11:28:20.547826	192.168.16.5	192.168.16.2	19092,54196	Kafka Produce v10 Response
+408	11:28:20.647888	192.168.16.2	192.168.16.5	54196,19092	Kafka Produce v10 Request
+```
+
+```
+mvn package && mvn exec:java "-Dexec.mainClass=kafka.testing.Main" "$(cat <<EOF | tr '\n' ' ' | sed 's/ *$//'
+"-Dexec.args=producer-consumer                                                                                                                                                                                                                                                --config allow.auto.create.topics=false
+--config bootstrap.servers=kafka-1:19092
+--topics=1
+--partitions=1
+--replication-factor=3
+--min-isr=2
+--messages-per-second=1000
+--config request.required.acks=-1
+--config enable.idempotence=true
+--config max.in.flight.requests.per.connection=5
+--config auto.offset.reset=latest
+--config linger.ms=20
+--producers=1
+--recreate-topics=true
+EOF
+)"
+
+[14:03:09] kafka.testing.Main.main() - Deleted topics
+[14:03:09] kafka.testing.Main.main() - Creating 1 topics
+[14:03:13] consumer - Assigned partitions: 1
+[14:03:19] reporter - Elapsed: 10s, Produced: 9886 (+9886, p95=992ms), Consumed: 5476 (+5476, p95=209ms)), Duplicated: 0, Out of sequence: 0.
+[14:03:29] reporter - Elapsed: 20s, Produced: 19896 (+10010, p95=121ms), Consumed: 15445 (+9969, p95=208ms)), Duplicated: 0, Out of sequence: 0.
+[14:03:39] reporter - Elapsed: 30s, Produced: 29893 (+9997, p95=121ms), Consumed: 25504 (+10059, p95=208ms)), Duplicated: 0, Out of sequence: 0.
+[14:03:49] reporter - Elapsed: 40s, Produced: 39905 (+10012, p95=120ms), Consumed: 35453 (+9949, p95=208ms)), Duplicated: 0, Out of sequence: 0.
+[14:03:59] reporter - Elapsed: 50s, Produced: 49897 (+9992, p95=120ms), Consumed: 45528 (+10075, p95=208ms)), Duplicated: 0, Out of sequence: 0.
+[14:04:09] reporter - Elapsed: 60s, Produced: 59901 (+10004, p95=120ms), Consumed: 55471 (+9943, p95=209ms)), Duplicated: 0, Out of sequence: 0.
+
+
+161	14:03:11.284262	192.168.16.2	192.168.16.5	59986,19092	Kafka Produce v11 Request
+163	14:03:11.284945	192.168.16.5	192.168.16.2	19092,59986	Kafka Produce v11 Response
+165	14:03:11.305200	192.168.16.2	192.168.16.5	59986,19092	Kafka Produce v11 Request
+166	14:03:11.305868	192.168.16.5	192.168.16.2	19092,59986	Kafka Produce v11 Response
+167	14:03:11.326464	192.168.16.2	192.168.16.5	59986,19092	Kafka Produce v11 Request
+168	14:03:11.327079	192.168.16.5	192.168.16.2	19092,59986	Kafka Produce v11 Response
+```
+
+# --config socket.nagle.disable=true has a significant impact
+- socket.nagle.disable=false :
+```
+dotnet run -c Release --project /workspace/KafkaPlayground/dotnet/KafkaTool/KafkaTool.csproj producer --config bootstrap.servers=kafka-1:19092 --config allow.auto.create.topics=false --topics=1 --partition1 --replication-factor=1 --min-isr=1 --messages-per-second=1000 --config request.required.acks=-1 --config enable.idempotence=false --config max.in.flight.requests.per.connection=5 --config auto.offset.reset=latest --config linger.ms=20 --config socket.nagle.disable=fal
+se --producers=1 --recreate-topics=true
+Using assembly:Confluent.Kafka, Version=2.6.1.0, Culture=neutral, PublicKeyToken=12c514ca49093d1em location:/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Release/net8.0/Confluent.Kafka.dll
+librdkafka Version: 2.6.1 (20601FF)
+Debug Contexts: all, generic, broker, topic, metadata, feature, queue, msg, protocol, cgrp, security, fetch, interceptor, plugin, consumer, admin, eos, mock, assignor, conf
+10:57:02 info: Log[0] Admin log: message=[thrd:app]: Configuration property auto.offset.reset is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-1, facility=CONFWARN, level=Warning
+10:57:02 info: Log[0] Removing 1 topics
+10:57:03 info: Log[0] Creating 1 topics
+10:57:05 info: Producer0:[0] Starting producer task:
+10:57:05 info: Producer0:[0] kafka-log Facility:CONFWARN, Message[thrd:app]: Configuration property auto.offset.reset is a consumer property and will be ignored by this producer instance
+10:57:15 info: Log[0] Elapsed: 10s, 9797 (+9797, p95=199ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+10:57:25 info: Log[0] Elapsed: 20s, 19832 (+10035, p95=196ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+10:57:35 info: Log[0] Elapsed: 30s, 29867 (+10035, p95=196ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+10:57:45 info: Log[0] Elapsed: 40s, 39739 (+9872, p95=246ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+^Croot@27d577a80781:/workspace/KafkaPlayground/dotnet/KafkaTool# dotnet run -c Release --project /workspace/KafkaPlayground/dotnet/KafkaTool/KafkaTool.csproj producer --config bootstrap.servers=kafka-1:19092 --config allow.auto.create.topics=false --topics=1 --partition1 --replication-factor=1 --min-isr=1 --messages-per-second=1000 --config request.required.acks=-1 --config enable.idempotence=false --config max.in.flight.requests.per.connection=5 --config auto.offset.reset=latest --config linger.ms=20 --config socket.nagle.disable=false --producers=1 --recreate-topics=true
+Using assembly:Confluent.Kafka, Version=2.6.1.0, Culture=neutral, PublicKeyToken=12c514ca49093d1em location:/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Release/net8.0/Confluent.Kafka.dll
+librdkafka Version: 2.6.1 (20601FF)
+Debug Contexts: all, generic, broker, topic, metadata, feature, queue, msg, protocol, cgrp, security, fetch, interceptor, plugin, consumer, admin, eos, mock, assignor, conf
+10:57:49 info: Log[0] Admin log: message=[thrd:app]: Configuration property auto.offset.reset is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-1, facility=CONFWARN, level=Warning
+10:57:49 info: Log[0] Removing 1 topics
+10:57:51 info: Log[0] Creating 1 topics
+10:57:52 info: Producer0:[0] Starting producer task:
+10:57:52 info: Producer0:[0] kafka-log Facility:CONFWARN, Message[thrd:app]: Configuration property auto.offset.reset is a consumer property and will be ignored by this producer instance
+10:58:02 info: Log[0] Elapsed: 10s, 9825 (+9825, p95=200ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+10:58:12 info: Log[0] Elapsed: 20s, 19808 (+9983, p95=198ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+10:58:22 info: Log[0] Elapsed: 30s, 29841 (+10033, p95=198ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+10:58:32 info: Log[0] Elapsed: 40s, 39816 (+9975, p95=196ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+10:58:42 info: Log[0] Elapsed: 50s, 49807 (+9991, p95=196ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+10:58:52 info: Log[0] Elapsed: 60s, 59841 (+10034, p95=196ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+10:59:02 info: Log[0] Elapsed: 70s, 69821 (+9980, p95=225ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+10:59:12 info: Log[0] Elapsed: 80s, 79752 (+9931, p95=254ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+10:59:22 info: Log[0] Elapsed: 90s, 89776 (+10024, p95=255ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+10:59:32 info: Log[0] Elapsed: 100s, 99806 (+10030, p95=255ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+```
+
+- socket.nagle.disable=true :
+```
+^Croot@27d577a80781:/workspace/KafkaPlayground/dotnet/KafkaTool# dotnet run -c Release --project /workspace/KafkaPlayground/dotnet/KafkaTool/KafkaTool.csproj producer --config bootstrap.servers=kafka-1:19092 --config allow.auto.create.topics=false --topics=1 --partition1 --replication-factor=1 --min-isr=1 --messages-per-second=1000 --config request.required.acks=-1 --config enable.idempotence=false --config max.in.flight.requests.per.connection=5 --config auto.offset.reset=latest --config linger.ms=20 --config socket.nagle.disable=true --producers=1 --recreate-topics=true
+Using assembly:Confluent.Kafka, Version=2.6.1.0, Culture=neutral, PublicKeyToken=12c514ca49093d1em location:/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Release/net8.0/Confluent.Kafka.dll
+librdkafka Version: 2.6.1 (20601FF)
+Debug Contexts: all, generic, broker, topic, metadata, feature, queue, msg, protocol, cgrp, security, fetch, interceptor, plugin, consumer, admin, eos, mock, assignor, conf
+11:02:42 info: Log[0] Admin log: message=[thrd:app]: Configuration property auto.offset.reset is a consumer property and will be ignored by this producer instance, name=rdkafka#producer-1, facility=CONFWARN, level=Warning
+11:02:42 info: Log[0] Removing 1 topics
+11:02:43 info: Log[0] Creating 1 topics
+11:02:44 info: Producer0:[0] Starting producer task:
+11:02:45 info: Producer0:[0] kafka-log Facility:CONFWARN, Message[thrd:app]: Configuration property auto.offset.reset is a consumer property and will be ignored by this producer instance
+11:02:55 info: Log[0] Elapsed: 10s, 9872 (+9872, p95=122ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+11:03:05 info: Log[0] Elapsed: 20s, 19889 (+10017, p95=121ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+11:03:15 info: Log[0] Elapsed: 30s, 29880 (+9991, p95=121ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+11:03:25 info: Log[0] Elapsed: 40s, 39883 (+10003, p95=121ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+11:03:35 info: Log[0] Elapsed: 50s, 49891 (+10008, p95=121ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+11:03:45 info: Log[0] Elapsed: 60s, 59887 (+9996, p95=121ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+11:03:55 info: Log[0] Elapsed: 70s, 69896 (+10009, p95=121ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+11:04:05 info: Log[0] Elapsed: 80s, 79876 (+9980, p95=121ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+11:04:15 info: Log[0] Elapsed: 90s, 89891 (+10015, p95=121ms) messages produced, 0 (+0, p95=-100ms) messages consumed, 0 duplicated, 0 out of sequence.
+```
