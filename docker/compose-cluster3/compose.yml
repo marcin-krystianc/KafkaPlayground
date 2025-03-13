@@ -3,15 +3,24 @@ version: '2'
 
 x-kafka-defaults: &kafka-defaults
   image: apache/kafka
+# image: mykafka
   env_file:
     - variables.env
+  cap_add:
+    - NET_ADMIN
   #volumes:
     # - ./log4j-debug.properties:/mnt/shared/config/log4j.properties
   deploy:
     resources:
       limits:
         cpus: '2'
-
+        
+  # tc qdisc add dev eth0 root netem loss 20%
+  # tc qdisc add dev eth0 root netem delay 400ms && \
+  #command: >
+  #    bash -c "
+  #    /etc/kafka/docker/run
+  #    "
 services:
   kafka-1: &kafka-base
     <<: *kafka-defaults
