@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -18,7 +19,9 @@ public static class ReporterTask
     public static Task GetTask(ProducerConsumerSettings settings, ProducerConsumerData data)
     {
         return Task.Run(async () =>
-        {
+        {       
+            Log.Log(LogLevel.Information, $"settings: {JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true } )}");
+
             var sw = Stopwatch.StartNew();
             var prevProduced = 0L;
             var prevConsumed = 0L;
