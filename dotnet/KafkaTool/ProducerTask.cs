@@ -11,7 +11,6 @@ using Microsoft.Extensions.Logging;
 
 namespace KafkaTool;
 
-
 public static class ProducerTask
 {
     private static readonly ILogger Log = LoggerFactory
@@ -42,9 +41,9 @@ public static class ProducerTask
             logger.Log(LogLevel.Information, "Starting producer task:");
 
             Exception e = null;
-            var producerConfig = new ProducerConfig(new Dictionary<string, string>{{"client.id", $"rdkafka-producer-{producerIndex}"}});
+            var producerConfig = new ProducerConfig(new Dictionary<string, string> { { "client.id", $"rdkafka-producer-{producerIndex}" } });
 
-            var producer = new ProducerBuilder<int, byte[]>(
+            var producer = new ProducerBuilder<byte[], byte[]>(
                     producerConfig.AsEnumerable().Concat(configuration.AsEnumerable()))
                 .SetLogHandler(
                     (a, b) =>
@@ -64,8 +63,9 @@ public static class ProducerTask
                 })
                 .Build();
 
-            var payload = new byte[sizeof(long) + settings.ExtraPayloadBytes];
-            new Random().NextBytes(payload);
+            var keyBytes = new byte[sizeof(int)];
+            var payloadBytes = new byte[sizeof(long) + settings.ExtraPayloadBytes];
+            new Random().NextBytes(payloadBytes);
 
             var oneMillisecond = TimeSpan.FromMilliseconds(1);
             var swTimestamp = Stopwatch.GetTimestamp();
@@ -84,10 +84,22 @@ public static class ProducerTask
                 from partition in Enumerable.Range(0, settings.Partitions)
                 select new TopicPartition(Utils.GetTopicName(settings.TopicStem, topic), new Partition(partition)));
 
+            Message<byte[], byte[]> msg = new();
+
             for (var currentValue = 0L;; currentValue++)
-            for (var topicIndex = 0; topicIndex < topicsPerProducer; topicIndex++)
+            for (var partition = 0; partition < settings.Partitions; partition++)
             {
-                for (var partition = 0; partition < settings.Partitions; partition++)
+                if (!settings.AvoidAllocations)
+                {
+                    keyBytes = new byte[sizeof(int)];
+                }
+
+                keyBytes[3] = (byte)(partition >> 0);
+                keyBytes[2] = (byte)(partition >> 8);
+                keyBytes[1] = (byte)(partition >> 16);
+                keyBytes[0] = (byte)(partition >> 24);
+
+                for (var topicIndex = 0; topicIndex < topicsPerProducer; topicIndex++)
                 {
                     var topicPartition = topicPartitions[(topicIndex + producerIndex * topicsPerProducer) * settings.Partitions + partition];
                     if (e != null)
@@ -134,20 +146,28 @@ public static class ProducerTask
                             await Task.Delay(TimeSpan.FromMilliseconds(1));
                         }
                     } while (messagesToSend < 1);
- 
+
                     messagesToSend -= 1.0;
 
-                    payload[7] = (byte)(currentValue >> 0);
-                    payload[6] = (byte)(currentValue >> 8);
-                    payload[5] = (byte)(currentValue >> 16);
-                    payload[4] = (byte)(currentValue >> 24);
-                    payload[3] = (byte)(currentValue >> 32);
-                    payload[2] = (byte)(currentValue >> 40);
-                    payload[1] = (byte)(currentValue >> 48);
-                    payload[0] = (byte)(currentValue >> 56);
+                    if (!settings.AvoidAllocations)
+                    {
+                        payloadBytes = new byte[sizeof(long) + settings.ExtraPayloadBytes];
+                        msg = new Message<byte[], byte[]>();
+                    }
 
-                    var msg = new Message<int, byte[]> { Key = partition, Value = payload, Timestamp = new Timestamp(DateTime.UtcNow)};
-                    
+                    payloadBytes[7] = (byte)(currentValue >> 0);
+                    payloadBytes[6] = (byte)(currentValue >> 8);
+                    payloadBytes[5] = (byte)(currentValue >> 16);
+                    payloadBytes[4] = (byte)(currentValue >> 24);
+                    payloadBytes[3] = (byte)(currentValue >> 32);
+                    payloadBytes[2] = (byte)(currentValue >> 40);
+                    payloadBytes[1] = (byte)(currentValue >> 48);
+                    payloadBytes[0] = (byte)(currentValue >> 56);
+
+                    msg.Key = keyBytes;
+                    msg.Value = payloadBytes;
+                    msg.Timestamp = new Timestamp(DateTime.UtcNow);
+
                     bool produced = false;
                     do
                     {
@@ -177,7 +197,7 @@ public static class ProducerTask
 
                             produced = true;
                         }
-                        catch (ProduceException<int, byte[]> exception)
+                        catch (ProduceException<byte[], byte[]> exception)
                         {
                             if (exception.Error.Code != ErrorCode.Local_QueueFull)
                             {

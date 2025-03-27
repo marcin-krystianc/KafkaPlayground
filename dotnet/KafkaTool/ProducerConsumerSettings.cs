@@ -84,4 +84,9 @@ public class ProducerConsumerSettings : KafkaSettings
     [Description("Additional payload in bytes")]
     [DefaultValue((long)0)]
     public long ExtraPayloadBytes { get; set; }
+
+    [CommandOption("--avoid-allocations")]
+    [Description("Avoid unnecessary memory allocations")]
+    [DefaultValue(true)]
+    public bool AvoidAllocations { get; set; }
 }
