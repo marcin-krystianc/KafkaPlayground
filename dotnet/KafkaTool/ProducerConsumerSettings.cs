@@ -89,4 +89,9 @@ public class ProducerConsumerSettings : KafkaSettings
     [Description("Avoid unnecessary memory allocations")]
     [DefaultValue(true)]
     public bool AvoidAllocations { get; set; }
+    
+    [CommandOption("--exit-after")]
+    [Description("Exits after provided amount of seconds")]
+    [DefaultValue(0)]
+    public long ExitAfter { get; set; }
 }

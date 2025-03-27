@@ -38,6 +38,9 @@ public static class ReporterTask
 
                 Log.Log(LogLevel.Information,
                     $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}, p95={producerLatency.Quantile(0.95):0.}ms) messages produced, {totalConsumed} (+{newlyConsumed}, p95={consumerLatency.Quantile(0.95):0.}ms) messages consumed, {duplicated} duplicated, {outOfSequence} out of sequence.");
+
+                if (settings.ExitAfter > 0 && sw.Elapsed.TotalSeconds > settings.ExitAfter)
+                    return;
             }
         });
     }
