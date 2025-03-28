@@ -41,7 +41,8 @@ public class Producer extends Thread {
     private final KafkaProperties kafkaProperties;
     private final KafkaData kafkaData;
     private volatile boolean closed;
-    private final byte[] dataBytes;
+    private byte[] dataBytes;
+    private byte[] keyBytes;
     
     public Producer(KafkaProperties kafkaProperties,
                     KafkaData kafkaData,
@@ -53,6 +54,7 @@ public class Producer extends Thread {
         this.topics = topics;
         this.dataBytes = new byte[Long.BYTES + kafkaProperties.getExtraPayloadBytes()];
         new Random().nextBytes(this.dataBytes);
+        this.keyBytes = new byte[Integer.BYTES];
     }
 
     @Override
@@ -69,7 +71,7 @@ public class Producer extends Thread {
         double messagesRate = (double)messagesPerSecond / 1000;
 
         // the producer instance is thread safe
-        try (KafkaProducer<Integer, byte[]> producer = createKafkaProducer(kafkaProperties.getConfigs())) {
+        try (KafkaProducer<byte[], byte[]> producer = createKafkaProducer(kafkaProperties.getConfigs())) {
 
             var numberOfPartitions = kafkaProperties.getNumberOfPartitions();
             for (long value = 0; ; value++)
@@ -136,13 +138,13 @@ public class Producer extends Thread {
         }
     }
 
-    public KafkaProducer<Integer, byte[]> createKafkaProducer(Map<String, String> configs) {
+    public KafkaProducer<byte[], byte[]> createKafkaProducer(Map<String, String> configs) {
         Properties props = new Properties();
         // client id is not required, but it's good to track the source of requests beyond just ip/port
         // by allowing a logical application name to be included in server-side request logging
         props.put(ProducerConfig.CLIENT_ID_CONFIG, "client-" + UUID.randomUUID());
         // key and value are just byte arrays, so we need to set appropriate serializers
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class);
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
         props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 180000);
 
@@ -153,10 +155,17 @@ public class Producer extends Thread {
         return new KafkaProducer<>(props);
     }
 
-    private void asyncSend(KafkaProducer<Integer, byte[]> producer, String topic, int key, long value) {
+    private void asyncSend(KafkaProducer<byte[], byte[]> producer, String topic, int key, long value) {
         // send the record asynchronously, setting a callback to be notified of the result
         // note that, even if you set a small batch.size with linger.ms=0, the send operation
         // will still be blocked when buffer.memory is full or metadata are not available
+        
+        if (!kafkaProperties.getAvoidAllocations())
+        {
+            this.dataBytes = new byte[Long.BYTES + kafkaProperties.getExtraPayloadBytes()];
+            this.keyBytes = new byte[Integer.BYTES];
+        }
+
         int partition = (int)key;
         this.dataBytes[7] = (byte)(value >> 0);
         this.dataBytes[6] = (byte)(value >> 8);
@@ -166,8 +175,13 @@ public class Producer extends Thread {
         this.dataBytes[2] = (byte)(value >> 40);
         this.dataBytes[1] = (byte)(value >> 48);
         this.dataBytes[0] = (byte)(value >> 56);
-        
-        producer.send(new ProducerRecord<Integer, byte[]>(topic, partition, Instant.now().toEpochMilli(), key, this.dataBytes), new ProducerCallback(this.kafkaData));
+
+        this.keyBytes[3] = (byte)(value >> 0);
+        this.keyBytes[2] = (byte)(value >> 8);
+        this.keyBytes[1] = (byte)(value >> 16);
+        this.keyBytes[0] = (byte)(value >> 24);
+
+        producer.send(new ProducerRecord<byte[], byte[]>(topic, partition, Instant.now().toEpochMilli(), this.keyBytes, this.dataBytes), new ProducerCallback(this.kafkaData));
     }
 
     class ProducerCallback implements Callback {

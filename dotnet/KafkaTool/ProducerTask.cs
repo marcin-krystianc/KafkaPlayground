@@ -89,16 +89,6 @@ public static class ProducerTask
             for (var currentValue = 0L;; currentValue++)
             for (var partition = 0; partition < settings.Partitions; partition++)
             {
-                if (!settings.AvoidAllocations)
-                {
-                    keyBytes = new byte[sizeof(int)];
-                }
-
-                keyBytes[3] = (byte)(partition >> 0);
-                keyBytes[2] = (byte)(partition >> 8);
-                keyBytes[1] = (byte)(partition >> 16);
-                keyBytes[0] = (byte)(partition >> 24);
-
                 for (var topicIndex = 0; topicIndex < topicsPerProducer; topicIndex++)
                 {
                     var topicPartition = topicPartitions[(topicIndex + producerIndex * topicsPerProducer) * settings.Partitions + partition];
@@ -151,8 +141,9 @@ public static class ProducerTask
 
                     if (!settings.AvoidAllocations)
                     {
-                        payloadBytes = new byte[sizeof(long) + settings.ExtraPayloadBytes];
                         msg = new Message<byte[], byte[]>();
+                        keyBytes = new byte[sizeof(int)];
+                        payloadBytes = new byte[sizeof(long) + settings.ExtraPayloadBytes];
                     }
 
                     payloadBytes[7] = (byte)(currentValue >> 0);
@@ -163,6 +154,11 @@ public static class ProducerTask
                     payloadBytes[2] = (byte)(currentValue >> 40);
                     payloadBytes[1] = (byte)(currentValue >> 48);
                     payloadBytes[0] = (byte)(currentValue >> 56);
+
+                    keyBytes[3] = (byte)(partition >> 0);
+                    keyBytes[2] = (byte)(partition >> 8);
+                    keyBytes[1] = (byte)(partition >> 16);
+                    keyBytes[0] = (byte)(partition >> 24);
 
                     msg.Key = keyBytes;
                     msg.Value = payloadBytes;
