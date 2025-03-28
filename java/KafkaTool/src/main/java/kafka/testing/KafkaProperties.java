@@ -127,12 +127,28 @@ public class KafkaProperties {
 
         return Integer.parseInt(commandLine.getOptionValue("extra-payload-bytes"));
     }
-    
+
+    public boolean getAvoidAllocations()
+    {
+        if (!commandLine.hasOption("avoid-allocations"))
+            return true;
+
+        return Boolean.parseBoolean(commandLine.getOptionValue("avoid-allocations"));
+    }
+
+    public int getExitAfter()
+    {
+        if (!commandLine.hasOption("exit-after"))
+            return 0;
+
+        return Integer.parseInt(commandLine.getOptionValue("exit-after"));
+    }
+
     public String[] getArgs()
     {
         return commandLine.getArgs();
     }
-    
+
     public Map<String, String> getConfigs()
     {
         var strings = commandLine.getOptionValues("config");
@@ -218,6 +234,14 @@ public class KafkaProperties {
         var extraPayloadBytes = new Option(null, "extra-payload-bytes", true, "Additional payload in bytes");
         reportingCycle.setRequired(false);
         options.addOption(extraPayloadBytes);
+
+        var avoidAllocations = new Option(null, "avoid-allocations", true, "Avoid unnecessary memory allocations");
+        avoidAllocations.setRequired(false);
+        options.addOption(avoidAllocations);
+
+        var exitAfter = new Option(null, "exit-after", true, "Exits after provided amount of seconds");
+        exitAfter.setRequired(false);
+        options.addOption(exitAfter);
 
         CommandLineParser parser = new DefaultParser();
         commandLine = parser.parse(options, args);

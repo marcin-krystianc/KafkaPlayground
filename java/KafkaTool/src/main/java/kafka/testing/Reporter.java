@@ -69,6 +69,9 @@ public class Reporter extends Thread {
                 logTime = currentTime;
                 loggedProduced = produced;
                 loggedConsumed = consumed;
+                
+                if (kafkaProperties.getExitAfter() > 0 && elapsed >= kafkaProperties.getExitAfter())
+                    return;
             }
 
             try {
