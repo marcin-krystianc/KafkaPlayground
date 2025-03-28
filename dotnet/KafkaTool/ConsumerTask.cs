@@ -44,8 +44,7 @@ public static class ConsumerTask
     public static Task GetTask(ProducerConsumerSettings settings, ProducerConsumerData data)
     {
         return Task.Run(async () =>
-        {
-            var consumedAnyRecords = false;
+        {;
             var errorLogged = false;
 
             var logger = LoggerFactory
@@ -72,13 +71,12 @@ public static class ConsumerTask
                 .Build();
 
             var offsetDictionary = new ConcurrentDictionary<TopicPartition, Offset>();
-                
-            create_consumer:
+
             using (var consumer = new ConsumerBuilder<int, long>(
                            consumerConfiguration.AsEnumerable())
                        .SetErrorHandler((_, e) =>
                        {
-                           if (consumedAnyRecords || !errorLogged)
+                           if (!errorLogged)
                            {
                                logger.Log(LogLevel.Error,
                                    $"Consumer error: reason={e.Reason}, IsLocal={e.IsLocalError}, IsBroker={e.IsBrokerError}, IsFatal={e.IsFatal}, IsCode={e.Code}");
@@ -132,7 +130,7 @@ public static class ConsumerTask
                     try
                     {
                         var consumeResult = consumer.Consume();
-                        consumedAnyRecords = true;
+                        data.IncrementConsumed();
 
                         if (consumeResult.IsPartitionEOF)
                         {
@@ -140,44 +138,40 @@ public static class ConsumerTask
                                 $"Reached end of topic {consumeResult.Topic}, partition {consumeResult.Partition}, offset {consumeResult.Offset}.");
                         }
 
-                        var key = (consumeResult.Topic, consumeResult.Message.Key);
-                        offsetDictionary.AddOrUpdate(consumeResult.TopicPartition, consumeResult.Offset, (_, _) => consumeResult.Offset);
-                        
-                        if (valueDictionary.TryGetValue(key, out var previousConsumeResult))
+                        if (settings.EnableSequenceValidation)
                         {
-                            if (consumeResult.Message.Value != previousConsumeResult.Message.Value + 1)
+                            var latency = DateTime.UtcNow - consumeResult.Message.Timestamp.UtcDateTime;
+                            data.DigestConsumerLatency(latency.TotalMilliseconds);
+
+                            var key = (consumeResult.Topic, consumeResult.Message.Key);
+                            offsetDictionary.AddOrUpdate(consumeResult.TopicPartition, consumeResult.Offset, (_, _) => consumeResult.Offset);
+
+                            if (valueDictionary.TryGetValue(key, out var previousConsumeResult))
                             {
-                                logger.Log(LogLevel.Error,
-                                    $"Unexpected message value, topic/k [p]={consumeResult.Topic}/{consumeResult.Message.Key} {consumeResult.Partition}, Offset={previousConsumeResult.Offset}/{consumeResult.Offset}, " +
-                                    $"LeaderEpoch={previousConsumeResult.LeaderEpoch}/{consumeResult.LeaderEpoch},  previous value={previousConsumeResult.Message.Value}, messageValue={consumeResult.Message.Value}!");
+                                if (consumeResult.Message.Value != previousConsumeResult.Message.Value + 1)
+                                {
+                                    logger.Log(LogLevel.Error,
+                                        $"Unexpected message value, topic/k [p]={consumeResult.Topic}/{consumeResult.Message.Key} {consumeResult.Partition}, Offset={previousConsumeResult.Offset}/{consumeResult.Offset}, " +
+                                        $"LeaderEpoch={previousConsumeResult.LeaderEpoch}/{consumeResult.LeaderEpoch},  previous value={previousConsumeResult.Message.Value}, messageValue={consumeResult.Message.Value}!");
 
-                                if (consumeResult.Message.Value < previousConsumeResult.Message.Value + 1)
-                                    data.IncrementDuplicated();
+                                    if (consumeResult.Message.Value < previousConsumeResult.Message.Value + 1)
+                                        data.IncrementDuplicated();
 
-                                if (consumeResult.Message.Value > previousConsumeResult.Message.Value + 1)
-                                    data.IncrementOutOfOrder();
+                                    if (consumeResult.Message.Value > previousConsumeResult.Message.Value + 1)
+                                        data.IncrementOutOfOrder();
+                                }
+
+                                valueDictionary[key] = consumeResult;
                             }
-
-                            valueDictionary[key] = consumeResult;
+                            else
+                            {
+                                valueDictionary[key] = consumeResult;
+                            }
                         }
-                        else
-                        {
-                            valueDictionary[key] = consumeResult;
-                        }
-
-                        var latency = DateTime.UtcNow - consumeResult.Message.Timestamp.UtcDateTime;
-                        data.DigestConsumerLatency(latency.TotalMilliseconds);
-                        data.IncrementConsumed();
                     }
                     catch (ConsumeException e)
                     {
                         logger.Log(LogLevel.Error, "Consumer.Consume:" + e);
-                        if (e.Error.Code == ErrorCode.UnknownTopicOrPart && !consumedAnyRecords)
-                        {
-                            await Task.Delay(TimeSpan.FromMilliseconds(1000));
-                            logger.Log(LogLevel.Warning, "Recreating consumer.");
-                            goto create_consumer;
-                        }
                     }
                 }
             }

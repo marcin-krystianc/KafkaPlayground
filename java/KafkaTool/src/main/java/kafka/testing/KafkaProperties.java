@@ -43,113 +43,121 @@ public class KafkaProperties {
     private final Option extraPayloadBytes;
     private final Option avoidAllocations;
     private final Option exitAfter;
+    private final Option enableSequenceValidation;
 
     public int getNumberOfTopics() {
-        return Integer.parseInt(commandLine.getOptionValue(topics.getLongOpt()));
+        return Integer.parseInt(commandLine.getOptionValue(topics));
     }
 
     public int getNumberOfPartitions() {
-        return Integer.parseInt(commandLine.getOptionValue(partitions.getLongOpt()));
+        return Integer.parseInt(commandLine.getOptionValue(partitions));
     }
 
     public int getReplicationFactor() {
-        return Integer.parseInt(commandLine.getOptionValue(replicationFactor.getLongOpt()));
+        return Integer.parseInt(commandLine.getOptionValue(replicationFactor));
     }
 
     public int getMinIsr() {
-        return Integer.parseInt(commandLine.getOptionValue(minIsr.getLongOpt()));
+        return Integer.parseInt(commandLine.getOptionValue(minIsr));
     }
 
     public int getMessagesPerSecond() {
-        return Integer.parseInt(commandLine.getOptionValue(messagesPerSecond.getLongOpt()));
+        return Integer.parseInt(commandLine.getOptionValue(messagesPerSecond));
     }
 
     public int getNumberOfProducers() {
-        if (!commandLine.hasOption(producers.getLongOpt())) {
+        if (!commandLine.hasOption(producers)) {
             return 1;
         }
-        return Integer.parseInt(commandLine.getOptionValue(producers.getLongOpt()));
+        return Integer.parseInt(commandLine.getOptionValue(producers));
     }
 
     public int getRecreateTopicsDelay() {
-        if (!commandLine.hasOption(recreateTopicsDelay.getLongOpt())) {
+        if (!commandLine.hasOption(recreateTopicsDelay)) {
             return 1;
         }
-        return Integer.parseInt(commandLine.getOptionValue(recreateTopicsDelay.getLongOpt()));
+        return Integer.parseInt(commandLine.getOptionValue(recreateTopicsDelay));
     }
 
     public int getRecreateTopicsBatchSize() {
-        if (!commandLine.hasOption(recreateTopicsBatchSize.getLongOpt())) {
+        if (!commandLine.hasOption(recreateTopicsBatchSize)) {
             return 500;
         }
         return Integer.parseInt(
-                commandLine.getOptionValue(recreateTopicsBatchSize.getLongOpt())
+                commandLine.getOptionValue(recreateTopicsBatchSize)
         );
     }
 
     public String getTopicStem() {
-        if (!commandLine.hasOption(topicStem.getLongOpt())) {
+        if (!commandLine.hasOption(topicStem)) {
             return "my-topic";
         }
-        return commandLine.getOptionValue(topicStem.getLongOpt());
+        return commandLine.getOptionValue(topicStem);
     }
 
     public boolean getRecreateTopics() {
-        if (!commandLine.hasOption(recreateTopics.getLongOpt())) {
+        if (!commandLine.hasOption(recreateTopics)) {
             return true;
         }
-        return Boolean.parseBoolean(commandLine.getOptionValue(recreateTopics.getLongOpt()));
+        return Boolean.parseBoolean(commandLine.getOptionValue(recreateTopics));
     }
 
     public int getBurstMessagesPerSecond() {
-        if (!commandLine.hasOption(burstMessagesPerSecond.getLongOpt())) {
+        if (!commandLine.hasOption(burstMessagesPerSecond)) {
             return 0;
         }
         return Integer.parseInt(
-                commandLine.getOptionValue(burstMessagesPerSecond.getLongOpt())
+                commandLine.getOptionValue(burstMessagesPerSecond)
         );
     }
 
     public int getBurstCycle() {
-        if (!commandLine.hasOption(burstCycle.getLongOpt())) {
+        if (!commandLine.hasOption(burstCycle)) {
             return 0;
         }
-        return Integer.parseInt(commandLine.getOptionValue(burstCycle.getLongOpt()));
+        return Integer.parseInt(commandLine.getOptionValue(burstCycle));
     }
 
     public int getBurstDuration() {
         if (!commandLine.hasOption(burstDuration.getLongOpt())) {
             return 0;
         }
-        return Integer.parseInt(commandLine.getOptionValue(burstDuration.getLongOpt()));
+        return Integer.parseInt(commandLine.getOptionValue(burstDuration));
     }
 
     public int getReportingCycle() {
-        if (!commandLine.hasOption(reportingCycle.getLongOpt())) {
+        if (!commandLine.hasOption(reportingCycle)) {
             return 10000;
         }
-        return Integer.parseInt(commandLine.getOptionValue(reportingCycle.getLongOpt()));
+        return Integer.parseInt(commandLine.getOptionValue(reportingCycle));
     }
 
     public int getExtraPayloadBytes() {
-        if (!commandLine.hasOption(extraPayloadBytes.getLongOpt())) {
+        if (!commandLine.hasOption(extraPayloadBytes)) {
             return 0;
         }
-        return Integer.parseInt(commandLine.getOptionValue(extraPayloadBytes.getLongOpt()));
+        return Integer.parseInt(commandLine.getOptionValue(extraPayloadBytes));
     }
 
     public boolean getAvoidAllocations() {
-        if (!commandLine.hasOption(avoidAllocations.getLongOpt())) {
+        if (!commandLine.hasOption(avoidAllocations)) {
             return true;
         }
-        return Boolean.parseBoolean(commandLine.getOptionValue(avoidAllocations.getLongOpt()));
+        return Boolean.parseBoolean(commandLine.getOptionValue(avoidAllocations));
     }
 
     public int getExitAfter() {
         if (!commandLine.hasOption(exitAfter.getLongOpt())) {
             return 0;
         }
-        return Integer.parseInt(commandLine.getOptionValue(exitAfter.getLongOpt()));
+        return Integer.parseInt(commandLine.getOptionValue(exitAfter));
+    }
+
+    public boolean getEnableSequenceValidation() {
+        if (!commandLine.hasOption(enableSequenceValidation)) {
+            return true;
+        }
+        return Boolean.parseBoolean(commandLine.getOptionValue(enableSequenceValidation));
     }
 
     public String[] getArgs() {
@@ -231,6 +239,9 @@ public class KafkaProperties {
         exitAfter = new Option(null, "exit-after", true,"Exits after provided amount of seconds");
         exitAfter.setRequired(false);
 
+        enableSequenceValidation = new Option(null, "enable-sequence-validation", true,"Indicates that the consumer will not validate whether the messages are in sequence");
+        enableSequenceValidation.setRequired(false);
+        
         // Create options object and add all options
         var options = new Options();
         options.addOption(config);
@@ -251,6 +262,7 @@ public class KafkaProperties {
         options.addOption(extraPayloadBytes);
         options.addOption(avoidAllocations);
         options.addOption(exitAfter);
+        options.addOption(enableSequenceValidation);
 
         CommandLineParser parser = new DefaultParser();
         commandLine = parser.parse(options, args);

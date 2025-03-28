@@ -176,12 +176,12 @@ public class Producer extends Thread {
         this.dataBytes[1] = (byte)(value >> 48);
         this.dataBytes[0] = (byte)(value >> 56);
 
-        this.keyBytes[3] = (byte)(value >> 0);
-        this.keyBytes[2] = (byte)(value >> 8);
-        this.keyBytes[1] = (byte)(value >> 16);
-        this.keyBytes[0] = (byte)(value >> 24);
+        this.keyBytes[3] = (byte)(key >> 0);
+        this.keyBytes[2] = (byte)(key >> 8);
+        this.keyBytes[1] = (byte)(key >> 16);
+        this.keyBytes[0] = (byte)(key >> 24);
 
-        producer.send(new ProducerRecord<byte[], byte[]>(topic, partition, Instant.now().toEpochMilli(), this.keyBytes, this.dataBytes), new ProducerCallback(this.kafkaData));
+        producer.send(new ProducerRecord<>(topic, partition, Instant.now().toEpochMilli(), this.keyBytes, this.dataBytes), new ProducerCallback(this.kafkaData));
     }
 
     class ProducerCallback implements Callback {

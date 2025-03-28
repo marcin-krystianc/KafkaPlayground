@@ -63,10 +63,10 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
             // subscribes to a list of topics to get dynamically assigned partitions
             // this class implements the rebalance listener that we pass here to be notified of such events
             consumer.subscribe(Arrays.asList(topics), this);
-
+            var enableSequenceValidation = kafkaProperties.getEnableSequenceValidation();
+            
             while (!closed) {
                 try {
-                 
                     // if required, poll updates partition assignment and invokes the configured rebalance listener
                     // then tries to fetch records sequentially using the last committed offset or auto.offset.reset policy
                     // returns immediately if there are records or times out returning an empty record set
@@ -74,37 +74,41 @@ public class Consumer extends Thread implements ConsumerRebalanceListener {
                     ConsumerRecords<Integer, Long> records = consumer.poll(Duration.ofSeconds(1));
                     for (ConsumerRecord<Integer, Long> record : records) {
 
-                        double latency = (double)(System.currentTimeMillis() - record.timestamp());
-                        kafkaData.digestConsumerLatency(latency);
                         kafkaData.incrementConsumed();
-   
-                        if (!consumeResults.containsKey(record.topic())) {
-                            consumeResults.put(record.topic(), new HashMap<>());
-                        }
 
-                        var dictionary = consumeResults.get(record.topic());
-                        var previousResult = dictionary.getOrDefault(record.key(), null);
-                        if (previousResult != null) {
-                            if (record.value() != previousResult.value() + 1) {
-                                Utils.printErr("Unexpected message value topic %s/%s [%d], Offset=%d/%d, LeaderEpoch=%d/%d Value=%d/%d %n"
-                                        , record.topic()
-                                        , record.key().toString(), record.partition()
-                                        , previousResult.offset(), record.offset()
-                                        , previousResult.leaderEpoch().orElse(-1), record.leaderEpoch().orElse(-1)
-                                        , previousResult.value(), record.value()
-                                );
+                        if (enableSequenceValidation)
+                        {
+                            double latency = (double)(System.currentTimeMillis() - record.timestamp());
+                            kafkaData.digestConsumerLatency(latency);
 
-                                if (record.value() < previousResult.value() + 1) {
-                                    kafkaData.incrementDuplicated();
-                                }
-
-                                if (record.value() > previousResult.value() + 1) {
-                                    kafkaData.incrementOutOfOrder();
-                                }                                        
+                            if (!consumeResults.containsKey(record.topic())) {
+                                consumeResults.put(record.topic(), new HashMap<>());
                             }
-                        }
 
-                        dictionary.put(record.key(), record);
+                            var dictionary = consumeResults.get(record.topic());
+                            var previousResult = dictionary.getOrDefault(record.key(), null);
+                            if (previousResult != null) {
+                                if (record.value() != previousResult.value() + 1) {
+                                    Utils.printErr("Unexpected message value topic %s/%s [%d], Offset=%d/%d, LeaderEpoch=%d/%d Value=%d/%d %n"
+                                            , record.topic()
+                                            , record.key().toString(), record.partition()
+                                            , previousResult.offset(), record.offset()
+                                            , previousResult.leaderEpoch().orElse(-1), record.leaderEpoch().orElse(-1)
+                                            , previousResult.value(), record.value()
+                                    );
+
+                                    if (record.value() < previousResult.value() + 1) {
+                                        kafkaData.incrementDuplicated();
+                                    }
+
+                                    if (record.value() > previousResult.value() + 1) {
+                                        kafkaData.incrementOutOfOrder();
+                                    }
+                                }
+                            }
+
+                            dictionary.put(record.key(), record);
+                        }                        
                     }
                 } catch (AuthorizationException | UnsupportedVersionException
                          | RecordDeserializationException e) {
