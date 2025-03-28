@@ -23,224 +23,233 @@ import java.util.Map;
 
 public class KafkaProperties {
     public CommandLine commandLine;
-    public int getNumberOfTopics()
-    {
-        return Integer.parseInt(commandLine.getOptionValue("topics"));
-    }
-    
-    public int getNumberOfPartitions()
-    {
-        return Integer.parseInt(commandLine.getOptionValue("partitions"));
-    }
-    
-    public int getReplicationFactor()
-    {
-        return Integer.parseInt(commandLine.getOptionValue("replication-factor"));
-    }
-    
-    public int getMinIsr()
-    {
-        return Integer.parseInt(commandLine.getOptionValue("min-isr"));
-    }
-    
-    public int getMessagesPerSecond()
-    {
-        return Integer.parseInt(commandLine.getOptionValue("messages-per-second"));
+
+    // Option objects as class members
+    private final Option config;
+    private final Option topics;
+    private final Option partitions;
+    private final Option replicationFactor;
+    private final Option minIsr;
+    private final Option messagesPerSecond;
+    private final Option producers;
+    private final Option recreateTopicsDelay;
+    private final Option recreateTopicsBatchSize;
+    private final Option topicStem;
+    private final Option recreateTopics;
+    private final Option burstMessagesPerSecond;
+    private final Option burstCycle;
+    private final Option burstDuration;
+    private final Option reportingCycle;
+    private final Option extraPayloadBytes;
+    private final Option avoidAllocations;
+    private final Option exitAfter;
+
+    public int getNumberOfTopics() {
+        return Integer.parseInt(commandLine.getOptionValue(topics.getLongOpt()));
     }
 
-    public int getNumberOfProducers()
-    {
-        if (!commandLine.hasOption("producers"))
+    public int getNumberOfPartitions() {
+        return Integer.parseInt(commandLine.getOptionValue(partitions.getLongOpt()));
+    }
+
+    public int getReplicationFactor() {
+        return Integer.parseInt(commandLine.getOptionValue(replicationFactor.getLongOpt()));
+    }
+
+    public int getMinIsr() {
+        return Integer.parseInt(commandLine.getOptionValue(minIsr.getLongOpt()));
+    }
+
+    public int getMessagesPerSecond() {
+        return Integer.parseInt(commandLine.getOptionValue(messagesPerSecond.getLongOpt()));
+    }
+
+    public int getNumberOfProducers() {
+        if (!commandLine.hasOption(producers.getLongOpt())) {
             return 1;
-        
-        return Integer.parseInt(commandLine.getOptionValue("producers"));
+        }
+        return Integer.parseInt(commandLine.getOptionValue(producers.getLongOpt()));
     }
 
-    public int getRecreateTopicsDelay()
-    {
-        if (!commandLine.hasOption("recreate-topics-delay"))
+    public int getRecreateTopicsDelay() {
+        if (!commandLine.hasOption(recreateTopicsDelay.getLongOpt())) {
             return 1;
-        
-        return Integer.parseInt(commandLine.getOptionValue("recreate-topics-delay"));
+        }
+        return Integer.parseInt(commandLine.getOptionValue(recreateTopicsDelay.getLongOpt()));
     }
 
-    public int getRecreateTopicsBatchSize()
-    {
-        if (!commandLine.hasOption("recreate-topics-batch-size"))
+    public int getRecreateTopicsBatchSize() {
+        if (!commandLine.hasOption(recreateTopicsBatchSize.getLongOpt())) {
             return 500;
-        
-        return Integer.parseInt(commandLine.getOptionValue("recreate-topics-batch-size"));
+        }
+        return Integer.parseInt(
+                commandLine.getOptionValue(recreateTopicsBatchSize.getLongOpt())
+        );
     }
 
-    public String getTopicStem()
-    {
-        if (!commandLine.hasOption("topic-stem"))
+    public String getTopicStem() {
+        if (!commandLine.hasOption(topicStem.getLongOpt())) {
             return "my-topic";
-        
-        return commandLine.getOptionValue("topic-stem");
+        }
+        return commandLine.getOptionValue(topicStem.getLongOpt());
     }
-    
-    public boolean getRecreateTopics()
-    {
-        if (!commandLine.hasOption("recreate-topics"))
+
+    public boolean getRecreateTopics() {
+        if (!commandLine.hasOption(recreateTopics.getLongOpt())) {
             return true;
-
-        return Boolean.parseBoolean(commandLine.getOptionValue("recreate-topics"));
+        }
+        return Boolean.parseBoolean(commandLine.getOptionValue(recreateTopics.getLongOpt()));
     }
 
-    public int getBurstMessagesPerSecond()
-    {
-        if (!commandLine.hasOption("burst-messages-per-second"))
+    public int getBurstMessagesPerSecond() {
+        if (!commandLine.hasOption(burstMessagesPerSecond.getLongOpt())) {
             return 0;
-
-        return Integer.parseInt(commandLine.getOptionValue("burst-messages-per-second"));
+        }
+        return Integer.parseInt(
+                commandLine.getOptionValue(burstMessagesPerSecond.getLongOpt())
+        );
     }
 
-    public int getBurstCycle()
-    {
-        if (!commandLine.hasOption("burst-cycle"))
+    public int getBurstCycle() {
+        if (!commandLine.hasOption(burstCycle.getLongOpt())) {
             return 0;
-
-        return Integer.parseInt(commandLine.getOptionValue("burst-cycle"));
+        }
+        return Integer.parseInt(commandLine.getOptionValue(burstCycle.getLongOpt()));
     }
 
-    public int getBurstDuration()
-    {
-        if (!commandLine.hasOption("burst-duration"))
+    public int getBurstDuration() {
+        if (!commandLine.hasOption(burstDuration.getLongOpt())) {
             return 0;
-
-        return Integer.parseInt(commandLine.getOptionValue("burst-duration"));
+        }
+        return Integer.parseInt(commandLine.getOptionValue(burstDuration.getLongOpt()));
     }
 
-    public int getReportingCycle()
-    {
-        if (!commandLine.hasOption("reporting-cycle"))
+    public int getReportingCycle() {
+        if (!commandLine.hasOption(reportingCycle.getLongOpt())) {
             return 10000;
-
-        return Integer.parseInt(commandLine.getOptionValue("reporting-cycle"));
+        }
+        return Integer.parseInt(commandLine.getOptionValue(reportingCycle.getLongOpt()));
     }
 
-    public int getExtraPayloadBytes()
-    {
-        if (!commandLine.hasOption("extra-payload-bytes"))
+    public int getExtraPayloadBytes() {
+        if (!commandLine.hasOption(extraPayloadBytes.getLongOpt())) {
             return 0;
-
-        return Integer.parseInt(commandLine.getOptionValue("extra-payload-bytes"));
+        }
+        return Integer.parseInt(commandLine.getOptionValue(extraPayloadBytes.getLongOpt()));
     }
 
-    public boolean getAvoidAllocations()
-    {
-        if (!commandLine.hasOption("avoid-allocations"))
+    public boolean getAvoidAllocations() {
+        if (!commandLine.hasOption(avoidAllocations.getLongOpt())) {
             return true;
-
-        return Boolean.parseBoolean(commandLine.getOptionValue("avoid-allocations"));
+        }
+        return Boolean.parseBoolean(commandLine.getOptionValue(avoidAllocations.getLongOpt()));
     }
 
-    public int getExitAfter()
-    {
-        if (!commandLine.hasOption("exit-after"))
+    public int getExitAfter() {
+        if (!commandLine.hasOption(exitAfter.getLongOpt())) {
             return 0;
-
-        return Integer.parseInt(commandLine.getOptionValue("exit-after"));
+        }
+        return Integer.parseInt(commandLine.getOptionValue(exitAfter.getLongOpt()));
     }
 
-    public String[] getArgs()
-    {
+    public String[] getArgs() {
         return commandLine.getArgs();
     }
 
-    public Map<String, String> getConfigs()
-    {
-        var strings = commandLine.getOptionValues("config");
+    public Map<String, String> getConfigs() {
+        var strings = commandLine.getOptionValues(config.getLongOpt());
         Map<String, String> map = new HashMap<>();
 
-        for (var s : strings) {
-            String[] parts = s.split("=", 2); // Split each string into key and value
-            if (parts.length != 2) {
-                throw new IllegalArgumentException("Invalid config string:" + s);
+        if (strings != null) {
+            for (var s : strings) {
+                String[] parts = s.split("=", 2); // Split each string into key and value
+                if (parts.length != 2) {
+                    throw new IllegalArgumentException("Invalid config string:" + s);
+                }
+                map.put(parts[0], parts[1]);
             }
-
-            map.put(parts[0], parts[1]);
         }
-        
-        return map;           
-    }    
+        return map;
+    }
 
-    KafkaProperties(String[] args) throws ParseException
-    {
-        var options = new Options();
-
-        var config = new Option("c", "config", true, "Additional configuration");
+    KafkaProperties(String[] args) throws ParseException {
+        // Initialize all option objects
+        config = new Option("c", "config", true, "Additional configuration");
         config.setRequired(false);
         config.setArgs(Option.UNLIMITED_VALUES);
-        options.addOption(config);
 
-        var topics = new Option(null, "topics", true, "Number of topics");
+        topics = new Option(null, "topics", true, "Number of topics");
         topics.setRequired(true);
-        options.addOption(topics);
 
-        var partitions = new Option(null, "partitions", true, "Number of partitions");
+        partitions = new Option(null, "partitions", true, "Number of partitions");
         partitions.setRequired(true);
-        options.addOption(partitions);
-        
-        var replicationFactor = new Option(null, "replication-factor", true, "Number of replicas");
+
+        replicationFactor = new Option(null, "replication-factor", true, "Number of replicas");
         replicationFactor.setRequired(true);
-        options.addOption(replicationFactor);
-        
-        var minIsr = new Option(null, "min-isr", true, "Minimum in-sync replicas");
+
+        minIsr = new Option(null, "min-isr", true, "Minimum in-sync replicas");
         minIsr.setRequired(true);
-        options.addOption(minIsr);
 
-        var messagesPerSecond = new Option(null, "messages-per-second", true, "Messages per second");
+        messagesPerSecond = new Option(null, "messages-per-second", true, "Messages per second");
         messagesPerSecond.setRequired(true);
-        options.addOption(messagesPerSecond);
-        
-        var producers = new Option(null, "producers", true, "Number of producers (default 1)");
+
+        producers = new Option(null, "producers", true, "Number of producers (default 1)");
         producers.setRequired(false);
-        options.addOption(producers);
-       
-        var recreateTopicsDelay = new Option(null, "recreate-topics-delay", true, "Delay after crating a batch of topics (default 1ms)");
+
+        recreateTopicsDelay = new Option(null, "recreate-topics-delay", true,                "Delay after creating a batch of topics (default 1ms)");
         recreateTopicsDelay.setRequired(false);
-        options.addOption(recreateTopicsDelay);
-          
-        var recreateTopicsBatch = new Option(null, "recreate-topics-batch-size", true, "Size of the batch of topics to create (default 500)");
-        recreateTopicsBatch.setRequired(false);
-        options.addOption(recreateTopicsBatch);
 
-        var topicStem = new Option(null, "topic-stem", true, "Topic stem");
+        recreateTopicsBatchSize = new Option(null, "recreate-topics-batch-size", true,                "Size of the batch of topics to create (default 500)");
+        recreateTopicsBatchSize.setRequired(false);
+
+        topicStem = new Option(null, "topic-stem", true, "Topic stem");
         topicStem.setRequired(false);
-        options.addOption(topicStem);
-        
-        var recreateTopics = new Option(null, "recreate-topics", true, "Recreate topics?");
+
+        recreateTopics = new Option(null, "recreate-topics", true, "Recreate topics?");
         recreateTopics.setRequired(false);
-        options.addOption(recreateTopics);
-        
-        var burstMessagesPerSecond = new Option(null, "burst-messages-per-second", true, "Number of messages per second (burst)");
+
+        burstMessagesPerSecond = new Option(null, "burst-messages-per-second", true,                "Number of messages per second (burst)");
         burstMessagesPerSecond.setRequired(false);
-        options.addOption(burstMessagesPerSecond);
-        
-        var burstCycle = new Option(null, "burst-cycle", true, "Burst cycle in ms");
+
+        burstCycle = new Option(null, "burst-cycle", true, "Burst cycle in ms");
         burstCycle.setRequired(false);
-        options.addOption(burstCycle);
 
-        var burstDuration = new Option(null, "burst-duration", true, "Burst duration in ms");
+        burstDuration = new Option(null, "burst-duration", true, "Burst duration in ms");
         burstDuration.setRequired(false);
-        options.addOption(burstDuration);
-        
-        var reportingCycle = new Option(null, "reporting-cycle", true, "Reporting cycle in ms");
-        reportingCycle.setRequired(false);
-        options.addOption(reportingCycle);
 
-        var extraPayloadBytes = new Option(null, "extra-payload-bytes", true, "Additional payload in bytes");
+        reportingCycle = new Option(null, "reporting-cycle", true, "Reporting cycle in ms");
         reportingCycle.setRequired(false);
-        options.addOption(extraPayloadBytes);
 
-        var avoidAllocations = new Option(null, "avoid-allocations", true, "Avoid unnecessary memory allocations");
+        extraPayloadBytes = new Option(null, "extra-payload-bytes", true,
+                "Additional payload in bytes");
+        extraPayloadBytes.setRequired(false);
+
+        avoidAllocations = new Option(null, "avoid-allocations", true,
+                "Avoid unnecessary memory allocations");
         avoidAllocations.setRequired(false);
-        options.addOption(avoidAllocations);
 
-        var exitAfter = new Option(null, "exit-after", true, "Exits after provided amount of seconds");
+        exitAfter = new Option(null, "exit-after", true,"Exits after provided amount of seconds");
         exitAfter.setRequired(false);
+
+        // Create options object and add all options
+        var options = new Options();
+        options.addOption(config);
+        options.addOption(topics);
+        options.addOption(partitions);
+        options.addOption(replicationFactor);
+        options.addOption(minIsr);
+        options.addOption(messagesPerSecond);
+        options.addOption(producers);
+        options.addOption(recreateTopicsDelay);
+        options.addOption(recreateTopicsBatchSize);
+        options.addOption(topicStem);
+        options.addOption(recreateTopics);
+        options.addOption(burstMessagesPerSecond);
+        options.addOption(burstCycle);
+        options.addOption(burstDuration);
+        options.addOption(reportingCycle);
+        options.addOption(extraPayloadBytes);
+        options.addOption(avoidAllocations);
         options.addOption(exitAfter);
 
         CommandLineParser parser = new DefaultParser();

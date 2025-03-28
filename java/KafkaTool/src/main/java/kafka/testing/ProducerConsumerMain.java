@@ -48,6 +48,7 @@ public class ProducerConsumerMain {
                 for (var producer : producers) {
                     allThreadsAreAlive = allThreadsAreAlive && producer.isAlive();
                 }
+                Thread.sleep(1000);
             } while(allThreadsAreAlive);
 
         } catch (Throwable e) {

@@ -25,6 +25,7 @@ public class ConsumerMain {
             do {
                 allThreadsAreAlive = allThreadsAreAlive && consumer.isAlive();
                 allThreadsAreAlive = allThreadsAreAlive && reporter.isAlive();
+                Thread.sleep(1000);
             } while(allThreadsAreAlive);
 
         } catch (Throwable e) {
