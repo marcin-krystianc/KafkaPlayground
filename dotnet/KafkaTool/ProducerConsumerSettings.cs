@@ -89,9 +89,14 @@ public class ProducerConsumerSettings : KafkaSettings
     [Description("Avoid unnecessary memory allocations")]
     [DefaultValue(true)]
     public bool AvoidAllocations { get; set; }
-    
+
     [CommandOption("--exit-after")]
     [Description("Exits after provided amount of seconds")]
     [DefaultValue(0)]
     public long ExitAfter { get; set; }
+
+    [CommandOption("--enable-sequence-validation")]
+    [Description("Indicates that the consumer will not validate whether the messages are in sequence.")]
+    [DefaultValue(true)]
+    public bool EnableSequenceValidation { get; set; }
 }
