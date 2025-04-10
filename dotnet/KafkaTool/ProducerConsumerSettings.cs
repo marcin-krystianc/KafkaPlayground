@@ -92,7 +92,7 @@ public class ProducerConsumerSettings : KafkaSettings
 
     [CommandOption("--exit-after")]
     [Description("Exits after provided amount of seconds")]
-    [DefaultValue(0)]
+    [DefaultValue((long)0)]
     public long ExitAfter { get; set; }
 
     [CommandOption("--enable-sequence-validation")]
