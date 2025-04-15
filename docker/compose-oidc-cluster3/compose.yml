@@ -28,7 +28,7 @@ services:
     container_name: kafka-1
     environment:
       KAFKA_NODE_ID: 1
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092
+      KAFKA_ADVERTISED_LISTENERS: CLIENT://kafka-1:9092,INTER_BROKER://kafka-1:9094
 
   kafka-2:
     <<: *kafka-defaults
@@ -36,7 +36,7 @@ services:
     container_name: kafka-2
     environment:
       KAFKA_NODE_ID: 2
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092
+      KAFKA_ADVERTISED_LISTENERS: CLIENT://kafka-2:9092,INTER_BROKER://kafka-2:9094
 
   kafka-3:
     <<: *kafka-defaults
@@ -44,7 +44,7 @@ services:
     container_name: kafka-3
     environment:
       KAFKA_NODE_ID: 3
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:9092
+      KAFKA_ADVERTISED_LISTENERS: CLIENT://kafka-3:9092,INTER_BROKER://kafka-3:9094
 
   kafdrop:
     image: obsidiandynamics/kafdrop
