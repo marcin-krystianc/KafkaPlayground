@@ -1,10 +1,20 @@
+x-kafka-defaults: &kafka-defaults
+  image: strimzi/example-kafka
+  cap_add:
+    - NET_ADMIN
+  deploy:
+    resources:
+      limits:
+        cpus: '2'
+
 services:
 
   #################################### KAFKA BROKER ####################################
   kafka:
-    image: strimzi/example-kafka
-    build: kafka-oauth-strimzi/kafka
-    container_name: kafka
+    <<: *kafka-defaults  
+    build: kafka
+    hostname: kafka-1
+    container_name: kafka-1
     ports:
       - 9092:9092
 
@@ -71,6 +81,8 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:23.0.5
+    hostname: keycloak
+    container_name: keycloak
     ports:
       - "8080:8080"
       - "8443:8443"
@@ -86,3 +98,7 @@ services:
       - KC_HOSTNAME=keycloak
       - KC_HOSTNAME_ADMIN_URL=https://keycloak:8443
       - KC_HTTP_ENABLED=true
+      
+networks:
+  default:
+    name: kafka
