@@ -96,7 +96,11 @@ public static class Utils
 
     public static IAdminClient GetAdminClient(IEnumerable<KeyValuePair<string, string>> configuration)
     {
-        return new AdminClientBuilder(configuration.AsEnumerable())
+        var adminConfig = new AdminClientConfig
+        {
+        };
+        
+        return new AdminClientBuilder(adminConfig.AsEnumerable().Concat(configuration.AsEnumerable()))
             .SetErrorHandler((_, e) => Log.Log(LogLevel.Error,
                 $"Admin error: reason={e.Reason}, IsLocal={e.IsLocalError}, IsBroker={e.IsBrokerError}, IsFatal={e.IsFatal}, IsCode={e.Code}"))
             .SetLogHandler((_, m) => Log.Log(LogLevel.Information,

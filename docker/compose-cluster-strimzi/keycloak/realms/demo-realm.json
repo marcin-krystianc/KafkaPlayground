@@ -1,6 +1,6 @@
 {
   "realm": "demo",
-  "accessTokenLifespan": 300,
+  "accessTokenLifespan": 30,
   "ssoSessionMaxLifespan": 32140800,
   "ssoSessionIdleTimeout": 32140800,
   "enabled": true,
@@ -178,7 +178,7 @@
       "consentRequired" : false,
       "fullScopeAllowed" : false,
       "attributes": {
-        "access.token.lifespan": "32140800"
+        "access.token.lifespan": "30"
       }
     },
     {
@@ -195,7 +195,7 @@
       "consentRequired" : false,
       "fullScopeAllowed" : false,
       "attributes": {
-        "access.token.lifespan": "36000"
+        "access.token.lifespan": "30"
       }
     },
     {
@@ -212,7 +212,7 @@
       "consentRequired" : false,
       "fullScopeAllowed" : false,
       "attributes": {
-        "access.token.lifespan": "32140800"
+        "access.token.lifespan": "30"
       }
     }
   ]
