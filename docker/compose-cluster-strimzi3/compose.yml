@@ -55,6 +55,20 @@ services:
     environment:
       KAFKA_NODE_ID: "3"
 
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    hostname: kafdrop
+    container_name: kafdrop
+    ports:
+      - 9000:9000
+    environment:
+      KAFKA_BROKERCONNECT: kafka-1:9093
+      SERVER_SERVLET_CONTEXTPATH: "/"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+
   keycloak:
     image: quay.io/keycloak/keycloak:23.0.5
     hostname: keycloak
