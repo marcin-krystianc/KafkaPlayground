@@ -178,7 +178,7 @@
       "consentRequired" : false,
       "fullScopeAllowed" : false,
       "attributes": {
-        "access.token.lifespan": "30"
+        "access.token.lifespan": "31"
       }
     },
     {
@@ -195,7 +195,7 @@
       "consentRequired" : false,
       "fullScopeAllowed" : false,
       "attributes": {
-        "access.token.lifespan": "30"
+        "access.token.lifespan": "31"
       }
     },
     {
@@ -212,7 +212,7 @@
       "consentRequired" : false,
       "fullScopeAllowed" : false,
       "attributes": {
-        "access.token.lifespan": "30"
+        "access.token.lifespan": "31"
       }
     }
   ]

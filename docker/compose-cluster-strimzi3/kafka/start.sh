@@ -20,7 +20,7 @@ else
   cp $SERVER_PROPERTIES_FILE /tmp/strimzi.properties
 fi
 
-KAFKA_CLUSTER_ID="$(/opt/kafka/bin/kafka-storage.sh random-uuid)"
+KAFKA_CLUSTER_ID="4L6g3nShT-eMCtK--X86sw"
 /opt/kafka/bin/kafka-storage.sh format -t $KAFKA_CLUSTER_ID -c /tmp/strimzi.properties \
     --add-scram 'SCRAM-SHA-512=[name=admin,password=admin-secret]' \
     --add-scram 'SCRAM-SHA-512=[name=alice,password=alice-secret]'
