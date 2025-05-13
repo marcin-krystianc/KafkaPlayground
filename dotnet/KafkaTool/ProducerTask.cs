@@ -18,23 +18,6 @@ namespace KafkaTool;
 
 public static class ProducerTask
 {
-    private static long GetTokenExpirationTime(string token)
-    {
-        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-        var jwtSecurityToken = handler.ReadJwtToken(token);
-
-        var tokenExp = jwtSecurityToken.Claims.First(claim => claim.Type.Equals("exp", StringComparison.Ordinal)).Value;
-        var ticks = long.Parse(tokenExp, CultureInfo.InvariantCulture);
-        return ticks;
-    }
-
-    private static string GetTokenSubject(string token)
-    {
-        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-        var jwtSecurityToken = handler.ReadJwtToken(token);
-        return jwtSecurityToken.Claims.First(claim => claim.Type.Equals("sub", StringComparison.Ordinal)).Value;
-    }
-    
     private static readonly ILogger Log = LoggerFactory
         .Create(builder => builder.AddSimpleConsole(options =>
         {
@@ -68,7 +51,7 @@ public static class ProducerTask
                 ClientId = $"rdkafka-producer-{producerIndex}",
             };
 
-            var producer = new ProducerBuilder<byte[], byte[]>(
+            var producerBuilder = new ProducerBuilder<byte[], byte[]>(
                     producerConfig.AsEnumerable().Concat(configuration.AsEnumerable()))
                 .SetLogHandler(
                     (a, b) =>
@@ -79,41 +62,21 @@ public static class ProducerTask
                             logger.LogInformation($"kafka-log Facility:{b.Facility}, Message{b.Message}");
                         }
                     })
-                .SetOAuthBearerTokenRefreshHandler(async (client, cfg) =>
-                {
-                    var tokenEndpoint = "http://keycloak:8080/realms/demo/protocol/openid-connect/token";
-                    var clientId = "kafka-producer-client";
-                    var clientSecret = "kafka-producer-client-secret";
-
-                    logger.LogInformation("Getting token {0} {1}", tokenEndpoint, clientId);
-
-                    var accessTokenClient = new HttpClient();
-
-                    var accessToken = await accessTokenClient.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
-                    {
-                        Address = tokenEndpoint,
-                        ClientId = clientId,
-                        ClientSecret = clientSecret,
-                        GrantType = "client_credentials"
-                    });
-                    var tokenTicks = GetTokenExpirationTime(accessToken.AccessToken);
-                    var subject = GetTokenSubject(accessToken.AccessToken);
-                    var tokenDate = DateTimeOffset.FromUnixTimeSeconds(tokenTicks);
-                    var timeSpan = new DateTime() - tokenDate;
-                    var ms = tokenDate.ToUnixTimeMilliseconds();
-                    logger.LogInformation("Producer got token {0}", ms);
-
-                    client.OAuthBearerSetToken(accessToken.AccessToken, ms, subject);
-                })
                 .SetErrorHandler((_, e) => logger.Log(LogLevel.Error,
                     $"Producer error: reason={e.Reason}, IsLocal={e.IsLocalError}, IsBroker={e.IsBrokerError}, IsFatal={e.IsFatal}, IsCode={e.Code}"))
-                .SetStatisticsHandler( (_, json) =>
+                .SetStatisticsHandler((_, json) =>
                 {
                     string formattedJson = System.Text.Json.Nodes.JsonNode.Parse(json).ToString();
                     File.WriteAllText(settings.StatisticsPath, formattedJson);
-                })
-                .Build();
+                });
 
+            if (settings.SetOAuthTokenCallback)
+            {
+                producerBuilder.SetOAuthBearerTokenRefreshHandler(async (client, cfg) =>
+                    OAuthHelper.SetOAuthBearerTokenRefreshHandler(client, cfg, logger));
+            }
+
+            var producer = producerBuilder.Build();
             var keyBytes = new byte[sizeof(int)];
             var payloadBytes = new byte[sizeof(long) + settings.ExtraPayloadBytes];
             new Random().NextBytes(payloadBytes);

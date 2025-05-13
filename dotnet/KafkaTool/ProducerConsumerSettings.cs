@@ -99,4 +99,9 @@ public class ProducerConsumerSettings : KafkaSettings
     [Description("Indicates that the consumer will not validate whether the messages are in sequence.")]
     [DefaultValue(true)]
     public bool EnableSequenceValidation { get; set; }
+
+    [CommandOption("--set-oauth-token-callback")]
+    [Description("Sets the OIDCtoken refresh callback")]
+    [DefaultValue(false)]
+    public bool SetOAuthTokenCallback { get; set; }
 }
