@@ -72,50 +72,57 @@ public static class ConsumerTask
 
             var offsetDictionary = new ConcurrentDictionary<TopicPartition, Offset>();
 
-            using (var consumer = new ConsumerBuilder<int, long>(
-                           consumerConfiguration.AsEnumerable())
-                       .SetErrorHandler((_, e) =>
-                       {
-                           if (!errorLogged)
-                           {
-                               logger.Log(LogLevel.Error,
-                                   $"Consumer error: reason={e.Reason}, IsLocal={e.IsLocalError}, IsBroker={e.IsBrokerError}, IsFatal={e.IsFatal}, IsCode={e.Code}");
-                           }
+            var consumerBuilder = new ConsumerBuilder<int, long>(
+                    consumerConfiguration.AsEnumerable())
+                .SetErrorHandler((_, e) =>
+                {
+                    if (!errorLogged)
+                    {
+                        logger.Log(LogLevel.Error,
+                            $"Consumer error: reason={e.Reason}, IsLocal={e.IsLocalError}, IsBroker={e.IsBrokerError}, IsFatal={e.IsFatal}, IsCode={e.Code}");
+                    }
 
-                           errorLogged = true;
-                       })
-                       .SetLogHandler((_, m) => logger.Log(LogLevel.Information,
-                           $"Consumer log: message={m.Message}, name={m.Name}, facility={m.Facility}, level={m.Level}"))
-                       .SetPartitionsAssignedHandler((c, topicPartitions) =>
-                       {
-                           logger.Log(LogLevel.Information,
-                               $"Consumer log: PartitionsAssignedHandler: count={topicPartitions.Count}");
-                
-                           
-                           // Example: Set all partitions to start from the beginning
-                           var offsets = new List<TopicPartitionOffset>();
-                           foreach (var topicPartition in topicPartitions)
-                           {
-                               if (offsetDictionary.TryGetValue(topicPartition, out var offset))
-                               {
-                                   offsets.Add(new TopicPartitionOffset(topicPartition, offset + 1));
-                               }
-                               else
-                               {                            
-                                   offsets.Add(new TopicPartitionOffset(topicPartition, Offset.Unset));
-                               }
-                           }
+                    errorLogged = true;
+                })
+                .SetLogHandler((_, m) => logger.Log(LogLevel.Information,
+                    $"Consumer log: message={m.Message}, name={m.Name}, facility={m.Facility}, level={m.Level}"))
+                .SetPartitionsAssignedHandler((c, topicPartitions) =>
+                {
+                    logger.Log(LogLevel.Information,
+                        $"Consumer log: PartitionsAssignedHandler: count={topicPartitions.Count}");
 
-                           // Assign the partitions with the specified offsets
-                           return offsets;
-                           
-                       })
-                       .SetPartitionsRevokedHandler((_, l) => logger.Log(LogLevel.Information,
-                           $"Consumer log: PartitionsRevokedHandler: count={l.Count}"))
-                       .SetPartitionsLostHandler((_, l) => logger.Log(LogLevel.Information,
-                           $"Consumer log: PartitionsLostHandler: count={l.Count}"))
-                       .SetValueDeserializer(new MyInt64Deserializer())
-                       .Build())
+
+                    // Example: Set all partitions to start from the beginning
+                    var offsets = new List<TopicPartitionOffset>();
+                    foreach (var topicPartition in topicPartitions)
+                    {
+                        if (offsetDictionary.TryGetValue(topicPartition, out var offset))
+                        {
+                            offsets.Add(new TopicPartitionOffset(topicPartition, offset + 1));
+                        }
+                        else
+                        {
+                            offsets.Add(new TopicPartitionOffset(topicPartition, Offset.Unset));
+                        }
+                    }
+
+                    // Assign the partitions with the specified offsets
+                    return offsets;
+
+                })
+                .SetPartitionsRevokedHandler((_, l) => logger.Log(LogLevel.Information,
+                    $"Consumer log: PartitionsRevokedHandler: count={l.Count}"))
+                .SetPartitionsLostHandler((_, l) => logger.Log(LogLevel.Information,
+                    $"Consumer log: PartitionsLostHandler: count={l.Count}"))
+                .SetValueDeserializer(new MyInt64Deserializer());
+            
+            if (settings.SetOAuthTokenCallback)
+            {
+                consumerBuilder.SetOAuthBearerTokenRefreshHandler(async (client, cfg) =>
+                    OAuthHelper.SetOAuthBearerTokenRefreshHandler(client, cfg, logger));
+            }
+
+            using (var consumer = consumerBuilder.Build())
             {
                 var topics = Enumerable.Range(0, settings.Topics)
                     .Select(x => Utils.GetTopicName(settings.TopicStem, x))

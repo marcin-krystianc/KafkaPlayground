@@ -94,25 +94,32 @@ public static class Utils
         }
     }
 
-    public static IAdminClient GetAdminClient(IEnumerable<KeyValuePair<string, string>> configuration)
+    public static IAdminClient GetAdminClient(ProducerConsumerSettings settings)
     {
         var adminConfig = new AdminClientConfig
         {
         };
-        
-        return new AdminClientBuilder(adminConfig.AsEnumerable().Concat(configuration.AsEnumerable()))
+
+        var adminClientBuilder = new AdminClientBuilder(adminConfig.AsEnumerable().Concat(settings.ConfigDictionary.AsEnumerable()))
             .SetErrorHandler((_, e) => Log.Log(LogLevel.Error,
                 $"Admin error: reason={e.Reason}, IsLocal={e.IsLocalError}, IsBroker={e.IsBrokerError}, IsFatal={e.IsFatal}, IsCode={e.Code}"))
             .SetLogHandler((_, m) => Log.Log(LogLevel.Information,
-                $"Admin log: message={m.Message}, name={m.Name}, facility={m.Facility}, level={m.Level}"))
-            .Build();
+                $"Admin log: message={m.Message}, name={m.Name}, facility={m.Facility}, level={m.Level}"));
+
+        if (settings.SetOAuthTokenCallback)
+        {
+            adminClientBuilder.SetOAuthBearerTokenRefreshHandler(async (client, cfg) =>
+                OAuthHelper.SetOAuthBearerTokenRefreshHandler(client, cfg, Log));
+        }
+
+        return adminClientBuilder.Build();
     }
 
     public static async Task RecreateTopics(ProducerConsumerSettings settings)
     {
-        using var adminClient = Utils.GetAdminClient(settings.ConfigDictionary);
+        using var adminClient = GetAdminClient(settings);
 
-        var existingTopics = Utils.GetExistingTopics(adminClient);
+        var existingTopics = GetExistingTopics(adminClient);
             
         foreach (var batch in Enumerable.Range(0, settings.Topics)
                      .Select(x => Utils.GetTopicName(settings.TopicStem, x))

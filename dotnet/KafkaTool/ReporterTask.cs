@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -22,12 +23,16 @@ public static class ReporterTask
         {       
             Log.Log(LogLevel.Information, $"settings: {JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true } )}");
 
+            using var adminClient = Utils.GetAdminClient(settings);
+            
             var sw = Stopwatch.StartNew();
             var prevProduced = 0L;
             var prevConsumed = 0L;
+            var delay = true;
             for (;;)
             {
-                await Task.Delay(TimeSpan.FromMilliseconds(settings.ReportingCycle));
+                if (delay) await Task.Delay(TimeSpan.FromMilliseconds(settings.ReportingCycle));
+                delay = false;
                 var totalProduced = data.GetProduced();
                 var totalConsumed = data.GetConsumed();
                 var outOfSequence = data.GetOutOfOrder();
@@ -38,12 +43,33 @@ public static class ReporterTask
                 var newlyConsumed = totalConsumed - prevConsumed;
                 prevProduced = totalProduced;
                 prevConsumed = totalConsumed;
+                try
+                {
+                    var metadata = adminClient.GetMetadata(TimeSpan.FromSeconds(1));
 
-                Log.Log(LogLevel.Information,
-                    $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, {totalProduced} (+{newlyProduced}, p95={producerLatency.Quantile(0.95):0.}ms) messages produced, {totalConsumed} (+{newlyConsumed}, p95={consumerLatency.Quantile(0.95):0.}ms) messages consumed, {duplicated} duplicated, {outOfSequence} out of sequence.");
+                    var numberOfTopics = metadata.Topics.Count;
+                    var isrCount = metadata.Topics
+                        .SelectMany(x => x.Partitions)
+                        .SelectMany(x => x.InSyncReplicas)
+                        .Count();
 
-                if (settings.ExitAfter > 0 && sw.Elapsed.TotalSeconds > settings.ExitAfter)
-                    return;
+                    var replicaCount = metadata.Topics
+                        .SelectMany(x => x.Partitions)
+                        .SelectMany(x => x.Replicas)
+                        .Count();
+                    
+                    Log.Log(LogLevel.Information,
+                        $"Elapsed: {(int)sw.Elapsed.TotalSeconds}s, Produced: {totalProduced} (+{newlyProduced}, p95={producerLatency.Quantile(0.95):0.}ms), Consumed: {totalConsumed} (+{newlyConsumed}, p95={consumerLatency.Quantile(0.95):0.}ms)" + 
+                        $" Dup/Seq={duplicated}/{outOfSequence}, Topics={numberOfTopics}, Replicas/ISR={replicaCount}/{isrCount}.");
+
+                    if (settings.ExitAfter > 0 && sw.Elapsed.TotalSeconds > settings.ExitAfter)
+                        return;
+                    delay = true;
+                }
+                catch (Exception e)
+                {
+                    Log.LogError($"Exception: {e}");
+                }
             }
         });
     }

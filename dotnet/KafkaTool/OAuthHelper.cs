@@ -10,14 +10,11 @@ namespace KafkaTool;
 
 public static class OAuthHelper
 {
-    public static async void SetOAuthBearerTokenRefreshHandler<TKey, TValue>(IProducer<TKey, TValue> client, string cfg, ILogger logger)
+    public static async void SetOAuthBearerTokenRefreshHandler(IClient client, string cfg, ILogger logger)
     {
         var tokenEndpoint = "http://keycloak:8080/realms/demo/protocol/openid-connect/token";
         var clientId = "kafka-producer-client";
         var clientSecret = "kafka-producer-client-secret";
-
-        logger.LogInformation("Getting token {0} {1}", tokenEndpoint, clientId);
-
         var accessTokenClient = new HttpClient();
 
         var accessToken = await accessTokenClient.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
@@ -32,8 +29,9 @@ public static class OAuthHelper
         var tokenDate = DateTimeOffset.FromUnixTimeSeconds(tokenTicks);
         var timeSpan = new DateTime() - tokenDate;
         var ms = tokenDate.ToUnixTimeMilliseconds();
-        logger.LogInformation("Producer got token {0}", ms);
 
+        logger.LogInformation("Got new token, Subject:{0}, tokenDater:{1}", subject, tokenDate);
+        
         client.OAuthBearerSetToken(accessToken.AccessToken, ms, subject);
     }
 
