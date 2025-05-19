@@ -24,13 +24,13 @@ public static class OAuthHelper
             ClientSecret = clientSecret,
             GrantType = "client_credentials"
         });
+        
         var tokenTicks = GetTokenExpirationTime(accessToken.AccessToken);
         var subject = GetTokenSubject(accessToken.AccessToken);
         var tokenDate = DateTimeOffset.FromUnixTimeSeconds(tokenTicks);
-        var timeSpan = new DateTime() - tokenDate;
         var ms = tokenDate.ToUnixTimeMilliseconds();
 
-        logger.LogInformation("Got new token, Subject:{0}, tokenDater:{1}", subject, tokenDate);
+        logger.LogInformation("Got a new token, Subject:{0}, tokenDater:{1}", subject, tokenDate);
         
         client.OAuthBearerSetToken(accessToken.AccessToken, ms, subject);
     }
