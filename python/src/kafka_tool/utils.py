@@ -3,6 +3,7 @@ import logging
 import time
 import threading
 from typing import Dict, Sequence
+import requests
 
 from confluent_kafka.admin import AdminClient, NewTopic
 
@@ -77,7 +78,23 @@ def run_tasks(threads: Sequence[threading.Thread], shutdown: threading.Event):
     shutdown.set()
     for thread in threads:
         thread.join(timeout=10.0)
+def oauth_cb(args, config):
+    """Note here value of config comes from sasl.oauthbearer.config below.
+    It is not used in this example but you can put arbitrary values to
+    configure how you can get the token (e.g. which token URL to use)
+    """
 
+    token_url = "http://keycloak:8080/realms/demo/protocol/openid-connect/token"
+    client_id = "kafka-producer-client"
+    client_secret = "kafka-producer-client-secret"
+
+    payload = {
+     'grant_type': 'client_credentials',
+     'scope': ' '.join(args.scopes)
+    }
+    resp = requests.post(token_url, auth=(client_id, client_secret), data=payload)
+    token = resp.json()
+    return token['access_token'], time.time() + float(token['expires_in'])
 
 def batched(iterable, n):
     it = iter(iterable)

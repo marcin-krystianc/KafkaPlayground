@@ -73,6 +73,11 @@ def main():
         type=int,
         help="Number of messages to send per-second for each producer task",
         default=default_settings.messages_per_second)
+    arg_parser.add_argument(
+        "--set-oauth-token-callback",
+        type=bool,
+        help="Sets the OIDCtoken refresh callback",
+        default=default_settings.set_oauth_token_callback)
 
     args = arg_parser.parse_args()
 
@@ -87,6 +92,7 @@ def main():
         replication_factor=args.replication_factor,
         min_isr=args.min_isr,
         messages_per_second=args.messages_per_second,
+        set_oauth_token_callback=args.set_oauth_token_callback,
     )
 
     logging.basicConfig(level=logging.INFO)

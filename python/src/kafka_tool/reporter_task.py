@@ -3,12 +3,14 @@ import time
 import threading
 
 from .data import ProducerConsumerData
-
+from .utils import get_admin_client
+from typing import Dict
 
 log = logging.getLogger(__name__)
 
 
 def run_reporter_task(
+        config: Dict[str, str],
         data: ProducerConsumerData,
         shutdown: threading.Event):
     start = time.monotonic()
@@ -16,6 +18,7 @@ def run_reporter_task(
     prev_consumed = 0
 
     log.info("Running reporter task")
+    admin_client = get_admin_client(config);
 
     while True:
         for _ in range(10):
@@ -28,6 +31,7 @@ def run_reporter_task(
         newly_consumed = consumed - prev_consumed
         prev_produced = produced
         prev_consumed = consumed
+        admin_client.admin_client.list_topics(timeout=30).topics;
 
         elapsed_s = int(time.monotonic() - start)
         log.info(

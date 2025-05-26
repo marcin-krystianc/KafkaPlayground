@@ -17,7 +17,7 @@ public static class Utils
             options.SingleLine = true;
             options.TimestampFormat = "HH:mm:ss ";
         }))
-        .CreateLogger("Log");
+        .CreateLogger("UtilsLog");
     
     public static string GetTopicName(string topicStem, int i)
     {

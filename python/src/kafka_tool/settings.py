@@ -12,6 +12,7 @@ class ProducerConsumerSettings:
     replication_factor: int = 2
     min_isr: int = 1
     messages_per_second: int = 1_000
+    set_oauth_token_callback: bool = False
 
     @property
     def recreate_topics_delay_s(self) -> float:
