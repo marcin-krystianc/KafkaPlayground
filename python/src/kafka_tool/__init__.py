@@ -74,6 +74,11 @@ def main():
         help="Number of messages to send per-second for each producer task",
         default=default_settings.messages_per_second)
     arg_parser.add_argument(
+        "--recreate-topics",
+        type=lambda x: (str(x).lower() in ['true','1', 'yes']),
+        help="Recreate topics?",
+        default=True)
+    arg_parser.add_argument(
         "--set-oauth-token-callback",
         type=bool,
         help="Sets the OIDCtoken refresh callback",
@@ -93,18 +98,20 @@ def main():
         min_isr=args.min_isr,
         messages_per_second=args.messages_per_second,
         set_oauth_token_callback=args.set_oauth_token_callback,
+        recreate_topics=args.recreate_topics,
     )
 
     logging.basicConfig(level=logging.INFO)
 
     log.info("confluent_kafka version = %s", confluent_kafka.__version__)
+    log.info("args = %s", args)
+    log.info("settings = %s", settings)
 
     {
         'producer': run_producer,
         'consumer': run_consumer,
         'producer-consumer': run_producer_consumer,
     }[args.command](config, settings)
-
 
 class StoreConfigEntry(argparse.Action):
     def __init__(self, option_strings, dest, **kwargs):

@@ -31,7 +31,7 @@ def run_reporter_task(
         newly_consumed = consumed - prev_consumed
         prev_produced = produced
         prev_consumed = consumed
-        admin_client.admin_client.list_topics(timeout=30).topics;
+        # admin_client.admin_client.list_topics(timeout=30).topics;
 
         elapsed_s = int(time.monotonic() - start)
         log.info(

@@ -10,7 +10,9 @@ from .utils import recreate_topics, run_tasks
 
 
 def run_producer_consumer(config: Dict[str, str], settings: ProducerConsumerSettings) -> None:
-    recreate_topics(config, settings)
+    if settings.recreate_topics:
+        recreate_topics(config, settings)
+
     data = ProducerConsumerData()
     # Make sure we have enough threads to run all producers, consumer and reporter:
     shutdown = threading.Event()
