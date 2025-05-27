@@ -6,6 +6,7 @@ class ProducerConsumerSettings:
     producers: int = 1
     topics: int = 1
     topic_stem: str = "my-topic"
+    reporting_cycle: int = 1000
     recreate_topics_batch_size: int = 500
     recreate_topics_delay_ms: int = 1_000
     partitions: int = 10

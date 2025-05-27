@@ -2,6 +2,7 @@ import logging
 import time
 import threading
 
+from .settings import ProducerConsumerSettings
 from .data import ProducerConsumerData
 from .utils import get_admin_client
 from typing import Dict
@@ -11,6 +12,7 @@ log = logging.getLogger(__name__)
 
 def run_reporter_task(
         config: Dict[str, str],
+        settings: ProducerConsumerSettings,
         data: ProducerConsumerData,
         shutdown: threading.Event):
     start = time.monotonic()
@@ -23,7 +25,7 @@ def run_reporter_task(
     while True:
         for _ in range(10):
             if not shutdown.is_set():
-                time.sleep(1.0)
+                time.sleep(settings.reporting_cycle / 1000.0 / 10)
             else:
                 return
         consumed, produced, duplicated, out_of_order = data.get_stats()

@@ -8,10 +8,15 @@ from confluent_kafka import Producer, KafkaError
 from .data import ProducerConsumerData
 from .settings import ProducerConsumerSettings
 from .utils import get_admin_client, get_topic_name
-
+from threading import Thread
+import functools
 
 log = logging.getLogger(__name__)
 
+
+def _poll_loop(producer):
+    while True:
+        producer.poll(0.1)
 
 def run_producer_task(
         config: Dict[str, str],
@@ -31,8 +36,12 @@ def run_producer_task(
 
     exception = None
 
+    poll_thread = Thread(target=functools.partial(_poll_loop, producer))
+    poll_thread.start()
+
     def delivery_report(err, msg):
         nonlocal exception
+
         if err is not None:
             log.error(f"Delivery failed for {msg.topic()}: {err}")
             if exception is None:
@@ -45,6 +54,8 @@ def run_producer_task(
                     f", IsLocalError = {err.retriable()}"
                     f", topic = {msg.topic()}, partition = {msg.partition()}, partitionsCount = {partitions_count}"
                 )
+        else:
+            data.increment_produced()
 
     messages_until_sleep = 0
     flush_counter = 0
@@ -70,8 +81,6 @@ def run_producer_task(
 
                 producer.produce(
                     topic_name, key=str(k), value=str(current_value), on_delivery=delivery_report)
-
-                data.increment_produced()
 
                 flush_counter += 1
                 if flush_counter % 100_000 == 0:

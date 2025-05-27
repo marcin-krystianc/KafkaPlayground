@@ -5,12 +5,13 @@ import logging
 from typing import Dict
 
 import confluent_kafka
+import functools
 
 from .consumer import run_consumer
 from .producer import run_producer
 from .producer_consumer import run_producer_consumer
 from .settings import ProducerConsumerSettings
-
+from .utils import oauth_cb
 
 log = logging.getLogger(__name__)
 
@@ -69,6 +70,11 @@ def main():
         help="Minimum number of in-sync replicas for created topics",
         default=default_settings.min_isr)
     arg_parser.add_argument(
+        "--reporting-cycle",
+        type=int,
+        help="Reporting cycle in ms",
+        default=default_settings.reporting_cycle)
+    arg_parser.add_argument(
         "--messages-per-second",
         type=int,
         help="Number of messages to send per-second for each producer task",
@@ -86,7 +92,7 @@ def main():
 
     args = arg_parser.parse_args()
 
-    config: Dict[str, str] = args.config
+    config: Dict[str, object] = args.config
     settings = ProducerConsumerSettings(
         producers=args.producers,
         topics=args.topics,
@@ -101,10 +107,12 @@ def main():
         recreate_topics=args.recreate_topics,
     )
 
+    if settings.set_oauth_token_callback: config['oauth_cb'] = functools.partial(oauth_cb, args)
+
     logging.basicConfig(level=logging.INFO)
 
     log.info("confluent_kafka version = %s", confluent_kafka.__version__)
-    log.info("args = %s", args)
+    log.info("config = %s", config)
     log.info("settings = %s", settings)
 
     {

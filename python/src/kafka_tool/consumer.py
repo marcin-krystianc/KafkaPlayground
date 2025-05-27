@@ -13,6 +13,6 @@ def run_consumer(config: Dict[str, str], settings: ProducerConsumerSettings) -> 
     shutdown = threading.Event()
     threads = [
         threading.Thread(target=run_consumer_task, args=[config, settings, data, shutdown]),
-        threading.Thread(target=run_reporter_task, args=[data, shutdown]),
+        threading.Thread(target=run_reporter_task, args=[data, settings, shutdown]),
     ]
     run_tasks(threads, shutdown)

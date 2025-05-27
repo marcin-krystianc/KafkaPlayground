@@ -78,6 +78,7 @@ def run_tasks(threads: Sequence[threading.Thread], shutdown: threading.Event):
     shutdown.set()
     for thread in threads:
         thread.join(timeout=10.0)
+
 def oauth_cb(args, config):
     """Note here value of config comes from sasl.oauthbearer.config below.
     It is not used in this example but you can put arbitrary values to
@@ -94,6 +95,7 @@ def oauth_cb(args, config):
     }
     resp = requests.post(token_url, auth=(client_id, client_secret), data=payload)
     token = resp.json()
+    log.info("Got token:" + token)
     return token['access_token'], time.time() + float(token['expires_in'])
 
 def batched(iterable, n):
