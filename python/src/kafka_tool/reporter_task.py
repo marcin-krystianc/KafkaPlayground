@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 
 def run_reporter_task(
-        config: Dict[str, str],
+        config: Dict[str, object],
         settings: ProducerConsumerSettings,
         data: ProducerConsumerData,
         shutdown: threading.Event):
@@ -21,6 +21,7 @@ def run_reporter_task(
 
     log.info("Running reporter task")
     admin_client = get_admin_client(config);
+    admin_client.poll(0.1);
 
     while True:
         for _ in range(10):
@@ -33,10 +34,10 @@ def run_reporter_task(
         newly_consumed = consumed - prev_consumed
         prev_produced = produced
         prev_consumed = consumed
-        # admin_client.admin_client.list_topics(timeout=30).topics;
+        topics_count = len(admin_client.list_topics(timeout=30).topics)
 
         elapsed_s = int(time.monotonic() - start)
         log.info(
-            "Elapsed: %d s, %d (+%d) messages produced, %d (+%d) messages consumed, %d duplicated, %d out of sequence.",
-            elapsed_s, produced, newly_produced, consumed, newly_consumed, duplicated, out_of_order
+            "Elapsed: %d s, %d (+%d) messages produced, %d (+%d) messages consumed, %d duplicated, %d out of sequence, topics_count=%d",
+            elapsed_s, produced, newly_produced, consumed, newly_consumed, duplicated, out_of_order, topics_count
         )

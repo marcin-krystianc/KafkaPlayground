@@ -13,7 +13,7 @@ from .settings import ProducerConsumerSettings
 log = logging.getLogger(__name__)
 
 
-def get_admin_client(config: Dict[str, str]):
+def get_admin_client(config: Dict[str, object]):
     # Passing a logger to AdminClient doesn't work unless you poll the client
     # (https://github.com/confluentinc/confluent-kafka-python/issues/1699)
     client = AdminClient(config)
@@ -28,6 +28,7 @@ def recreate_topics(config: Dict[str, str], settings: ProducerConsumerSettings):
     log.info("Recreating %d topics", settings.topics)
     required_topics = set(get_topic_name(settings.topic_stem, i) for i in range(settings.topics))
     admin_client = get_admin_client(config)
+    admin_client.poll(0.1);
     existing_topics = admin_client.list_topics(timeout=30).topics
     batch_size = settings.recreate_topics_batch_size
     for batch in batched(
@@ -91,11 +92,12 @@ def oauth_cb(args, config):
 
     payload = {
      'grant_type': 'client_credentials',
-     'scope': ' '.join(args.scopes)
     }
+
     resp = requests.post(token_url, auth=(client_id, client_secret), data=payload)
+
     token = resp.json()
-    log.info("Got token:" + token)
+    log.info("Got token, expires_in:" + str(token['expires_in']))
     return token['access_token'], time.time() + float(token['expires_in'])
 
 def batched(iterable, n):
