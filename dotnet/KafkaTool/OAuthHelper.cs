@@ -10,7 +10,7 @@ namespace KafkaTool;
 
 public static class OAuthHelper
 {
-    public static async void SetOAuthBearerTokenRefreshHandler(IClient client, string cfg, ILogger logger)
+    public static async void OAuthTokenRefreshHandler(IClient client, string cfg, ILogger logger)
     {
         var tokenEndpoint = "http://keycloak:8080/realms/demo/protocol/openid-connect/token";
         var clientId = "kafka-producer-client";

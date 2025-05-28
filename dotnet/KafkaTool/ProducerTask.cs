@@ -73,7 +73,7 @@ public static class ProducerTask
             if (settings.SetOAuthTokenCallback)
             {
                 producerBuilder.SetOAuthBearerTokenRefreshHandler(async (client, cfg) =>
-                    OAuthHelper.SetOAuthBearerTokenRefreshHandler(client, cfg, logger));
+                    OAuthHelper.OAuthTokenRefreshHandler(client, cfg, logger));
             }
 
             var producer = producerBuilder.Build();
