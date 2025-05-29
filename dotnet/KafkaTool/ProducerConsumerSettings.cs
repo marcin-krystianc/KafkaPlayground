@@ -104,4 +104,9 @@ public class ProducerConsumerSettings : KafkaSettings
     [Description("Sets the OIDCtoken refresh callback")]
     [DefaultValue(false)]
     public bool SetOAuthTokenCallback { get; set; }
+    
+    [CommandOption("--use-client-assertion-for-oauth")]
+    [Description("USes the client assertion to authenticate when acquiring a new token")]
+    [DefaultValue(false)]
+    public bool UseClientAssertionForOAuthTokenCallback { get; set; }
 }

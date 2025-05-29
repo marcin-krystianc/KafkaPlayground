@@ -108,8 +108,8 @@ public static class Utils
 
         if (settings.SetOAuthTokenCallback)
         {
-            adminClientBuilder.SetOAuthBearerTokenRefreshHandler(async (client, cfg) =>
-                OAuthHelper.OAuthTokenRefreshHandler(client, cfg, Log));
+            adminClientBuilder.SetOAuthBearerTokenRefreshHandler((client, cfg) =>
+                OAuthHelper.OAuthTokenRefreshHandler(client, cfg, Log, settings));
         }
 
         return adminClientBuilder.Build();

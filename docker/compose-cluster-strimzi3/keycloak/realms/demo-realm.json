@@ -214,6 +214,23 @@
       "attributes": {
         "access.token.lifespan": "31"
       }
+    },
+    {
+      "clientId": "kafka-consumer-client-jwt",
+      "enabled": true,
+      "clientAuthenticatorType": "client-jwt",         
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "consentRequired" : false,
+      "fullScopeAllowed" : false,
+      "attributes": {
+        "access.token.lifespan": "31",
+		 "jwt.credential.certificate": "MIIDCTCCAfGgAwIBAgIULYiu/WILDEKyzhykr1La6SweSXswDQYJKoZIhvcNAQELBQAwFDESMBAGA1UEAwwJbXktY2xpZW50MB4XDTI1MDUyODE0MTUxOVoXDTI2MDUyODE0MTUxOVowFDESMBAGA1UEAwwJbXktY2xpZW50MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1NRYFirQN4evJa5Oi95WVZ0ZPNhil87IMMnOn0SQ7/e+nb3F60d4ZTn6cl55iCs/KIXAGwcR4bweV5wHdBGCsnl1lxSnv8MZVOtzXm3pT/8e4afbtyl/5S1L4UzJWr68sAlR7mdhpxmIC1gIhbeVL7PE7TfMyUSQpSVU1yyenJn+nzXJKXhs8/q+1YYm8fitSMTnQHSlbN3w816RQ7ghzi7yo6Ek1iJ/N/COPinw7ks+Hw5gRk8B0yVAEt6M17xDF2zxXPSqlVySIe6QQouqRZ2zMEJMJLGhywwLVUAAZFZrKstbXtbazvV6LxyMilYUlfm7eytATDuAEm4AFTOw2QIDAQABo1MwUTAdBgNVHQ4EFgQUHNscqJwsJ2X48YLgOPTCPA1ObnQwHwYDVR0jBBgwFoAUHNscqJwsJ2X48YLgOPTCPA1ObnQwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEANFW+0yR1eKxcetGZ/WwPF+87BHKxFgQ/GVhY7/osHmk/9I0yD2qF+VzTbtIexbG311z0sq7EGnXhq9hHveSXh/iHzIfcsjZnB4BwtRnIpwYQ8/6p2fuQYchtj4AayfCGGmOsrCDDyCifd/enlUrEBG/G4E3uvPqZr+/T8gDD/IUHG2YdaR6+CBQCAVhxg6iOqQH1vHI2Xkfdr+1lY8F+QO7pPCF+Tyj/HGE6Z+Uqcdhu9B0VTn/fQseF8kn/swkM08srh3FixrbpvJ+3PxrPA2BGOEEvBfabaJnQAooqookSfqlr+1J3a/nC3A0NThYLc88BvbRmdtmyFsgciF/4Zg=="
+      }
     }
   ]
 }
