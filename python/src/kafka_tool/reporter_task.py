@@ -52,4 +52,4 @@ def run_reporter_task(
             )
 
     finally:
-        poll_thread.join()  # Wait up to 1 second for clean shutdown
+        poll_thread.join()
