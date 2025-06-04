@@ -13,11 +13,6 @@ import functools
 
 log = logging.getLogger(__name__)
 
-
-def _poll_loop(producer):
-    while True:
-        producer.poll(0.1)
-
 def run_producer_task(
         config: Dict[str, str],
         settings: ProducerConsumerSettings,
@@ -36,7 +31,13 @@ def run_producer_task(
 
     exception = None
 
-    poll_thread = Thread(target=functools.partial(_poll_loop, producer))
+    poll_thread = threading.Thread(
+        target=lambda: [
+            producer.poll(1)
+            for _ in iter(lambda: not shutdown.is_set(), False)
+        ],
+        daemon=True,
+    )
     poll_thread.start()
 
     def delivery_report(err, msg):
@@ -79,8 +80,7 @@ def run_producer_task(
 
                 messages_until_sleep -= 1
 
-                producer.produce(
-                    topic_name, key=str(k), value=str(current_value), on_delivery=delivery_report)
+                producer.produce(topic_name, key=str(k), value=str(current_value), on_delivery=delivery_report)
 
                 flush_counter += 1
                 if flush_counter % 100_000 == 0:

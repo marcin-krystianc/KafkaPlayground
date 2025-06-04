@@ -86,7 +86,7 @@ def main():
         default=True)
     arg_parser.add_argument(
         "--set-oauth-token-callback",
-        type=bool,
+        type=lambda x: (str(x).lower() in ['true','1', 'yes']),
         help="Sets the OIDCtoken refresh callback",
         default=default_settings.set_oauth_token_callback)
 
