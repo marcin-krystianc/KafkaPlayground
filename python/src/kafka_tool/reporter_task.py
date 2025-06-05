@@ -27,7 +27,6 @@ def run_reporter_task(
             admin_client.poll(1)
             for _ in iter(lambda: not shutdown.is_set(), False)
         ],
-        daemon=True,
     )
     poll_thread.start()
 

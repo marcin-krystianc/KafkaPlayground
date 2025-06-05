@@ -36,7 +36,6 @@ def run_producer_task(
             producer.poll(1)
             for _ in iter(lambda: not shutdown.is_set(), False)
         ],
-        daemon=True,
     )
     # Polling thread is needed to trigger custom OAUTH callback (when they are configured) and also to receive produce events (produce confirmations)
     poll_thread.start()
