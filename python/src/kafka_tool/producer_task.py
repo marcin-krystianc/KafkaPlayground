@@ -60,7 +60,6 @@ def run_producer_task(
             data.increment_produced()
 
     messages_until_sleep = 0
-    flush_counter = 0
     time_since_sleep = time.monotonic()
 
     current_value = 0
@@ -81,12 +80,11 @@ def run_producer_task(
 
                 messages_until_sleep -= 1
 
-                producer.produce(topic_name, key=str(k), value=str(current_value), on_delivery=delivery_report)
-
-                flush_counter += 1
-                if flush_counter % 100_000 == 0:
-                    log.info("Flushing producer task %d", producer_index)
-                    producer.flush()
-                    log.info("Flush of producer %d completed", producer_index)
+                while True:
+                    try:
+                        producer.produce(topic_name, key=str(k), value=str(current_value), on_delivery=delivery_report)
+                        break
+                    except BufferError as e:
+                        producer.flush()
 
         current_value += 1
