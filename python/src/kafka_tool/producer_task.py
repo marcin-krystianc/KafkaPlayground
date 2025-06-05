@@ -38,6 +38,7 @@ def run_producer_task(
         ],
         daemon=True,
     )
+    # Polling thread is needed to trigger custom OAUTH callback (when they are configured) and also to receive produce events (produce confirmations)
     poll_thread.start()
 
     def delivery_report(err, msg):
