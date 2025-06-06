@@ -10,6 +10,7 @@ from .settings import ProducerConsumerSettings
 from .utils import get_admin_client, get_topic_name
 from threading import Thread
 import functools
+from .polling_producer import PollingProducer
 
 log = logging.getLogger(__name__)
 
@@ -26,19 +27,10 @@ def run_producer_task(
 
     topics_per_producer = settings.topics // settings.producers
 
-    producer = Producer(config, logger=log)
+    producer = PollingProducer(config)
     log.info("Running producer task %d", producer_index)
 
     exception = None
-
-    poll_thread = threading.Thread(
-        target=lambda: [
-            producer.poll(1)
-            for _ in iter(lambda: not shutdown.is_set(), False)
-        ],
-    )
-    # Polling thread is needed to trigger custom OAUTH callback (when they are configured) and also to receive produce events (produce confirmations)
-    poll_thread.start()
 
     def delivery_report(err, msg):
         nonlocal exception
