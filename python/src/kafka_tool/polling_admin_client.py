@@ -1,11 +1,11 @@
-from confluent_kafka import Producer
+from confluent_kafka.admin import AdminClient
 from threading import Thread
 import weakref
 
-class PollingProducer (Producer):
+class PollingAdminClient (AdminClient):
     def __init__(self, configs):
         super().__init__(configs)
-        # Polling thread is needed to trigger custom OAUTH callback (when they are configured) and also to receive produce events (produce confirmations)
+        # Polling thread is needed to trigger custom OAUTH callback (when they are configured)
         poll_thread = Thread(target=self._poll_loop, args=(weakref.ref(self), ))
         poll_thread.start()
 
