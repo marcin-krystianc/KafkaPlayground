@@ -35,15 +35,11 @@ wheels = [
 
 [[package]]
 name = "confluent-kafka"
-version = "2.8.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/bd/a7/a6bd180293fd9ac81f60bf7e9488ba133d5fdaa00aa94518900711c206c0/confluent_kafka-2.8.0.tar.gz", hash = "sha256:56c4aa8e9de6f6e8e3ecf86d396372e76631ec75b107cdb5248c7405ec7c5fa1", size = 189820, upload-time = "2025-01-07T21:08:02.884Z" }
+version = "2.10.0+gr"
+source = { registry = "https://g-research.github.io/confluent-kafka-python/" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/04/b5/8abd799048451a7a5a280bcdfbf1f432b3381880ab99e6883fbfe898267b/confluent_kafka-2.8.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:5de7ab587ecdc153a029d992e7d470fc68ab943e38931b18fc4a01074afd5c5c", size = 3506572, upload-time = "2025-01-07T21:05:51.384Z" },
-    { url = "https://files.pythonhosted.org/packages/c9/b6/e685d9d41e15de13c7dac3efa8a469fba26647d952ecb7d2fd9dcae640c6/confluent_kafka-2.8.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:52a87d1a73ad91d4f81e35a8e6e961a5ad0c49ecdb198e47bd106262e968253e", size = 3036925, upload-time = "2025-01-07T21:05:54.898Z" },
-    { url = "https://files.pythonhosted.org/packages/f6/1f/a52196d179c0d7284dbcad90150ed5ec96b6b55694272987eeaf7750fe33/confluent_kafka-2.8.0-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:f03b12d009cfb16649b0e51c06514312d5cbbbe9b06e71cf4ad781b378f8b79f", size = 15150008, upload-time = "2025-01-07T21:06:01.858Z" },
-    { url = "https://files.pythonhosted.org/packages/ae/1d/47aa6b5ac8cfbc560e563d7d7f36d0e38f55407b25f6e6b332e9899c9e36/confluent_kafka-2.8.0-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:1a01feeac7f27bff079ad1a29f1cf1b149235a975d67d7de20c1935f44b14293", size = 3823203, upload-time = "2025-01-07T21:06:06.188Z" },
-    { url = "https://files.pythonhosted.org/packages/2b/56/6e370e68a4378f025a03f61055b249fb462d8dc50cff90663507eb92ccc8/confluent_kafka-2.8.0-cp311-cp311-win_amd64.whl", hash = "sha256:69bfeeecca6077592e3349811f564602da3cbea328c78e2ed80c8de6ebd36634", size = 3957505, upload-time = "2025-01-07T21:06:09.081Z" },
+    { url = "https://g-research.github.io/confluent-kafka-python/confluent-kafka/confluent_kafka-2.10.0%2Bgr-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:6cc9f09711ce14d286dbee1dc9ac41920c4b7bd2b89f60ed5fae52ac1e4060b3" },
+    { url = "https://g-research.github.io/confluent-kafka-python/confluent-kafka/confluent_kafka-2.10.0%2Bgr-cp311-cp311-win_amd64.whl", hash = "sha256:e76333f1c4689330513c5417eaabe69376715fefd237e25c32fc4b144bd10384" },
 ]
 
 [[package]]
@@ -66,7 +62,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "confluent-kafka", specifier = "==2.8.0" },
+    { name = "confluent-kafka", specifier = "==2.10.0+gr" },
     { name = "requests", specifier = "==2.32.3" },
 ]
 
