@@ -118,8 +118,8 @@ public static class ConsumerTask
             
             if (settings.SetOAuthTokenCallback)
             {
-                consumerBuilder.SetOAuthBearerTokenRefreshHandler(async (client, cfg) =>
-                    OAuthHelper.OAuthTokenRefreshHandler(client, cfg, logger));
+                consumerBuilder.SetOAuthBearerTokenRefreshHandler( (client, cfg) =>
+                    OAuthHelper.OAuthTokenRefreshHandler(client, cfg, logger, settings));
             }
 
             using (var consumer = consumerBuilder.Build())
