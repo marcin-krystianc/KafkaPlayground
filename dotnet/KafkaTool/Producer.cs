@@ -23,9 +23,15 @@ public class Producer : AsyncCommand<ProducerConsumerSettings>
         }
 
         var data = new ProducerConsumerData();
+        
+#if EXPERIMENTAL_ALLOC_FREE
+        var producerTasks = Enumerable.Range(0, settings.Producers)
+            .Select(producerIndex => ProducerAllocFreeTask.GetTask(settings, data, producerIndex));
+#else
         var producerTasks = Enumerable.Range(0, settings.Producers)
             .Select(producerIndex => ProducerTask.GetTask(settings, data, producerIndex));
-
+#endif
+        
         var reporterTask = ReporterTask.GetTask(settings, data);
         var task = await Task.WhenAny(producerTasks.Concat([reporterTask]));
         await task;

@@ -43,7 +43,7 @@ public static class ConsumerTask
 
     public static Task GetTask(ProducerConsumerSettings settings, ProducerConsumerData data)
     {
-        return Task.Run(async () =>
+        return Task.Run(() =>
         {;
             var errorLogged = false;
 

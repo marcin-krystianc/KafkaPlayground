@@ -1,17 +1,17 @@
-﻿// https://github.com/marcin-krystianc/confluent-kafka-dotnet/commits/dev-20250609-alloc_free/
-#if CONSUME_WITH_CALLBACK
-
+﻿
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace KafkaTool;
+
+// https://github.com/marcin-krystianc/confluent-kafka-dotnet/commits/dev-20250609-alloc_free/
+#if EXPERIMENTAL_ALLOC_FREE
 
 public static class ConsumerWthCallbacksTask
 {
@@ -49,7 +49,7 @@ public static class ConsumerWthCallbacksTask
 
     public static Task GetTask(ProducerConsumerSettings settings, ProducerConsumerData data)
     {
-        return Task.Run(async () =>
+        return Task.Run(() =>
         {;
             var errorLogged = false;
 
@@ -69,7 +69,6 @@ public static class ConsumerWthCallbacksTask
                 EnableAutoCommit = false,
                 AutoOffsetReset = AutoOffsetReset.Earliest,
                 ClientId = "rdkafka-consumer-1",
-                ConsumeResultFields = settings.EnableSequenceValidation ? "topic,timestamp" : "none",
             };
 
             IConfiguration consumerConfiguration = new ConfigurationBuilder()
@@ -79,7 +78,7 @@ public static class ConsumerWthCallbacksTask
 
             var offsetDictionary = new ConcurrentDictionary<TopicPartition, Offset>();
 
-            var consumerBuilder = new ConsumerBuilder<int, long>(
+            var consumerBuilder = new ConsumerBuilder<Null, Null>(
                     consumerConfiguration.AsEnumerable())
                 .SetErrorHandler((_, e) =>
                 {
@@ -97,7 +96,6 @@ public static class ConsumerWthCallbacksTask
                 {
                     logger.Log(LogLevel.Information,
                         $"Consumer log: PartitionsAssignedHandler: count={topicPartitions.Count}");
-
 
                     // Example: Set all partitions to start from the beginning
                     var offsets = new List<TopicPartitionOffset>();
@@ -138,23 +136,23 @@ public static class ConsumerWthCallbacksTask
 
                 Dictionary<(string Topic, int Key), long> valueDictionary = new();
                 
-                ConsumeCallback callback = (in MessageReader mr) =>
+                Experimental.AllocFreeConsumeCallback callback = (in Experimental.MessageReader mr) =>
                 {
-                    data.IncrementConsumed();
+                    data.IncrementConsumed(); 
+
                     if (mr.IsPartitionEOF)
                     {
                         throw new Exception($"Reached end of topic {mr.Topic}, partition {mr.Partition}, offset {mr.Offset}.");
                     }
                     
                     if (settings.EnableSequenceValidation)
-                    {
+                    {                     
                         var latency = DateTime.UtcNow - mr.Timestamp.UtcDateTime;
                         data.DigestConsumerLatency(latency.TotalMilliseconds);
 
                         var key = (int)DeserializeInt32(mr.KeySpan);
                         var dictKey = (mr.Topic, key);
                         var msgValue = DeserializeInt64(mr.ValueSpan);
-                        // var key = (mr.Topic,  Encoding.UTF8.GetString());
                         var offset = mr.Offset;
                         offsetDictionary.AddOrUpdate(new TopicPartition(mr.Topic, mr.Partition), offset, (_, _) => offset);
 

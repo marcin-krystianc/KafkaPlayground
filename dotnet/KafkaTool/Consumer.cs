@@ -17,7 +17,13 @@ public class Consumer : AsyncCommand<ProducerConsumerSettings>
     public override async Task<int> ExecuteAsync(CommandContext context, ProducerConsumerSettings settings)
     {
         var data = new ProducerConsumerData();
+        
+#if EXPERIMENTAL_ALLOC_FREE
+        var consumerTask = ConsumerWthCallbacksTask.GetTask(settings, data);
+#else
         var consumerTask = ConsumerTask.GetTask(settings, data);
+#endif
+
         var reporterTask = ReporterTask.GetTask(settings, data);
         var task = await Task.WhenAny([consumerTask, reporterTask]);
         await task;

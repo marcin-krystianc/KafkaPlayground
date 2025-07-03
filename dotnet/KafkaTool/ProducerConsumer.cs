@@ -22,10 +22,16 @@ public sealed class ProducerConsumer : AsyncCommand<ProducerConsumerSettings>
         }
 
         var data = new ProducerConsumerData();
+#if EXPERIMENTAL_ALLOC_FREE
+        var producerTasks = Enumerable.Range(0, settings.Producers)
+            .Select(producerIndex => ProducerAllocFreeTask.GetTask(settings, data, producerIndex));
+        var consumerTask = ConsumerWthCallbacksTask.GetTask(settings, data);
+#else
         var producerTasks = Enumerable.Range(0, settings.Producers)
             .Select(producerIndex => ProducerTask.GetTask(settings, data, producerIndex));
-
         var consumerTask = ConsumerTask.GetTask(settings, data);
+#endif
+
         var reporterTask = ReporterTask.GetTask(settings, data);
         var task = await Task.WhenAny(producerTasks.Concat([consumerTask, reporterTask]));
         await task;
