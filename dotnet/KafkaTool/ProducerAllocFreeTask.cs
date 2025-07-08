@@ -187,8 +187,8 @@ public static class ProducerAllocFreeTask
                     {
                         try
                         {
-                            producer.Produce(topicPartition, payloadBytes.AsSpan(), keyBytes.AsSpan()
-                                , timestamp, emptyHeaders);
+                            producer.Produce(topicPartition.Topic, payloadBytes.AsSpan(), keyBytes.AsSpan()
+                                , timestamp, topicPartition.Partition, emptyHeaders);
 
                             produced = true;
                         }
