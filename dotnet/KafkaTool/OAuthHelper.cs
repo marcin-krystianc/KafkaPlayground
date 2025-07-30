@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -29,7 +30,10 @@ public static class OAuthHelper
 
     private static async Task OAuthTokenRefreshClientSecretHandler(IClient client, string cfg, ILogger logger)
     {
-        var tokenEndpoint = "http://keycloak:8080/realms/demo/protocol/openid-connect/token";
+        var tokenEndpoint = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? "http://localhost:8080/realms/demo/protocol/openid-connect/token"
+            : "http://keycloak:8080/realms/demo/protocol/openid-connect/token";
+
         var clientId = "kafka-producer-client";
         var clientSecret = "kafka-producer-client-secret";
         var accessTokenClient = new HttpClient();
@@ -71,10 +75,16 @@ public static class OAuthHelper
 
     private static async Task OAuthTokenRefreshClientAssertionHandler(IClient client, string cfg, ILogger logger)
     {
-        var tokenEndpoint = "http://keycloak:8080/realms/demo/protocol/openid-connect/token";
+        var tokenEndpoint = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? "http://localhost:8080/realms/demo/protocol/openid-connect/token"
+            : "http://keycloak:8080/realms/demo/protocol/openid-connect/token";
+        
         var clientId = "kafka-consumer-client-jwt";
         var audience = "https://keycloak:8443/realms/demo";
-        var privateKeyPath = "/workspace/tmp/client-private-key.pem";
+        var privateKeyPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? "d:/workspace/tmp/client-private-key.pem"
+            : "/workspace/tmp/client-private-key.pem";
+    
         var accessTokenClient = new HttpClient();
 
         // Read the private key
