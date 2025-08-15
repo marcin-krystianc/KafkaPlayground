@@ -46,6 +46,8 @@ public static class OAuthHelper
             GrantType = "client_credentials"
         });
 
+        if (!string.IsNullOrEmpty(accessToken.Error))  logger.LogInformation($"accessToken error: {accessToken.Error}");
+
         var tokenTicks = GetTokenExpirationTime(accessToken.AccessToken);
         var subject = GetTokenSubject(accessToken.AccessToken);
         var tokenDate = DateTimeOffset.FromUnixTimeSeconds(tokenTicks);

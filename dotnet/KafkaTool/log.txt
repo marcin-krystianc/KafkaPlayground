@@ -1,0 +1,522 @@
+execve("/dotnet/dotnet", ["/dotnet/dotnet", "/workspace/KafkaPlayground/dotne"..., "producer", "--config", "allow.auto.create.topics=false", "--config", "bootstrap.servers=kafka-1:9092", "--topics=1", "--partitions=1", "--replication-factor=1", "--min-isr=1", "--topic-stem=my-topic", "--messages-per-second=100", "--config", "request.required.acks=-1", "--config", "enable.idempotence=true", "--config", "max.in.flight.requests.per.conne"..., "--config", "enable.auto.offset.store=false", "--config", "enable.auto.commit=false", "--reporting-cycle=1000", "--producers=1", "--recreate-topics=true", "--config", "security.protocol=SASL_SSL", "--config", "ssl.ca.location=/etc/ssl/certs/c"..., "--config", "sasl.mechanism=GSSAPI", ...], 0x7ffdb702aba0 /* 13 vars */) = 0
+access("/etc/ld.so.preload", R_OK)      = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=24668, ...}, AT_EMPTY_PATH) = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libdl.so.2", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=14432, ...}, AT_EMPTY_PATH) = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libpthread.so.0", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=21448, ...}, AT_EMPTY_PATH) = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libstdc++.so.6", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=2260296, ...}, AT_EMPTY_PATH) = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libm.so.6", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=940560, ...}, AT_EMPTY_PATH) = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libgcc_s.so.1", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=125488, ...}, AT_EMPTY_PATH) = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0755, st_size=2220400, ...}, AT_EMPTY_PATH) = 0
+readlink("/proc", 0x7fff131e6730, 1023) = -1 EINVAL (Invalid argument)
+readlink("/proc/self", "959", 1023)     = 3
+readlink("/proc/959", 0x7fff131e6730, 1023) = -1 EINVAL (Invalid argument)
+readlink("/proc/959/exe", "/dotnet/dotnet", 1023) = 14
+readlink("/dotnet", 0x7fff131e6730, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/dotnet", 0x7fff131e6730, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet", 0x7fff131e66f0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/dotnet", 0x7fff131e66f0, 1023) = -1 EINVAL (Invalid argument)
+access("/dotnet/host/fxr", F_OK)        = 0
+openat(AT_FDCWD, "/dotnet/host/fxr", O_RDONLY|O_NONBLOCK|O_CLOEXEC|O_DIRECTORY) = 3
+newfstatat(3, "", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_EMPTY_PATH) = 0
+access("/dotnet/host/fxr/9.0.1/libhostfxr.so", F_OK) = 0
+openat(AT_FDCWD, "/dotnet/host/fxr/9.0.1/libhostfxr.so", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0755, st_size=290744, ...}, AT_EMPTY_PATH) = 0
+access("/dotnet/libcoreclr.so", F_OK)   = -1 ENOENT (No such file or directory)
+access("/dotnet/dotnet.dll", F_OK)      = -1 ENOENT (No such file or directory)
+readlink("/workspace", 0x7fff131e63c0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground", 0x7fff131e63c0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet", 0x7fff131e63c0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool", 0x7fff131e63c0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin", 0x7fff131e63c0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug", 0x7fff131e63c0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0", 0x7fff131e63c0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/KafkaTool.dll", 0x7fff131e63c0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace", 0x7fff131e5de0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground", 0x7fff131e5de0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet", 0x7fff131e5de0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool", 0x7fff131e5de0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin", 0x7fff131e5de0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug", 0x7fff131e5de0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0", 0x7fff131e5de0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/KafkaTool.runtimeconfig.dev.json", 0x7fff131e5de0, 1023) = -1 ENOENT (No such file or directory)
+readlink("/workspace", 0x7fff131e5ed0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground", 0x7fff131e5ed0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet", 0x7fff131e5ed0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool", 0x7fff131e5ed0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin", 0x7fff131e5ed0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug", 0x7fff131e5ed0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0", 0x7fff131e5ed0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/KafkaTool.runtimeconfig.json", 0x7fff131e5ed0, 1023) = -1 EINVAL (Invalid argument)
+openat(AT_FDCWD, "/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/KafkaTool.runtimeconfig.json", O_RDONLY) = 3
+openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App", O_RDONLY|O_NONBLOCK|O_CLOEXEC|O_DIRECTORY) = 3
+newfstatat(3, "", {st_mode=S_IFDIR|0775, st_size=4096, ...}, AT_EMPTY_PATH) = 0
+access("/dotnet/shared/Microsoft.NETCore.App/8.0.12/Microsoft.NETCore.App.deps.json", F_OK) = 0
+readlink("/dotnet", 0x7fff131e57b0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/shared", 0x7fff131e57b0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e57b0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e57b0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12/Microsoft.NETCore.App.runtimeconfig.dev.json", 0x7fff131e57b0, 1023) = -1 ENOENT (No such file or directory)
+readlink("/dotnet", 0x7fff131e58a0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/shared", 0x7fff131e58a0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e58a0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e58a0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12/Microsoft.NETCore.App.runtimeconfig.json", 0x7fff131e58a0, 1023) = -1 EINVAL (Invalid argument)
+openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/Microsoft.NETCore.App.runtimeconfig.json", O_RDONLY) = 3
+access("/dotnet/shared/Microsoft.NETCore.App/8.0.12/Microsoft.NETCore.App.deps.json", F_OK) = 0
+openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/Microsoft.NETCore.App.deps.json", O_RDONLY) = 3
+access("/dotnet/shared/Microsoft.NETCore.App/8.0.12/libhostpolicy.so", F_OK) = 0
+access("/dotnet/shared/Microsoft.NETCore.App/8.0.12/libhostpolicy.so", F_OK) = 0
+openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/libhostpolicy.so", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0755, st_size=310064, ...}, AT_EMPTY_PATH) = 0
+readlink("/workspace", 0x7fff131e60e0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground", 0x7fff131e60e0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet", 0x7fff131e60e0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool", 0x7fff131e60e0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin", 0x7fff131e60e0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug", 0x7fff131e60e0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0", 0x7fff131e60e0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/KafkaTool.dll", 0x7fff131e60e0, 1023) = -1 EINVAL (Invalid argument)
+access("", F_OK)                        = -1 ENOENT (No such file or directory)
+access("opt/coreservicing", F_OK)       = -1 ENOENT (No such file or directory)
+readlink("/dotnet", 0x7fff131e5b30, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/shared", 0x7fff131e5b30, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e5b30, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e5b30, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12/Microsoft.NETCore.App.deps.json", 0x7fff131e5b30, 1023) = -1 EINVAL (Invalid argument)
+openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/Microsoft.NETCore.App.deps.json", O_RDONLY) = 3
+readlink("/workspace", 0x7fff131e5b50, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground", 0x7fff131e5b50, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet", 0x7fff131e5b50, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool", 0x7fff131e5b50, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin", 0x7fff131e5b50, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug", 0x7fff131e5b50, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0", 0x7fff131e5b50, 1023) = -1 EINVAL (Invalid argument)
+readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/KafkaTool.deps.json", 0x7fff131e5b50, 1023) = -1 EINVAL (Invalid argument)
+openat(AT_FDCWD, "/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/KafkaTool.deps.json", O_RDONLY) = 3
+access("", F_OK)                        = -1 ENOENT (No such file or directory)
+access("/dotnet/shared/Microsoft.NETCore.App/8.0.12", F_OK) = 0
+access("/dotnet/store/x64/net8.0", F_OK) = -1 ENOENT (No such file or directory)
+readlink("/dotnet", 0x7fff131e5df0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/shared", 0x7fff131e5df0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e5df0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e5df0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12/libcoreclr.so", 0x7fff131e5df0, 1023) = -1 EINVAL (Invalid argument)
+openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/libcoreclr.so", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0755, st_size=6916888, ...}, AT_EMPTY_PATH) = 0
+openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=24668, ...}, AT_EMPTY_PATH) = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/librt.so.1", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=14664, ...}, AT_EMPTY_PATH) = 0
+openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/libcoreclrtraceptprovider.so", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0755, st_size=760632, ...}, AT_EMPTY_PATH) = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v3/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v3", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v2/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v2", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/tls/haswell/x86_64/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/x86_64-linux-gnu/tls/haswell/x86_64", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/tls/haswell/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/x86_64-linux-gnu/tls/haswell", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/tls/x86_64/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/x86_64-linux-gnu/tls/x86_64", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/tls/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/x86_64-linux-gnu/tls", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/haswell/x86_64/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/x86_64-linux-gnu/haswell/x86_64", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/haswell/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/x86_64-linux-gnu/haswell", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/x86_64/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/x86_64-linux-gnu/x86_64", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/x86_64-linux-gnu", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v3/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v3", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v2/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v2", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/tls/haswell/x86_64/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/tls/haswell/x86_64", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/tls/haswell/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/tls/haswell", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/tls/x86_64/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/tls/x86_64", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/tls/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/tls", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/haswell/x86_64/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/haswell/x86_64", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/haswell/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/haswell", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/x86_64/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/x86_64", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+openat(AT_FDCWD, "/lib/glibc-hwcaps/x86-64-v3/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/glibc-hwcaps/x86-64-v3", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/glibc-hwcaps/x86-64-v2/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/glibc-hwcaps/x86-64-v2", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/tls/haswell/x86_64/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/tls/haswell/x86_64", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/tls/haswell/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/tls/haswell", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/tls/x86_64/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/tls/x86_64", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/tls/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/tls", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/haswell/x86_64/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/haswell/x86_64", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/haswell/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/haswell", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/x86_64/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib/x86_64", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/lib", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+openat(AT_FDCWD, "/usr/lib/glibc-hwcaps/x86-64-v3/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/glibc-hwcaps/x86-64-v3", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/glibc-hwcaps/x86-64-v2/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/glibc-hwcaps/x86-64-v2", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/tls/haswell/x86_64/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/tls/haswell/x86_64", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/tls/haswell/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/tls/haswell", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/tls/x86_64/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/tls/x86_64", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/tls/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/tls", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/haswell/x86_64/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/haswell/x86_64", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/haswell/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/haswell", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/x86_64/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib/x86_64", 0x7fff131e5160, 0) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/liblttng-ust.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+newfstatat(AT_FDCWD, "/usr/lib", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0
+openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=24668, ...}, AT_EMPTY_PATH) = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/liblttng-ust-tracepoint.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/liblttng-ust-tracepoint.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/liblttng-ust-tracepoint.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/liblttng-ust-tracepoint.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=24668, ...}, AT_EMPTY_PATH) = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/liblttng-ust-tracepoint.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/liblttng-ust-tracepoint.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/lib/liblttng-ust-tracepoint.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/liblttng-ust-tracepoint.so.0", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+statfs("/sys/fs/cgroup", {f_type=CGROUP2_SUPER_MAGIC, f_bsize=4096, f_blocks=0, f_bfree=0, f_bavail=0, f_files=0, f_ffree=0, f_fsid={val=[0, 0]}, f_namelen=255, f_frsize=4096, f_flags=ST_VALID|ST_NOSUID|ST_NODEV|ST_NOEXEC|ST_RELATIME}) = 0
+openat(AT_FDCWD, "/proc/self/mountinfo", O_RDONLY) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+openat(AT_FDCWD, "/proc/self/cgroup", O_RDONLY) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+openat(AT_FDCWD, "/proc/self/mountinfo", O_RDONLY) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+openat(AT_FDCWD, "/proc/self/cgroup", O_RDONLY) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+readlink("/proc", 0x7fff131e5fc0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/proc/self", "959", 1023)     = 3
+readlink("/proc/959", 0x7fff131e5fc0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/proc/959/exe", "/dotnet/dotnet", 1023) = 14
+readlink("/dotnet", 0x7fff131e5fc0, 1023) = -1 EINVAL (Invalid argument)
+readlink("/dotnet/dotnet", 0x7fff131e5fc0, 1023) = -1 EINVAL (Invalid argument)
+strace: Process 960 attached
+[pid   959] openat(AT_FDCWD, "/sys/fs/cgroup//cpu.max", O_RDONLY) = 8
+[pid   959] newfstatat(8, "", {st_mode=S_IFREG|0644, st_size=0, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/dev/urandom", O_RDONLY|O_CLOEXEC) = 9
+[pid   959] openat(AT_FDCWD, "/proc/959/stat", O_RDONLY) = 9
+[pid   959] newfstatat(9, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+strace: Process 961 attached
+[pid   959] openat(AT_FDCWD, "/sys/devices/system/cpu/online", O_RDONLY|O_CLOEXEC) = 10
+[pid   959] statfs("/sys/fs/cgroup", {f_type=CGROUP2_SUPER_MAGIC, f_bsize=4096, f_blocks=0, f_bfree=0, f_bavail=0, f_files=0, f_ffree=0, f_fsid={val=[0, 0]}, f_namelen=255, f_frsize=4096, f_flags=ST_VALID|ST_NOSUID|ST_NODEV|ST_NOEXEC|ST_RELATIME}) = 0
+[pid   959] openat(AT_FDCWD, "/proc/self/mountinfo", O_RDONLY) = 10
+[pid   959] newfstatat(10, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/proc/self/cgroup", O_RDONLY) = 10
+[pid   959] newfstatat(10, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/sys/devices/system/cpu/online", O_RDONLY|O_CLOEXEC) = 10
+[pid   959] openat(AT_FDCWD, "/sys/devices/system/cpu/online", O_RDONLY|O_CLOEXEC) = 10
+[pid   959] openat(AT_FDCWD, "/sys/devices/system/cpu/online", O_RDONLY|O_CLOEXEC) = 10
+[pid   959] openat(AT_FDCWD, "/sys/devices/system/cpu/online", O_RDONLY|O_CLOEXEC) = 10
+[pid   959] openat(AT_FDCWD, "/proc/959/stat", O_RDONLY) = 10
+[pid   959] newfstatat(10, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/proc/959/stat", O_RDONLY) = 10
+[pid   959] newfstatat(10, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+[pid   959] unlink("/tmp/clr-debug-pipe-959-15679137-in") = -1 ENOENT (No such file or directory)
+[pid   959] mknodat(AT_FDCWD, "/tmp/clr-debug-pipe-959-15679137-in", S_IFIFO|0700) = 0
+[pid   959] unlink("/tmp/clr-debug-pipe-959-15679137-out") = -1 ENOENT (No such file or directory)
+[pid   959] mknodat(AT_FDCWD, "/tmp/clr-debug-pipe-959-15679137-out", S_IFIFO|0700) = 0
+strace: Process 962 attached
+[pid   962] openat(AT_FDCWD, "/tmp/clr-debug-pipe-959-15679137-in", O_RDONLYstrace: Process 963 attached
+ <unfinished ...>
+[pid   959] openat(AT_FDCWD, "/proc/959/stat", O_RDONLY) = 13
+[pid   959] newfstatat(13, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/dev/shm/sem.clrst000003bf0000000000ef3ea1", O_RDWR|O_NOFOLLOW) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/proc/self/maps", O_RDONLY|O_CLOEXEC) = 11
+[pid   959] newfstatat(11, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/proc/self/maps", O_RDONLY|O_CLOEXEC) = 11
+[pid   959] newfstatat(11, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/sys/fs/cgroup//memory.max", O_RDONLY) = 11
+[pid   959] newfstatat(11, "", {st_mode=S_IFREG|0644, st_size=0, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/sys/devices/system/cpu/cpu0/cache/index0/size", O_RDONLY) = 11
+[pid   959] newfstatat(11, "", {st_mode=S_IFREG|0444, st_size=4096, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/sys/devices/system/cpu/cpu0/cache/index0/level", O_RDONLY) = 11
+[pid   959] newfstatat(11, "", {st_mode=S_IFREG|0444, st_size=4096, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/sys/devices/system/cpu/cpu0/cache/index1/size", O_RDONLY) = 11
+[pid   959] newfstatat(11, "", {st_mode=S_IFREG|0444, st_size=4096, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/sys/devices/system/cpu/cpu0/cache/index1/level", O_RDONLY) = 11
+[pid   959] newfstatat(11, "", {st_mode=S_IFREG|0444, st_size=4096, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/sys/devices/system/cpu/cpu0/cache/index2/size", O_RDONLY) = 11
+[pid   959] newfstatat(11, "", {st_mode=S_IFREG|0444, st_size=4096, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/sys/devices/system/cpu/cpu0/cache/index2/level", O_RDONLY) = 11
+[pid   959] newfstatat(11, "", {st_mode=S_IFREG|0444, st_size=4096, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/sys/devices/system/cpu/cpu0/cache/index3/size", O_RDONLY) = 11
+[pid   959] newfstatat(11, "", {st_mode=S_IFREG|0444, st_size=4096, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/sys/devices/system/cpu/cpu0/cache/index3/level", O_RDONLY) = 11
+[pid   959] newfstatat(11, "", {st_mode=S_IFREG|0444, st_size=4096, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/sys/devices/system/cpu/cpu0/cache/index4/size", O_RDONLY) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/proc/meminfo", O_RDONLY) = 11
+[pid   959] newfstatat(11, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/sys/fs/cgroup//memory.max", O_RDONLY) = 11
+[pid   959] newfstatat(11, "", {st_mode=S_IFREG|0644, st_size=0, ...}, AT_EMPTY_PATH) = 0
+strace: Process 964 attached
+[pid   959] openat(AT_FDCWD, "/proc/self/task/964/comm", O_RDWR) = 13
+[pid   959] readlink("/dotnet", 0x7fff131e4860, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131e4860, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e4860, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e4860, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Private.CoreLib.dll", {st_mode=S_IFREG|0644, st_size=12773376, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Private.CoreLib.dll", O_RDONLY) = 11
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/libclrjit.so", O_RDONLY|O_CLOEXEC) = 13
+[pid   959] newfstatat(13, "", {st_mode=S_IFREG|0755, st_size=3618128, ...}, AT_EMPTY_PATH) = 0
+[pid   959] statfs("/sys/fs/cgroup", {f_type=CGROUP2_SUPER_MAGIC, f_bsize=4096, f_blocks=0, f_bfree=0, f_bavail=0, f_files=0, f_ffree=0, f_fsid={val=[0, 0]}, f_namelen=255, f_frsize=4096, f_flags=ST_VALID|ST_NOSUID|ST_NODEV|ST_NOEXEC|ST_RELATIME}) = 0
+[pid   959] openat(AT_FDCWD, "/proc/self/mountinfo", O_RDONLY) = 13
+[pid   959] newfstatat(13, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/proc/self/cgroup", O_RDONLY) = 13
+[pid   959] newfstatat(13, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/proc/self/mountinfo", O_RDONLY) = 13
+[pid   959] newfstatat(13, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/proc/self/cgroup", O_RDONLY) = 13
+[pid   959] newfstatat(13, "", {st_mode=S_IFREG|0444, st_size=0, ...}, AT_EMPTY_PATH) = 0
+strace: Process 965 attached
+[pid   959] openat(AT_FDCWD, "/proc/self/task/965/comm", O_RDWR) = 17
+[pid   959] openat(AT_FDCWD, "/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/runtimes/linux-x64/native/libSystem.Native.so", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/libSystem.Native.so", O_RDONLY|O_CLOEXEC) = 15
+[pid   959] newfstatat(15, "", {st_mode=S_IFREG|0755, st_size=90656, ...}, AT_EMPTY_PATH) = 0
+[pid   959] access("", F_OK)            = -1 ENOENT (No such file or directory)
+[pid   959] access("opt/corebreadcrumbs", F_OK) = -1 ENOENT (No such file or directory)
+[pid   959] readlink("/workspace", 0x7fff131e5870, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground", 0x7fff131e5870, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet", 0x7fff131e5870, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet/KafkaTool", 0x7fff131e5870, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin", 0x7fff131e5870, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug", 0x7fff131e5870, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0", 0x7fff131e5870, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/KafkaTool.dll", {st_mode=S_IFREG|0755, st_size=66048, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/KafkaTool.dll", O_RDONLY) = 15
+[pid   959] readlink("/dotnet", 0x7fff131e1530, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131e1530, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e1530, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e1530, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Runtime.dll", {st_mode=S_IFREG|0644, st_size=33280, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Runtime.dll", O_RDONLY) = 17
+[pid   959] openat(AT_FDCWD, "/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/runtimes/linux-x64/native/libSystem.Native.so", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] readlink("/workspace", 0x7fff131e0dc0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground", 0x7fff131e0dc0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet", 0x7fff131e0dc0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet/KafkaTool", 0x7fff131e0dc0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin", 0x7fff131e0dc0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug", 0x7fff131e0dc0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0", 0x7fff131e0dc0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/Spectre.Console.dll", {st_mode=S_IFREG|0755, st_size=813568, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/Spectre.Console.dll", O_RDONLY) = 19
+[pid   959] readlink("/dotnet", 0x7fff131e0e60, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131e0e60, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e0e60, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e0e60, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Console.dll", {st_mode=S_IFREG|0644, st_size=189952, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Console.dll", O_RDONLY) = 21
+[pid   959] readlink("/workspace", 0x7fff131e0e60, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground", 0x7fff131e0e60, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet", 0x7fff131e0e60, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet/KafkaTool", 0x7fff131e0e60, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin", 0x7fff131e0e60, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug", 0x7fff131e0e60, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0", 0x7fff131e0e60, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/Confluent.Kafka.dll", {st_mode=S_IFREG|0755, st_size=451584, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/Confluent.Kafka.dll", O_RDONLY) = 23
+[pid   959] readlink("/dotnet", 0x7fff131e36c0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131e36c0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e36c0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e36c0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Threading.dll", {st_mode=S_IFREG|0644, st_size=63488, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Threading.dll", O_RDONLY) = 25
+[pid   959] readlink("/dotnet", 0x7fff131e35c0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131e35c0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e35c0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e35c0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Runtime.InteropServices.dll", {st_mode=S_IFREG|0644, st_size=75776, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Runtime.InteropServices.dll", O_RDONLY) = 27
+[pid   959] readlink("/dotnet", 0x7fff131e2870, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131e2870, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e2870, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e2870, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/Microsoft.Win32.Primitives.dll", {st_mode=S_IFREG|0644, st_size=5120, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/Microsoft.Win32.Primitives.dll", O_RDONLY) = 30
+strace: Process 966 attached
+Using assembly:Confluent.Kafka, Version=2.11.0.0, Culture=neutral, PublicKeyToken=12c514ca49093d1em location:/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/Confluent.Kafka.dll
+[pid   959] readlink("/dotnet", 0x7fff131e1330, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131e1330, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e1330, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e1330, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Collections.dll", {st_mode=S_IFREG|0644, st_size=242176, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Collections.dll", O_RDONLY) = 34
+[pid   959] lstat("/etc/os-release", {st_mode=S_IFLNK|0777, st_size=21, ...}) = 0
+[pid   959] stat("/etc/os-release", {st_mode=S_IFREG|0644, st_size=386, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/etc/os-release", O_RDONLY|O_CLOEXEC) = 36
+[pid   959] readlink("/dotnet", 0x7fff131e07b0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131e07b0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e07b0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e07b0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Linq.dll", {st_mode=S_IFREG|0644, st_size=519680, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Linq.dll", O_RDONLY) = 36
+[pid   959] openat(AT_FDCWD, "/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/runtimes/linux-x64/native/librdkafka.so", O_RDONLY|O_CLOEXEC) = 38
+[pid   959] newfstatat(38, "", {st_mode=S_IFREG|0755, st_size=9165792, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 38
+[pid   959] newfstatat(38, "", {st_mode=S_IFREG|0644, st_size=24668, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libsasl2.so.3", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/libsasl2.so.3", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/lib/libsasl2.so.3", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/usr/lib/libsasl2.so.3", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/librdkafka.so", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/librdkafka.so", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 38
+[pid   959] newfstatat(38, "", {st_mode=S_IFREG|0644, st_size=24668, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/lib/x86_64-linux-gnu/librdkafka.so", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/librdkafka.so", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/lib/librdkafka.so", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/usr/lib/librdkafka.so", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/runtimes/linux-x64/native/liblibrdkafka.so", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/liblibrdkafka.so", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/liblibrdkafka.so", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 38
+[pid   959] newfstatat(38, "", {st_mode=S_IFREG|0644, st_size=24668, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/lib/x86_64-linux-gnu/liblibrdkafka.so", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/liblibrdkafka.so", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/lib/liblibrdkafka.so", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/usr/lib/liblibrdkafka.so", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/runtimes/linux-x64/native/librdkafka", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/librdkafka", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/librdkafka", O_RDONLY|O_CLOEXEC) = 38
+[pid   959] openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 38
+[pid   959] newfstatat(38, "", {st_mode=S_IFREG|0644, st_size=24668, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/lib/x86_64-linux-gnu/librdkafka", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/librdkafka", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/lib/librdkafka", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/usr/lib/librdkafka", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/runtimes/linux-x64/native/liblibrdkafka", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/liblibrdkafka", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/liblibrdkafka", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 38
+[pid   959] newfstatat(38, "", {st_mode=S_IFREG|0644, st_size=24668, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/lib/x86_64-linux-gnu/liblibrdkafka", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/usr/lib/x86_64-linux-gnu/liblibrdkafka", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/lib/liblibrdkafka", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/usr/lib/liblibrdkafka", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/runtimes/linux-x64/native/centos8-librdkafka.so", O_RDONLY|O_CLOEXEC) = 40
+[pid   959] newfstatat(40, "", {st_mode=S_IFREG|0755, st_size=9160080, ...}, AT_EMPTY_PATH) = 0
+[pid   959] readlink("/dotnet", 0x7fff131e0cc0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131e0cc0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e0cc0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e0cc0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Memory.dll", {st_mode=S_IFREG|0644, st_size=137216, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Memory.dll", O_RDONLY) = 40
+librdkafka Version: 2.11.0 (20B00FF)
+Debug Contexts: all, generic, broker, topic, metadata, feature, queue, msg, protocol, cgrp, security, fetch, interceptor, plugin, consumer, admin, eos, mock, assignor, conf
+[pid   959] readlink("/dotnet", 0x7fff131e0c80, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131e0c80, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e0c80, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e0c80, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.ComponentModel.Primitives.dll", {st_mode=S_IFREG|0644, st_size=60928, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.ComponentModel.Primitives.dll", O_RDONLY) = 42
+[pid   959] readlink("/dotnet", 0x7fff131e2a00, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131e2a00, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e2a00, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e2a00, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.ObjectModel.dll", {st_mode=S_IFREG|0644, st_size=58368, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.ObjectModel.dll", O_RDONLY) = 44
+[pid   959] readlink("/dotnet", 0x7fff131df530, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131df530, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131df530, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131df530, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.ComponentModel.TypeConverter.dll", {st_mode=S_IFREG|0644, st_size=737792, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.ComponentModel.TypeConverter.dll", O_RDONLY) = 46
+[pid   959] openat(AT_FDCWD, "/dev/urandom", O_RDONLY|O_CLOEXEC) = 48
+[pid   959] readlink("/dotnet", 0x7fff131e0390, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131e0390, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e0390, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e0390, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Runtime.InteropServices.RuntimeInformation.dll", {st_mode=S_IFREG|0644, st_size=5120, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Runtime.InteropServices.RuntimeInformation.dll", O_RDONLY) = 49
+[pid   959] readlink("/dotnet", 0x7fff131e0130, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131e0130, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e0130, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e0130, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Text.RegularExpressions.dll", {st_mode=S_IFREG|0644, st_size=1012224, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Text.RegularExpressions.dll", O_RDONLY) = 52
+[pid   959] readlink("/dotnet", 0x7fff131de2d0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131de2d0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131de2d0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131de2d0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.ComponentModel.dll", {st_mode=S_IFREG|0644, st_size=7168, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.ComponentModel.dll", O_RDONLY) = 54
+[pid   959] readlink("/dotnet", 0x7fff131e24d0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131e24d0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e24d0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e24d0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Collections.Concurrent.dll", {st_mode=S_IFREG|0644, st_size=245248, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Collections.Concurrent.dll", O_RDONLY) = 56
+[pid   959] readlink("/dotnet", 0x7fff131e2370, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131e2370, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131e2370, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131e2370, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Private.Uri.dll", {st_mode=S_IFREG|0644, st_size=238592, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/System.Private.Uri.dll", O_RDONLY) = 58
+[pid   959] readlink("/workspace", 0x7fff131e01f0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground", 0x7fff131e01f0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet", 0x7fff131e01f0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet/KafkaTool", 0x7fff131e01f0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin", 0x7fff131e01f0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug", 0x7fff131e01f0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0", 0x7fff131e01f0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/MoreLinq.dll", {st_mode=S_IFREG|0755, st_size=286208, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/MoreLinq.dll", O_RDONLY) = 60
+[pid   959] readlink("/dotnet", 0x7fff131dd7f0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared", 0x7fff131dd7f0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App", 0x7fff131dd7f0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] readlink("/dotnet/shared/Microsoft.NETCore.App/8.0.12", 0x7fff131dd7f0, 1023) = -1 EINVAL (Invalid argument)
+[pid   959] stat("/dotnet/shared/Microsoft.NETCore.App/8.0.12/netstandard.dll", {st_mode=S_IFREG|0644, st_size=90624, ...}) = 0
+[pid   959] openat(AT_FDCWD, "/dotnet/shared/Microsoft.NETCore.App/8.0.12/netstandard.dll", O_RDONLY) = 62
+[pid   959] openat(AT_FDCWD, "/usr/lib/ssl/openssl.cnf", O_RDONLY) = 64
+[pid   959] newfstatat(64, "", {st_mode=S_IFREG|0644, st_size=12419, ...}, AT_EMPTY_PATH) = 0
+[pid   959] openat(AT_FDCWD, "/root/.terminfo/x/xterm", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/root/.terminfo/78/xterm", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/etc/terminfo/x/xterm", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/etc/terminfo/78/xterm", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid   959] openat(AT_FDCWD, "/lib/terminfo/x/xterm", O_RDONLY|O_CLOEXEC) = 64
+[38;5;9mError:[0m No provider for SASL mechanism GSSAPI: recompile librdkafka with libsasl2
+or openssl support. Current build options: PLAIN SASL_SCRAM OAUTHBEARER
+[pid   959] unlink("/tmp/dotnet-diagnostic-959-15679137-socket") = 0
+[pid   959] unlink("/tmp/clr-debug-pipe-959-15679137-in") = 0
+[pid   959] unlink("/tmp/clr-debug-pipe-959-15679137-out") = 0
+[pid   962] <... openat resumed>)       = ?
+[pid   964] +++ exited with 0 +++
+[pid   963] +++ exited with 0 +++
+[pid   962] +++ exited with 0 +++
+[pid   961] +++ exited with 0 +++
+[pid   966] +++ exited with 0 +++
+[pid   960] +++ exited with 0 +++
+[pid   965] +++ exited with 0 +++
++++ exited with 0 +++

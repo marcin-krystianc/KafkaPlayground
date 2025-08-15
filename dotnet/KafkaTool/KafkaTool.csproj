@@ -8,8 +8,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Confluent.Kafka" Version="2.10.0-gr-experimental" />
-        <PackageReference Include="librdkafka.redist" Version="2.10.0-gr" />
+        <PackageReference Include="Confluent.Kafka" Version="2.11.0-rc2" />
+        <PackageReference Include="librdkafka.redist" Version="2.11.0.1-rc1+gr" />
         <PackageReference Include="IdentityModel" Version="7.0.0" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.9.0" />
         <PackageReference Include="Spectre.Console" Version="0.44.0" />
