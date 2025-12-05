@@ -114,7 +114,6 @@ def main():
     log.info("confluent_kafka version = %s", confluent_kafka.__version__)
     log.info("config = %s", config)
     log.info("settings = %s", settings)
-
     {
         'producer': run_producer,
         'consumer': run_consumer,

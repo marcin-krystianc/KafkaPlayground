@@ -10,4 +10,5 @@ uv sync
 Then to run the tool:
 ```
 uv run kafka_tool --help
+.venv/bin/python -m kafka_tool
 ```
