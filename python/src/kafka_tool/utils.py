@@ -10,7 +10,6 @@ from confluent_kafka.admin import NewTopic, AdminClient
 from .settings import ProducerConsumerSettings
 from .polling_admin_client import PollingAdminClient
 
-
 log = logging.getLogger(__name__)
 
 

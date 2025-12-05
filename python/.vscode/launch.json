@@ -26,11 +26,12 @@
             "--config","sasl.oauthbearer.client.id=kafka-producer-client",
             "--config","sasl.oauthbearer.client.secret=kafka-producer-client-secret",
             "--config","sasl.oauthbearer.method=OIDC",
-            "--config","sasl.oauthbearer.token.endpoint.url=\"http://keycloak:8080/realms/demo/protocol/openid-connect/token\"",
+            "--config","sasl.oauthbearer.token.endpoint.url=http://keycloak:8080/realms/demo/protocol/openid-connect/token",
             "--producers=1",
             "--recreate-topics-delay=100",
             "--recreate-topics-batch-size=500",
-            "--set-oauth-token-callback=true",]
+            // "--set-oauth-token-callback=true",
+            ]
 
         }
     ]
