@@ -13,8 +13,8 @@ from .producer_consumer import run_producer_consumer
 from .settings import ProducerConsumerSettings
 from .utils import oauth_cb
 
-log = logging.getLogger(__name__)
 
+log = logging.getLogger(__name__)
 
 def main():
     arg_parser = argparse.ArgumentParser("kafka_tool")

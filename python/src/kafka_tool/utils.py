@@ -5,11 +5,10 @@ import threading
 from typing import Dict, Sequence
 import requests
 
-from confluent_kafka.admin import NewTopic
+from confluent_kafka.admin import NewTopic, AdminClient
 
 from .settings import ProducerConsumerSettings
 from .polling_admin_client import PollingAdminClient
-
 
 log = logging.getLogger(__name__)
 
@@ -17,7 +16,7 @@ log = logging.getLogger(__name__)
 def get_admin_client(config: Dict[str, object]):
     # Passing a logger to AdminClient doesn't work unless you poll the client
     # (https://github.com/confluentinc/confluent-kafka-python/issues/1699)
-    client = PollingAdminClient(config)
+    client = AdminClient(config)
     return client
 
 
