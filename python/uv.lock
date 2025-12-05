@@ -35,15 +35,15 @@ wheels = [
 
 [[package]]
 name = "confluent-kafka"
-version = "2.10.0"
+version = "2.13.0b1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a0/c5/22087627478d2cc97b864dd1774c1e2d4007acc22b8f78aec5a7a41f6436/confluent_kafka-2.10.0.tar.gz", hash = "sha256:30a346908f3ad49c4bc1cb5557e7a8ce484190f8633aa18f9b87b2620809ac13", size = 193775, upload-time = "2025-04-17T21:18:43.965Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/02/0d/e06846759bbff352584de179bef2b3937ffa9d651a6eb0bc1e7a37bfb52f/confluent_kafka-2.13.0b1.tar.gz", hash = "sha256:8faa1820d66e48c18762755e7d3e8b899c5baac7dd6b649321af620bc00c8304", size = 268875, upload-time = "2025-11-25T18:54:14.29Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b6/46/8e4a8cde59a2c55c179443b521453d1e14ac4229278d34ff25b0df8fa82c/confluent_kafka-2.10.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:1448d6a5e8afd99c81221db2fd7cf33bd2079ce04df8ff5882b208911b0112a7", size = 3531501, upload-time = "2025-04-17T21:16:43.349Z" },
-    { url = "https://files.pythonhosted.org/packages/87/42/49b99f0e319d2b4d9b4780065bd98f39f1f5caacce5f222f674e7d97e537/confluent_kafka-2.10.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:965743d6832d3947c29970eeeedcb3728dfe69b5296fd5578fdb18ce39792318", size = 3055041, upload-time = "2025-04-17T21:16:46.61Z" },
-    { url = "https://files.pythonhosted.org/packages/29/fb/9dc751fd1a381c3001cd64942d79ae17c95509991352d0f3441c22d4a94d/confluent_kafka-2.10.0-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:4e4d4350f66eb3c4cd987f603f08974e461ce732dc63741744e09e0b490a3b1d", size = 15255596, upload-time = "2025-04-17T21:16:52.043Z" },
-    { url = "https://files.pythonhosted.org/packages/0b/f7/c436c39fb67a0785c90b9813f55d99834f0496c8d68bbd69fb7024ce465b/confluent_kafka-2.10.0-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:7eae0c1e49fb42e5085555c4387102034c0fe3194e2572049769ef4c30f733cc", size = 3847982, upload-time = "2025-04-17T21:16:56.624Z" },
-    { url = "https://files.pythonhosted.org/packages/2e/db/1f068f8566213717f587e18cbecee79173fc4d0ed1a14ece3a9d9c5a9aae/confluent_kafka-2.10.0-cp311-cp311-win_amd64.whl", hash = "sha256:82800e5cf27e21a7bbccb5aa6f2d9114ab253364526b08b0b97614369bf95612", size = 3977139, upload-time = "2025-04-17T21:16:59.796Z" },
+    { url = "https://files.pythonhosted.org/packages/b8/3b/8209e6d897194e8c4e3dd99245f422a28fe9b7ad32f18b07ccd69fc1c2ae/confluent_kafka-2.13.0b1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:d52def8d7c6be06c22e70a588a5f09fcaa6ebf69f0e81b16e3afe86afed19d2d", size = 3610926, upload-time = "2025-11-25T18:52:29.332Z" },
+    { url = "https://files.pythonhosted.org/packages/87/8c/7be8d6d6a4c6feb524f00cf7251af4da1923cb90e601fcbd44bfb2ba9e24/confluent_kafka-2.13.0b1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:4eb2cf7c637dd5292c2109e9c986e491d8112825d50380d495058b19bd0ac760", size = 3171275, upload-time = "2025-11-25T18:52:31.913Z" },
+    { url = "https://files.pythonhosted.org/packages/2b/67/b86192ea73564d56c7da457140d6174a15a1b2d2c9ff0302d9b7d61a22bd/confluent_kafka-2.13.0b1-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:6a56e4b3b6c5cd9e730d2db51a1b83d41a34bfff549a158a17c77ee1f1195696", size = 3709070, upload-time = "2025-11-25T18:52:34.511Z" },
+    { url = "https://files.pythonhosted.org/packages/4c/98/fa449c65ef577e2787f1dd7c9f77d364e09f130e3966042e8cb47f71bade/confluent_kafka-2.13.0b1-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:461a2f2ddafc7b0807a79242be9f64a3c000007d38270a7cd71c6a0b5af3f773", size = 3961008, upload-time = "2025-11-25T18:52:37.104Z" },
+    { url = "https://files.pythonhosted.org/packages/a3/2c/592235034815609ae65c3ebb9750843411edbd193f32598d3975ab7b1dd0/confluent_kafka-2.13.0b1-cp311-cp311-win_amd64.whl", hash = "sha256:d4119658509005fc3ce18316810a6676f10f3548be6b41b99c272cce6f0c9fb3", size = 4086611, upload-time = "2025-11-25T18:52:41.266Z" },
 ]
 
 [[package]]
@@ -66,7 +66,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "confluent-kafka", specifier = "==2.10.0" },
+    { name = "confluent-kafka", specifier = "==2.13.0b1" },
     { name = "requests", specifier = "==2.32.3" },
 ]
 

@@ -28,7 +28,7 @@ def recreate_topics(config: Dict[str, str], settings: ProducerConsumerSettings):
     log.info("Recreating %d topics", settings.topics)
     required_topics = set(get_topic_name(settings.topic_stem, i) for i in range(settings.topics))
     admin_client = get_admin_client(config)
-    admin_client.poll(0.1);
+    # admin_client.poll(0.1)
     existing_topics = admin_client.list_topics(timeout=30).topics
     batch_size = settings.recreate_topics_batch_size
     for batch in batched(

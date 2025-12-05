@@ -21,7 +21,7 @@ def run_reporter_task(
 
     log.info("Running reporter task")
     admin_client = get_admin_client(config);
-
+    # admin_client.poll(0.1)
     while True:
         for _ in range(10):
             if not shutdown.is_set():
