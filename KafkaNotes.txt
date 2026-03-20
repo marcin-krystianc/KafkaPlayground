@@ -1,0 +1,409 @@
+uv run kafka_tool producer-consumer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 \
+--topics=150 --partitions=10 --replication-factor=3 --min-isr=2 \
+--topic-stem=my-topic \
+--config request.timeout.ms=180000 \
+--config message.timeout.ms=180000 \
+--config request.required.acks=-1 \
+--config enable.idempotence=false \
+--config max.in.flight.requests.per.connection=1 \
+--config debug=all
+
+uv run kafka_tool producer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 \
+--topics=3000 --partitions=1 --replication-factor=3 --min-isr=2 --messages-per-second=10000 \
+--config request.timeout.ms=180000 \
+--config message.timeout.ms=180000 \
+--config request.required.acks=-1 \
+--config enable.idempotence=true \
+--config max.in.flight.requests.per.connection=1 \
+--config topic.metadata.propagation.max.ms=60000 \
+--producers=1 \
+--recreate-topics-delay=100 \
+--recreate-topics-batch-size=500
+
+
+dotnet run --project KafkaTool.csproj `
+producer `
+--config allow.auto.create.topics=false `
+--config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 `
+--topics=3000 --partitions=1 --replication-factor=3 --min-isr=2 --messages-per-second=10000 `
+--config request.timeout.ms=180000 `
+--config message.timeout.ms=180000 `
+--config request.required.acks=-1 `
+--config enable.idempotence=true `
+--config max.in.flight.requests.per.connection=1 `
+--config topic.metadata.propagation.max.ms=60000 `
+--producers=1 `
+--recreate-topics-delay=100 `
+--recreate-topics-batch-size=500
+
+
+
+dotnet run --project KafkaTool.csproj producer --config allow.auto.create.topics=false --config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 --topics=3000 --partitions=1 --replication-factor=3 --min-isr=2 --messages-per-second=10000 --config request.timeout.ms=180000 --config message.timeout.ms=180000 --config request.required.acks=-1 --config enable.idempotence=true --config max.in.flight.requests.per.connection=1 --config topic.metadata.propagation.max.ms=60000 --producers=1 --recreate-topics-delay=100 --recreate-topics-batch-size=500
+
+
+producer `
+"--config", "allow.auto.create.topics=false",
+"--config", "bootstrap.servers=localhost:40001,localhost:40002,localhost:40003",
+"--topics=3000", "--partitions=1", "--replication-factor=3", "--min-isr=2", "--messages-per-second=10000",
+"--config", "request.timeout.ms=180000",
+"--config", "message.timeout.ms=180000",
+"--config", "request.required.acks=-1",
+"--config", "enable.idempotence=true",
+"--config", "max.in.flight.requests.per.connection=1",
+"--config", "topic.metadata.propagation.max.ms=60000",
+"--producers=1",
+"--recreate-topics-delay=100",
+"--recreate-topics-batch-size=500"
+
+
+uv run kafka_tool producer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=kafka-1:9092 \
+--topics=1 --partitions=1 --replication-factor=1 --min-isr=1 --messages-per-second=10000 \
+--config request.timeout.ms=180000 \
+--config message.timeout.ms=180000 \
+--config request.required.acks=-1 \
+--config enable.idempotence=true \
+--config max.in.flight.requests.per.connection=1 \
+--config topic.metadata.propagation.max.ms=60000 \
+--producers=1 \
+--recreate-topics-delay=100 \
+--recreate-topics-batch-size=500 \
+--config security.protocol=SASL_PLAINTEXT \
+--config sasl.mechanism=OAUTHBEARER \
+--config sasl.oauthbearer.client.id=kafka-producer-client \
+--config sasl.oauthbearer.client.secret=kafka-producer-client-secret \
+--config sasl.oauthbearer.method=OIDC \
+--set-oauth-token-callback=true
+
+uv run kafka_tool producer ",
+"--config","allow.auto.create.topics=false ",
+"--config","bootstrap.servers=kafka-1:9092 ",
+"--config","request.timeout.ms=180000 ",
+"--config","message.timeout.ms=180000 ",
+"--config","request.required.acks=-1 ",
+"--config","enable.idempotence=true ",
+"--config","max.in.flight.requests.per.connection=1 ",
+"--config","topic.metadata.propagation.max.ms=60000 ",
+"--config","security.protocol=SASL_PLAINTEXT ",
+"--config","sasl.mechanism=OAUTHBEARER ",
+"--config","sasl.oauthbearer.client.id=kafka-producer-client ",
+"--config","sasl.oauthbearer.client.secret=kafka-producer-client-secret ",
+"--config","sasl.oauthbearer.method=OIDC ",
+"--config","sasl.oauthbearer.token.endpoint.url="http://keycloak:8080/realms/demo/protocol/openid-connect/token"
+"--topics=1 --partitions=1 --replication-factor=3 --min-isr=2 --messages-per-second=10000 ",
+"--producers=1 ",
+"--recreate-topics-delay=100 ",
+"--recreate-topics-batch-size=500 ",
+
+uv run kafka_tool producer-consumer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=kafka-1:9092 \
+--topics=1 --partitions=1 --replication-factor=1 --min-isr=1 --messages-per-second=10000 \
+--config request.timeout.ms=180000 \
+--config message.timeout.ms=180000 \
+--config request.required.acks=-1 \
+--config enable.idempotence=true \
+--config max.in.flight.requests.per.connection=1 \
+--config topic.metadata.propagation.max.ms=60000 \
+--producers=1 \
+--recreate-topics-delay=100 \
+--recreate-topics-batch-size=500 \
+--config security.protocol=SASL_PLAINTEXT \
+--config sasl.mechanism=OAUTHBEARER \
+--set-oauth-token-callback=true
+
+
+/linux-6.4.16/tools/perf/perf record --freq=10000 --call-graph dwarf -o /perf.data /dotnet/dotnet /workspace/KafkaPlayground/dotnet/bin/Debug/net8.0/KafkaTool.dll \
+consumer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=localhost:40001,localhost:40002,localhost:40003 \
+--topics=1 \
+--partitions=1 \
+--replication-factor=3 \
+--min-isr=2 \
+--topic-stem=my-topic \
+\
+--config request.required.acks=-1 \
+--config enable.idempotence=false \
+--config max.in.flight.requests.per.connection=1 \
+\
+--config auto.offset.reset=earliest \
+--config enable.auto.offset.store=false \
+--config enable.auto.commit=false \
+--config fetch.wait.max.ms=5 \
+--config fetch.max.bytes=100000000 \
+--config fetch.message.max.bytes=100000000 \
+\
+--reporting-cycle=1000 \
+--producers=1 \
+--recreate-topics=true \
+--recreate-topics-delay=1 \
+--recreate-topics-batch-size=1000
+
+
+
+
+dotnet run -c Release --project /workspace/KafkaPlayground/dotnet/KafkaTool/KafkaTool.csproj \
+/dotnet/dotnet /workspace/KafkaPlayground/dotnet/bin/Debug/net8.0/KafkaTool.dll \
+producer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=3.72.76.31:40001 \
+--topics=1 \
+--partitions=1 \
+--replication-factor=3 \
+--min-isr=2 \
+--topic-stem=my-topic \
+--messages-per-second=50 \
+--burst-messages-per-second=1500000 \
+--burst-cycle=0 \
+--burst-duration=5000 \
+\
+--config request.required.acks=-1 \
+--config enable.idempotence=true \
+--config max.in.flight.requests.per.connection=1 \
+\
+--config queue.buffering.max.ms=3 \
+--config queue.buffering.max.messages=10000000 \
+--config queue.buffering.max.kbytes=10000000 \
+\
+--reporting-cycle=1000 \
+--producers=1 \
+--recreate-topics=true \
+--recreate-topics-delay=5000 \
+--recreate-topics-batch-size=500
+
+
+mvn package && mvn exec:java "-Dexec.mainClass=kafka.testing.Main" "$(cat <<EOF | tr '\n' ' ' | sed 's/ *$//'
+"-Dexec.args=producer
+--config allow.auto.create.topics=false
+--config bootstrap.servers=52.59.208.196:40001
+--topics=1
+--partitions=1
+--replication-factor=3
+--min-isr=2
+--topic-stem=my-topic
+--messages-per-second=50
+--burst-messages-per-second=1500000
+--burst-cycle=0
+--burst-duration=5000
+
+--config request.required.acks=-1
+--config enable.idempotence=true
+--config max.in.flight.requests.per.connection=5
+
+--config auto.offset.reset=latest
+--config enable.auto.offset.store=false
+--config enable.auto.commit=false
+--config fetch.wait.max.ms=5
+--config fetch.queue.backoff.ms=5
+--config fetch.error.backoff.ms=5
+--config fetch.max.bytes=1000000000
+--config fetch.message.max.bytes=1000000000
+
+--config queue.buffering.max.ms=2
+--config queue.buffering.max.messages=10000000
+--config queue.buffering.max.kbytes=10000000
+
+--reporting-cycle=100
+--producers=1
+--recreate-topics=false
+--recreate-topics-delay=5000
+--recreate-topics-batch-size=500
+EOF
+)"
+
+
+LD_PRELOAD=/usr/lib/gcc/x86_64-linux-gnu/11/libasan.so /dotnet/dotnet /workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/KafkaTool.dll \
+producer-consumer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=kafka-1:19092 \
+--topics=3000 \
+--partitions=1 \
+--replication-factor=3 \
+--min-isr=2 \
+--topic-stem=my-topic \
+--messages-per-second=50 \
+\
+--config request.required.acks=-1 \
+--config enable.idempotence=true \
+--config max.in.flight.requests.per.connection=5 \
+--config topic.metadata.propagation.max.ms=180000 \
+\
+--reporting-cycle=1000 \
+--producers=1 \
+--recreate-topics=true \
+--recreate-topics-delay=1 \
+--recreate-topics-batch-size=500
+
+
+
+dotnet run -c Release --project /workspace/KafkaPlayground/dotnet/KafkaTool/KafkaTool.csproj \
+
+/dotnet/dotnet /workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/KafkaTool.dll \
+producer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=kafka-1:9092 \
+--topics=1 \
+--partitions=1 \
+--replication-factor=1 \
+--min-isr=1 \
+--topic-stem=my-topic \
+--messages-per-second=100 \
+\
+--config request.required.acks=-1 \
+--config enable.idempotence=true \
+--config max.in.flight.requests.per.connection=1 \
+--config enable.auto.offset.store=false \
+--config enable.auto.commit=false \
+\
+--reporting-cycle=1000 \
+--producers=1 \
+--recreate-topics=true \
+--config security.protocol=SASL_PLAINTEXT \
+--config sasl.mechanism=OAUTHBEARER \
+--config sasl.oauthbearer.client.id=kafka-producer-client \
+--config sasl.oauthbearer.client.secret=kafka-producer-client-secret \
+--config sasl.oauthbearer.method=OIDC \
+--config sasl.oauthbearer.token.endpoint.url="http://keycloak:8080/realms/demo/protocol/openid-connect/token"
+
+
+
+"--config", "security.protocol=SASL_PLAINTEXT", 
+"--config", "sasl.mechanism=OAUTHBEARER", 
+"--config", "sasl.oauthbearer.client.id=kafka-producer-client", 
+"--config", "sasl.oauthbearer.client.secret=kafka-producer-client-secret", 
+"--config", "sasl.oauthbearer.method=OIDC", 
+"--config", "sasl.oauthbearer.token.endpoint.url="http://keycloak:8080/realms/demo/protocol/openid-connect/token"
+
+
+
+/dotnet/dotnet /workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/KafkaTool.dll \
+producer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=kafka-1:9092 \
+--topics=1 \
+--partitions=1 \
+--replication-factor=1 \
+--min-isr=1 \
+--topic-stem=my-topic \
+--messages-per-second=100 \
+\
+--config request.required.acks=-1 \
+--config enable.idempotence=true \
+--config max.in.flight.requests.per.connection=1 \
+--config enable.auto.offset.store=false \
+--config enable.auto.commit=false \
+\
+--reporting-cycle=1000 \
+--producers=1 \
+--recreate-topics=true \
+--config security.protocol=SASL_PLAINTEXT \
+--config sasl.mechanism=OAUTHBEARER \
+--config sasl.oauthbearer.assertion.private.key.file=/workspace/tmp/client-private-key.pem \
+--config sasl.oauthbearer.assertion.claim.aud=https://keycloak:8443/realms/demo \
+--config sasl.oauthbearer.grant.type=urn:ietf:params:oauth:grant-type:jwt-bearer \
+--config sasl.oauthbearer.assertion.claim.iss=kafka-consumer-client-jwt \
+--config sasl.oauthbearer.assertion.claim.sub=kafka-consumer-client-jwt \
+--config sasl.oauthbearer.assertion.claim.jti.include=true \
+--config sasl.oauthbearer.method=OIDC \
+--config sasl.oauthbearer.token.endpoint.url="http://keycloak:8080/realms/demo/protocol/openid-connect/token" \
+--config debug=all
+
+
+
+dotnet run -c Release --project /workspace/KafkaPlayground/dotnet/KafkaTool/KafkaTool.csproj \
+producer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=kafka-1:9092 \
+--topics=1 \
+--partitions=1 \
+--replication-factor=1 \
+--min-isr=1 \
+--topic-stem=my-topic \
+--messages-per-second=100 \
+--config request.required.acks=-1 \
+--config enable.idempotence=true \
+--config max.in.flight.requests.per.connection=1 \
+--config enable.auto.offset.store=false \
+--config enable.auto.commit=false \
+--reporting-cycle=1000 \
+--producers=1 \
+--recreate-topics=true \
+--config security.protocol=SASL_PLAINTEXT \
+--config sasl.mechanism=OAUTHBEARER \
+--set-oauth-token-callback=true \
+--use-client-assertion-for-oauth=false
+
+
+/dotnet/dotnet /workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/KafkaTool.dll \
+producer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=kafka-1:9092 \
+--topics=1 \
+--partitions=1 \
+--replication-factor=1 \
+--min-isr=1 \
+--topic-stem=my-topic \
+--messages-per-second=100 \
+--config request.required.acks=-1 \
+--config enable.idempotence=true \
+--config max.in.flight.requests.per.connection=1 \
+--config enable.auto.offset.store=false \
+--config enable.auto.commit=false \
+--reporting-cycle=1000 \
+--producers=1 \
+--recreate-topics=true \
+--config security.protocol=SASL_PLAINTEXT \
+--config sasl.mechanism=OAUTHBEARER \
+--config sasl.oauthbearer.method=OIDC \
+--config sasl.oauthbearer.grant.type=urn:ietf:params:oauth:grant-type:jwt-bearer \
+--config sasl.oauthbearer.assertion.file="/tmp/assertion" \
+--config sasl.oauthbearer.token.endpoint.url="http://keycloak:8080/realms/demo/protocol/openid-connect/token" \
+--config debug=all
+
+/dotnet/dotnet /workspace/KafkaPlayground/dotnet/KafkaTool/bin/Debug/net8.0/KafkaTool.dll \
+producer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=kafka-1:9092 \
+--topics=1 \
+--partitions=1 \
+--replication-factor=1 \
+--min-isr=1 \
+--topic-stem=my-topic \
+--messages-per-second=1 \
+--config request.required.acks=-1 \
+--config enable.idempotence=true \
+--config max.in.flight.requests.per.connection=1 \
+--config enable.auto.offset.store=false \
+--config enable.auto.commit=false \
+--reporting-cycle=1000 \
+--producers=1 \
+--recreate-topics=true \
+--config security.protocol=SASL_PLAINTEXT \
+--config sasl.mechanism=OAUTHBEARER \
+--set-oauth-token-callback=true \
+--use-client-assertion-for-oauth=true
+
+uv run kafka_tool producer \
+--config allow.auto.create.topics=false \
+--config bootstrap.servers=kafka-1:9092 \
+--topics=1 --partitions=1 --replication-factor=1 --min-isr=1 --messages-per-second=1 \
+--config request.timeout.ms=180000 \
+--config message.timeout.ms=180000 \
+--config request.required.acks=-1 \
+--config enable.idempotence=true \
+--config max.in.flight.requests.per.connection=1 \
+--config topic.metadata.propagation.max.ms=60000 \
+--producers=1 \
+--recreate-topics-delay=100 \
+--producers=1 \
+--recreate-topics=true \
+--config security.protocol=SASL_PLAINTEXT \
+--config sasl.mechanism=OAUTHBEARER \
+--set-oauth-token-callback=true \
+
